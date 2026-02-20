@@ -1033,6 +1033,49 @@ def get_drivers_data():
 
     return data_list
 
+@app.route('/admin/api/update_drivers', methods=['POST'])
+def api_update_drivers():
+    # Einfacher Schutz: Wir prüfen einen API-Key oder das Admin-Passwort im Header
+    api_key = request.headers.get('X-API-Key')
+    if api_key != ADMIN_PASSWORD:
+        return {"error": "Unauthorized"}, 401
+        
+    try:
+        data = request.json
+        if not data or 'drivers' not in data:
+            return {"error": "Invalid data"}, 400
+            
+        # Wir überschreiben die bestehenden Fahrer mit den neuen Daten
+        # Aber wir müssen vorsichtig sein, dass wir keine Felder löschen, die das Skript nicht kennt
+        current_drivers = load_drivers()
+        updated_drivers = data['drivers']
+        
+        # Merge-Logik: Wir aktualisieren nur die Stats, behalten den Rest
+        count = 0
+        for new_d in updated_drivers:
+            # Suche passenden Fahrer in DB
+            target = next((d for d in current_drivers if str(d.get('id')) == str(new_d.get('id'))), None)
+            if target:
+                if 'ir_sports' in new_d: target['ir_sports'] = new_d['ir_sports']
+                if 'sr_sports' in new_d: target['sr_sports'] = new_d['sr_sports']
+                count += 1
+                
+        save_drivers(current_drivers)
+        return {"status": "success", "updated": count}
+        
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+@app.route('/admin/api/get_drivers')
+def api_get_drivers():
+    # Damit das Skript weiß, wen es aktualisieren muss
+    # Auch hier: Auth Check
+    api_key = request.headers.get('X-API-Key')
+    if api_key != ADMIN_PASSWORD:
+        return {"error": "Unauthorized"}, 401
+        
+    return {"drivers": load_drivers()}
+
 # --- Public Routen ---
 
 @app.route('/')
