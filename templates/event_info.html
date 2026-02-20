@@ -113,6 +113,7 @@
 
                     <!-- Content -->
                     <div class="driver-content">
+                        <div class="watermark-logo"></div>
                         <div class="driver-name">
                             {% set names = driver.name.split(' ') %}
                             <span class="first-name">{{ names[0] }}</span>
@@ -325,7 +326,16 @@
         height: calc(100% - 50px); display: flex; flex-direction: column;
     }
 
-    .driver-name { display: flex; flex-direction: column; line-height: 1.1; margin-bottom: 5px; }
+    /* Logo Wasserzeichen */
+    .watermark-logo {
+        position: absolute;
+        top: -20px; left: -20px; width: 180px; height: 120px;
+        background-image: url('/static/img/logo.png');
+        background-size: contain; background-repeat: no-repeat;
+        opacity: 0.05; z-index: -1; pointer-events: none;
+    }
+
+    .driver-name { display: flex; flex-direction: column; line-height: 1.1; margin-bottom: 5px; position: relative; z-index: 2; }
     .first-name { font-size: 1.1rem; color: white; font-weight: 300; text-transform: uppercase; }
     .last-name { font-size: 1.8rem; color: var(--rdf-teal); font-weight: 800; text-transform: uppercase; line-height: 0.9; }
     
