@@ -827,6 +827,30 @@ def debug_iracing():
             except Exception as e:
                 debug_info.append(f"Login (Hashed): ERROR ({e})")
 
+        # 5. Röntgen-Blick: Manueller Request um Antwort zu sehen
+        import requests
+        try:
+            url = "https://members-ng.iracing.com/auth"
+            headers = {'Content-Type': 'application/json'}
+            data = {"email": u, "password": base64.b64encode(hashlib.sha256((p + u.lower()).encode('utf-8')).digest()).decode('utf-8')}
+            
+            resp = requests.post(url, json=data, headers=headers, timeout=10)
+            
+            debug_info.append(f"<br>--- RAW RESPONSE CHECK ---")
+            debug_info.append(f"Status Code: {resp.status_code}")
+            
+            # Zeige die ersten 300 Zeichen der Antwort
+            content_preview = resp.text[:300].replace('<', '&lt;').replace('>', '&gt;')
+            debug_info.append(f"Response Preview: {content_preview}...")
+            
+            if resp.status_code == 403:
+                debug_info.append("<b>DIAGNOSE: 403 Forbidden -> Wahrscheinlich IP-Block durch Cloudflare.</b>")
+            elif resp.status_code == 429:
+                debug_info.append("<b>DIAGNOSE: 429 Too Many Requests -> Rate Limit.</b>")
+            
+        except Exception as e:
+            debug_info.append(f"Raw Request Failed: {e}")
+
     except Exception as e:
         debug_info.append(f"irDataClient Import/Test: FAILED ({e})")
 
