@@ -840,8 +840,14 @@ def news_detail(news_id):
     
     if not news_item:
         return redirect(url_for('index'))
+    
+    linked_event = None
+    event_id = news_item.get('event_id')
+    if event_id:
+        events = load_events()
+        linked_event = next((e for e in events if str(e['id']) == str(event_id)), None)
         
-    return render_template('news_detail.html', news=news_item)
+    return render_template('news_detail.html', news=news_item, event=linked_event)
 
 @app.route('/admin/save_drivers_list', methods=['POST'])
 @login_required
@@ -866,9 +872,13 @@ def admin_news_new():
         "category": "ARTICLE", # Default
         "image_url": "",
         "link": "",
-        "date": datetime.now().strftime('%Y-%m-%d')
+        "date": datetime.now().strftime('%Y-%m-%d'),
+        "event_id": "" # Link zu einem Event
     }
-    return render_template('admin_edit_news.html', news=news_item, mode="new")
+    events = load_events()
+    # Sort events by date descending for easier selection
+    events.sort(key=lambda x: x.get('date', ''), reverse=True)
+    return render_template('admin_edit_news.html', news=news_item, mode="new", events=events)
 
 @app.route('/admin/news/edit/<news_id>')
 @login_required
@@ -880,7 +890,9 @@ def admin_news_edit(news_id):
         flash("News-Eintrag nicht gefunden", "error")
         return redirect(url_for('admin_news'))
         
-    return render_template('admin_edit_news.html', news=news_item, mode="edit")
+    events = load_events()
+    events.sort(key=lambda x: x.get('date', ''), reverse=True)
+    return render_template('admin_edit_news.html', news=news_item, mode="edit", events=events)
 
 @app.route('/admin/news/save', methods=['POST'])
 @login_required
@@ -905,6 +917,8 @@ def admin_news_save():
     news_item['date'] = request.form.get('date')
     news_item['link'] = request.form.get('link')
     news_item['content'] = request.form.get('content') # Neuer Inhalt
+    news_item['event_id'] = request.form.get('event_id') # Verknüpftes Event
+
     
     # Bild Upload
     if 'news_image' in request.files:

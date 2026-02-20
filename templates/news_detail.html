@@ -31,6 +31,27 @@
         </div>
     </div>
     
+    {% if event %}
+    <div style="clear: both; margin-top: 60px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="color: var(--rdf-teal); margin-bottom: 20px; text-transform: uppercase; font-size: 1.2rem;">Related Event</h3>
+        
+        <div class="event-card" style="background: rgba(15, 28, 46, 0.8); border: 1px solid var(--rdf-border); border-radius: 8px; padding: 25px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+            <div style="flex: 1; min-width: 250px;">
+                <span class="badge" style="background: rgba(79, 209, 197, 0.1); color: var(--rdf-teal); font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; margin-bottom: 10px; display: inline-block;">{{ event.series }}</span>
+                <h2 style="color: white; margin: 0 0 10px 0;">{{ event.title }}</h2>
+                <div style="color: var(--rdf-silver); display: flex; gap: 15px; font-size: 0.9rem;">
+                    <span><i class="far fa-calendar"></i> {{ event.date.replace('T', ' ') }}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> {{ event.track }}</span>
+                </div>
+            </div>
+            
+            <div style="text-align: right;">
+                <a href="/event/{{ event.id }}" class="btn-primary" style="font-size: 0.9rem;">Event Details <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <div style="clear: both; margin-top: 60px; text-align: center;">
         <a href="/" class="btn-secondary">&larr; Zurück zur Startseite</a>
     </div>

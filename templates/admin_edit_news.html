@@ -29,6 +29,19 @@
             <input type="url" name="link" value="{{ news.link }}" class="form-control" placeholder="https://...">
             <small style="color: var(--rdf-silver);">Nur ausfüllen, wenn es KEIN interner Artikel sein soll (z.B. externer Bericht).</small>
         </div>
+        
+        <div class="form-group">
+            <label>Verknüpftes Event (Optional)</label>
+            <select name="event_id" class="form-control">
+                <option value="">-- Kein Event verknüpft --</option>
+                {% for event in events %}
+                <option value="{{ event.id }}" {% if news.event_id == event.id %}selected{% endif %}>
+                    {{ event.date }} - {{ event.title }} ({{ event.series }})
+                </option>
+                {% endfor %}
+            </select>
+            <small style="color: var(--rdf-silver);">Wenn ausgewählt, werden Infos zu diesem Rennen unter dem Artikel angezeigt.</small>
+        </div>
 
         <div class="form-group">
             <label>Artikel Inhalt (Optional)</label>
