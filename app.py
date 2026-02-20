@@ -1,12 +1,20 @@
 import os
 import json
 import sys
+import shutil
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from iracingdataapi.client import irDataClient
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from functools import wraps
 from werkzeug.utils import secure_filename
+
+# Versuche iracingdataapi zu importieren
+try:
+    from iracingdataapi.client import irDataClient
+    IRACING_AVAILABLE = True
+except ImportError:
+    IRACING_AVAILABLE = False
+    print("Warnung: iracingdataapi nicht installiert. iRacing Features deaktiviert.")
 
 # Lade Umgebungsvariablen
 try:
@@ -16,20 +24,68 @@ except Exception as e:
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'super-secret-key-for-dev') # Notwendig für Flash-Messages
-DRIVERS_FILE = 'drivers.json'
-CONFIG_FILE = 'site_config.json'
-CARS_FILE = 'cars.json'
-EVENTS_FILE = 'events.json'
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
-UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static/uploads')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
-# Ordner sicherstellen
-try:
+# --- PERSISTENZ KONFIGURATION (Volume Support) ---
+RAILWAY_VOLUME_MOUNT_POINT = os.environ.get('RAILWAY_VOLUME_MOUNT_POINT', '/app/persistent')
+
+if os.path.exists(RAILWAY_VOLUME_MOUNT_POINT):
+    print(f"Persistentes Volume gefunden unter: {RAILWAY_VOLUME_MOUNT_POINT}")
+    BASE_DATA_DIR = RAILWAY_VOLUME_MOUNT_POINT
+else:
+    print("Kein persistentes Volume gefunden, nutze lokales Verzeichnis.")
+    BASE_DATA_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DRIVERS_FILE = os.path.join(BASE_DATA_DIR, 'drivers.json')
+CONFIG_FILE = os.path.join(BASE_DATA_DIR, 'site_config.json')
+CARS_FILE = os.path.join(BASE_DATA_DIR, 'cars.json')
+EVENTS_FILE = os.path.join(BASE_DATA_DIR, 'events.json')
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
+
+UPLOAD_FOLDER = os.path.join(BASE_DATA_DIR, 'static/uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+LOCAL_STATIC_UPLOADS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/uploads')
+
+# Initialisierung der Daten
+def init_persistence():
+    # 1. Ordner erstellen
+    if not os.path.exists(BASE_DATA_DIR):
+        try:
+            os.makedirs(BASE_DATA_DIR)
+        except OSError:
+            pass 
+
+    # 2. Upload Ordner im Persistenten Bereich erstellen
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
-except Exception as e:
-    print(f"Fehler beim Erstellen von {UPLOAD_FOLDER}: {e}")
+
+    # 3. Symlink für Uploads
+    if os.path.abspath(LOCAL_STATIC_UPLOADS) != os.path.abspath(UPLOAD_FOLDER):
+        if os.path.exists(LOCAL_STATIC_UPLOADS) and not os.path.islink(LOCAL_STATIC_UPLOADS):
+            print("Kopiere bestehende Uploads ins Volume...")
+            for item in os.listdir(LOCAL_STATIC_UPLOADS):
+                s = os.path.join(LOCAL_STATIC_UPLOADS, item)
+                d = os.path.join(UPLOAD_FOLDER, item)
+                if os.path.isfile(s):
+                    shutil.copy2(s, d)
+            shutil.rmtree(LOCAL_STATIC_UPLOADS)
+        
+        if not os.path.exists(LOCAL_STATIC_UPLOADS):
+            try:
+                os.symlink(UPLOAD_FOLDER, LOCAL_STATIC_UPLOADS)
+                print(f"Symlink erstellt: {LOCAL_STATIC_UPLOADS} -> {UPLOAD_FOLDER}")
+            except Exception as e:
+                print(f"Konnte Symlink nicht erstellen: {e}")
+
+    # 4. JSON Dateien initialisieren (Kopieren falls nicht im Volume)
+    for filename in ['drivers.json', 'site_config.json', 'cars.json', 'events.json']:
+        target_file = os.path.join(BASE_DATA_DIR, filename)
+        source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+        
+        if not os.path.exists(target_file) and os.path.exists(source_file) and os.path.abspath(target_file) != os.path.abspath(source_file):
+            print(f"Kopiere {filename} ins Volume...")
+            shutil.copy2(source_file, target_file)
+
+init_persistence()
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
