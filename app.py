@@ -869,68 +869,86 @@ def update_iracing_stats():
         return redirect(url_for('admin_dashboard'))
 
     drivers = load_drivers()
-    updated_count = 0
-    errors = []
+# --- Eigener Mini-Client (da Library zickt) ---
+import hashlib
+import base64
+import requests
+
+class SimpleIRacingClient:
+    def __init__(self, username, password):
+        self.session = requests.Session()
+        self.username = username
+        self.password = password
+        self.authenticated = False
+        self.login()
+
+    def login(self):
+        # 1. Passwort Hashen
+        hash_val = hashlib.sha256((self.password + self.username.lower()).encode('utf-8')).digest()
+        pw_hash = base64.b64encode(hash_val).decode('utf-8')
+        
+        # 2. Login Request
+        url = "https://members-ng.iracing.com/auth"
+        headers = {'Content-Type': 'application/json'}
+        data = {"email": self.username, "password": pw_hash}
+        
+        try:
+            resp = self.session.post(url, json=data, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                self.authenticated = True
+                print("SimpleClient: Login erfolgreich!")
+            else:
+                print(f"SimpleClient: Login fehlgeschlagen ({resp.status_code}): {resp.text[:100]}")
+                raise Exception(f"Login Failed: {resp.status_code}")
+        except Exception as e:
+            print(f"SimpleClient: Connection Error: {e}")
+            raise e
+
+    def get_stats(self, cust_id):
+        if not self.authenticated:
+            raise Exception("Not authenticated")
+            
+        url = "https://members-ng.iracing.com/data/stats/member_career"
+        params = {"cust_id": cust_id}
+        
+        resp = self.session.get(url, params=params, timeout=10)
+        if resp.status_code == 200:
+            return resp.json().get('stats', [])
+        else:
+            print(f"Stats Error {cust_id}: {resp.status_code}")
+            return None
+
+# ... (Rest bleibt)
+
+@app.route('/admin/update_iracing_stats')
+@login_required
+def update_iracing_stats():
+    # ...
     
+    # Statt irDataClient nutzen wir unseren SimpleClient
     try:
         # Versuche Login explizit
         try:
-            idc = irDataClient(username=IRACING_USER, password=IRACING_PASSWORD)
+            # Wir nutzen hier den SimpleClient
+            idc = SimpleIRacingClient(username=IRACING_USER, password=IRACING_PASSWORD)
         except Exception as e:
+            # Fallback auf Library Client falls SimpleClient fehlschlägt? Nein, wir wollen Klarheit.
             flash(f"Login bei iRacing fehlgeschlagen: {str(e)}", "error")
             return redirect(url_for('admin_dashboard'))
             
         for driver in drivers:
-            # Prio 1: Explizite iRacing ID
-            cust_id = driver.get('iracing_id')
-            
-            # Prio 2: Fallback auf ID (falls es früher die iRacing ID war)
-            if not cust_id:
-                cust_id = driver.get('id')
-            
-            # Prüfen ob ID gültig ist (muss eine Zahl sein)
-            if not cust_id or not str(cust_id).isdigit(): 
-                continue
+            # ... (ID Logik) ...
 
             try:
-                # API Call
-                stats = idc.stats_member_career(cust_id=int(cust_id))
+                # API Call (angepasst an SimpleClient)
+                # stats = idc.stats_member_career(cust_id=int(cust_id)) <-- ALT
+                stats = idc.get_stats(cust_id=int(cust_id)) # <-- NEU
+                
                 if not stats: 
                     errors.append(f"Keine Daten für ID {cust_id} gefunden.")
                     continue
+                # ...
 
-                # Wir nehmen einfach die erste Kategorie die wir finden, falls Sports/Formula nicht da sind
-                # Bevorzugte Reihenfolge: Sports Car (2), Formula (1), Oval (3), Dirt Oval (4)
-                target_stats = None
-                for cat_id in [2, 1, 3, 4]:
-                    target_stats = next((s for s in stats if s['category_id'] == cat_id), None)
-                    if target_stats: break
-                
-                if target_stats:
-                    driver['ir_sports'] = target_stats['irating']
-                    driver['sr_sports'] = f"{target_stats['license_class']} {target_stats['safety_rating']}"
-                    updated_count += 1
-                else:
-                    errors.append(f"ID {cust_id}: Daten gefunden, aber keine passende Kategorie (Sports/Formula/Oval).")
-
-            except Exception as inner_e:
-                errors.append(f"Fehler bei ID {cust_id}: {str(inner_e)}")
-                continue
-                
-        if updated_count > 0:
-            save_data()
-            msg = f"{updated_count} Fahrer erfolgreich aktualisiert!"
-            if errors:
-                msg += f" (Aber {len(errors)} Fehler: {'; '.join(errors[:3])})"
-            flash(msg, "success")
-        else:
-            if errors:
-                flash(f"Fehler: {'; '.join(errors[:3])}", "error")
-            else:
-                flash("Keine Fahrer aktualisiert. IDs geprüft?", "warning")
-            
-    except Exception as e:
-        flash(f"Kritischer Fehler: {str(e)}", "error")
 
     return redirect(url_for('admin_dashboard'))
 
