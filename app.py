@@ -486,6 +486,13 @@ def admin_settings_save():
             
             config['nav_logo_url'] = url_for('static', filename=f'uploads/{filename}')
             flash("Nav Logo aktualisiert!", "success")
+    
+    # Social Media Links speichern
+    config['social_discord'] = request.form.get('social_discord')
+    config['social_instagram'] = request.form.get('social_instagram')
+    config['social_twitter'] = request.form.get('social_twitter')
+    config['social_twitch'] = request.form.get('social_twitch')
+    config['social_youtube'] = request.form.get('social_youtube')
             
     save_config(config)
     return redirect(url_for('admin_settings'))

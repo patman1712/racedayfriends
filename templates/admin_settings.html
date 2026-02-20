@@ -30,6 +30,36 @@
             <small style="color: var(--rdf-silver);">Lade hier ein PNG-Logo hoch (idealerweise transparenter Hintergrund, ca. 50-100px hoch).</small>
         </div>
 
+        <hr style="border: 0; border-top: 1px solid var(--rdf-border); margin: 40px 0;">
+
+        <h2>Social Media</h2>
+        <p style="color: var(--rdf-silver); margin-bottom: 20px;">Lasse ein Feld leer, um das Icon im Footer auszublenden.</p>
+
+        <div class="form-group">
+            <label><i class="fab fa-discord"></i> Discord Link</label>
+            <input type="url" name="social_discord" value="{{ config.social_discord }}" class="form-control" placeholder="https://discord.gg/...">
+        </div>
+
+        <div class="form-group">
+            <label><i class="fab fa-instagram"></i> Instagram Link</label>
+            <input type="url" name="social_instagram" value="{{ config.social_instagram }}" class="form-control" placeholder="https://instagram.com/...">
+        </div>
+
+        <div class="form-group">
+            <label><i class="fab fa-twitter"></i> Twitter / X Link</label>
+            <input type="url" name="social_twitter" value="{{ config.social_twitter }}" class="form-control" placeholder="https://twitter.com/...">
+        </div>
+
+        <div class="form-group">
+            <label><i class="fab fa-twitch"></i> Twitch Link</label>
+            <input type="url" name="social_twitch" value="{{ config.social_twitch }}" class="form-control" placeholder="https://twitch.tv/...">
+        </div>
+        
+        <div class="form-group">
+            <label><i class="fab fa-youtube"></i> YouTube Link</label>
+            <input type="url" name="social_youtube" value="{{ config.social_youtube }}" class="form-control" placeholder="https://youtube.com/...">
+        </div>
+
         <div class="form-actions" style="margin-top: 40px;">
             <a href="/admin" class="btn-secondary">Zurück</a>
             <button type="submit" class="btn-primary">Speichern</button>

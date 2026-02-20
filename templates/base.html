@@ -76,10 +76,11 @@
                 <h3>RACEDAY<span style="color: var(--rdf-teal);">FRIENDS</span></h3>
             </div>
             <div class="social-links">
-                <a href="#"><i class="fab fa-discord"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
-                <a href="#"><i class="fab fa-twitch"></i></a>
+                {% if site_config.social_discord %}<a href="{{ site_config.social_discord }}" target="_blank"><i class="fab fa-discord"></i></a>{% endif %}
+                {% if site_config.social_instagram %}<a href="{{ site_config.social_instagram }}" target="_blank"><i class="fab fa-instagram"></i></a>{% endif %}
+                {% if site_config.social_twitter %}<a href="{{ site_config.social_twitter }}" target="_blank"><i class="fab fa-twitter"></i></a>{% endif %}
+                {% if site_config.social_twitch %}<a href="{{ site_config.social_twitch }}" target="_blank"><i class="fab fa-twitch"></i></a>{% endif %}
+                {% if site_config.social_youtube %}<a href="{{ site_config.social_youtube }}" target="_blank"><i class="fab fa-youtube"></i></a>{% endif %}
             </div>
             <p style="color: var(--rdf-silver); font-size: 0.8rem;">
                 &copy; 2026 RaceDayFriends eSports. All rights reserved.<br>
