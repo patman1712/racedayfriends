@@ -202,7 +202,7 @@
 
     <div class="news-grid">
         {% for item in news %}
-        <a href="{{ item.link if item.link else '#' }}" class="news-card" style="background-image: url('{{ item.image_url }}');">
+        <a href="{{ '/news/' + item.id if item.content else (item.link if item.link else '#') }}" class="news-card" style="background-image: url('{{ item.image_url }}');">
             <div class="news-overlay"></div>
             <div class="news-badge">
                 <span class="news-cat">{{ item.category }}</span>

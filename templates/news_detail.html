@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="news-hero" style="background-image: linear-gradient(to bottom, rgba(15, 28, 46, 0.3), rgba(15, 28, 46, 1)), url('{{ news.image_url }}');">
+    <div class="container hero-content">
+        <span class="badge" style="background: rgba(79, 209, 197, 0.2); color: var(--rdf-teal); border: 1px solid var(--rdf-teal); margin-bottom: 20px; display: inline-block;">{{ news.category }}</span>
+        <h1 class="news-title">{{ news.title }}</h1>
+        <div class="meta-info">
+            <span style="color: var(--rdf-silver);"><i class="far fa-calendar-alt"></i> {{ news.date }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Content Section -->
+<div class="container content-wrapper">
+    <div class="article-content">
+        <!-- Text mit Zeilenumbrüchen rendern -->
+        {{ news.content | replace('\n', '<br>') | safe }}
+    </div>
+    
+    <div style="margin-top: 60px; text-align: center;">
+        <a href="/" class="btn-secondary">&larr; Zurück zur Startseite</a>
+    </div>
+</div>
+
+<style>
+    .news-hero {
+        height: 60vh;
+        min-height: 400px;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: flex-end;
+        padding-bottom: 60px;
+        margin-top: -80px; /* Header Offset */
+    }
+
+    .hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .news-title {
+        font-size: 3rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 20px;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .content-wrapper {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 60px 20px;
+    }
+
+    .article-content {
+        font-size: 1.2rem;
+        line-height: 1.8;
+        color: #e2e8f0;
+        font-family: 'Inter', sans-serif; /* Lesbare Schriftart für Fließtext */
+    }
+
+    .article-content p {
+        margin-bottom: 25px;
+    }
+    
+    .btn-secondary {
+        display: inline-block;
+        padding: 12px 30px;
+        border: 1px solid var(--rdf-silver);
+        color: var(--rdf-silver);
+        text-decoration: none;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+        border-color: var(--rdf-teal);
+        color: var(--rdf-teal);
+    }
+
+    @media (max-width: 768px) {
+        .news-title { font-size: 2rem; }
+        .news-hero { height: 50vh; }
+    }
+</style>
+{% endblock %}

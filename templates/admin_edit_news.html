@@ -27,7 +27,13 @@
         <div class="form-group">
             <label>Link (Optional)</label>
             <input type="url" name="link" value="{{ news.link }}" class="form-control" placeholder="https://...">
-            <small style="color: var(--rdf-silver);">Wohin soll der Klick führen? (z.B. zu einem externen Bericht)</small>
+            <small style="color: var(--rdf-silver);">Nur ausfüllen, wenn es KEIN interner Artikel sein soll (z.B. externer Bericht).</small>
+        </div>
+
+        <div class="form-group">
+            <label>Artikel Inhalt (Optional)</label>
+            <textarea name="content" class="form-control" rows="10" placeholder="Hier den ausführlichen Text schreiben...">{{ news.content }}</textarea>
+            <small style="color: var(--rdf-silver);">Wenn hier Text steht, führt der Klick auf die News zur Detailseite.</small>
         </div>
 
         <div class="form-group">

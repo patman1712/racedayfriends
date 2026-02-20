@@ -833,6 +833,16 @@ def admin_driver_delete(driver_id):
     flash("Fahrer gelöscht.", "info")
     return redirect(url_for('admin_team'))
 
+@app.route('/news/<news_id>')
+def news_detail(news_id):
+    news = load_news()
+    news_item = next((n for n in news if str(n.get('id')) == str(news_id)), None)
+    
+    if not news_item:
+        return redirect(url_for('index'))
+        
+    return render_template('news_detail.html', news=news_item)
+
 @app.route('/admin/save_drivers_list', methods=['POST'])
 @login_required
 def admin_save_drivers_list():
@@ -894,6 +904,7 @@ def admin_news_save():
     news_item['category'] = request.form.get('category').upper() # Immer Großbuchstaben
     news_item['date'] = request.form.get('date')
     news_item['link'] = request.form.get('link')
+    news_item['content'] = request.form.get('content') # Neuer Inhalt
     
     # Bild Upload
     if 'news_image' in request.files:
