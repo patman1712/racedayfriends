@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; max-width: 800px;">
+    <h1>{% if mode == 'new' %}Neuen Artikel erstellen{% else %}Artikel bearbeiten{% endif %}</h1>
+    
+    <form action="/admin/news/save" method="POST" enctype="multipart/form-data" class="admin-form">
+        <input type="hidden" name="id" value="{{ news.id }}">
+        <input type="hidden" name="mode" value="{{ mode }}">
+        
+        <div class="form-group">
+            <label>Titel / Headline</label>
+            <input type="text" name="title" value="{{ news.title }}" class="form-control" required placeholder="z.B. Kimi and George Conclude Final Day...">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+                <label>Kategorie</label>
+                <input type="text" name="category" value="{{ news.category }}" class="form-control" placeholder="z.B. ARTICLE, NEWS, RESULT">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Datum</label>
+                <input type="date" name="date" value="{{ news.date }}" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Link (Optional)</label>
+            <input type="url" name="link" value="{{ news.link }}" class="form-control" placeholder="https://...">
+            <small style="color: var(--rdf-silver);">Wohin soll der Klick führen? (z.B. zu einem externen Bericht)</small>
+        </div>
+
+        <div class="form-group">
+            <label>Bild</label>
+            {% if news.image_url %}
+            <div style="margin-bottom: 10px;">
+                <img src="{{ news.image_url }}" style="max-height: 200px; border-radius: 4px;">
+            </div>
+            {% endif %}
+            <input type="file" name="news_image" class="form-control" accept="image/*">
+            <small style="color: var(--rdf-silver);">Empfohlen: Querformat, mind. 800px breit.</small>
+        </div>
+
+        <div class="form-actions" style="margin-top: 40px;">
+            <a href="/admin/news" class="btn-secondary">Abbrechen</a>
+            <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .admin-form {
+        background: #15273d;
+        padding: 40px;
+        border-radius: 4px;
+        border: 1px solid var(--rdf-border);
+    }
+    .form-group { margin-bottom: 25px; }
+    .form-row { display: flex; gap: 20px; }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--rdf-teal);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        background: #0f1c2e;
+        border: 1px solid var(--rdf-border);
+        color: white;
+        border-radius: 4px;
+        font-family: 'Space Grotesk', sans-serif;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--rdf-teal);
+    }
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid var(--rdf-silver);
+        color: white;
+        padding: 12px 30px;
+        text-decoration: none;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-right: 15px;
+    }
+</style>
+{% endblock %}

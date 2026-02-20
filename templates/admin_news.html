@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <h1>News Management</h1>
+        <a href="/admin/news/new" class="btn-primary">
+            <i class="fas fa-plus"></i> Neuer Artikel
+        </a>
+    </div>
+
+    <!-- Feedback Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="margin-bottom: 30px; padding: 15px; background: rgba(79, 209, 197, 0.1); border-left: 4px solid var(--rdf-teal); color: white;">
+              {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th width="100">Bild</th>
+                    <th>Datum</th>
+                    <th>Kategorie</th>
+                    <th>Titel</th>
+                    <th>Link</th>
+                    <th width="150">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in news %}
+                <tr>
+                    <td>
+                        {% if item.image_url %}
+                        <img src="{{ item.image_url }}" alt="News Image" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;">
+                        {% else %}
+                        <div style="width: 80px; height: 50px; background: #222; border-radius: 4px;"></div>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.date }}</td>
+                    <td><span class="badge">{{ item.category }}</span></td>
+                    <td style="font-weight: 600;">{{ item.title }}</td>
+                    <td>
+                        {% if item.link %}
+                        <a href="{{ item.link }}" target="_blank" style="color: var(--rdf-teal);"><i class="fas fa-external-link-alt"></i> Link</a>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/admin/news/edit/{{ item.id }}" class="btn-icon" title="Bearbeiten"><i class="fas fa-edit"></i></a>
+                        <a href="/admin/news/delete/{{ item.id }}" class="btn-icon delete" title="Löschen" onclick="return confirm('Wirklich löschen?')"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--rdf-silver);">
+                        Keine News vorhanden. Erstelle den ersten Artikel!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <a href="/admin" style="color: var(--rdf-silver); text-decoration: none;">&larr; Zurück zum Dashboard</a>
+    </div>
+</div>
+
+<style>
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #15273d;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .data-table th, .data-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--rdf-border);
+    }
+    .data-table th {
+        background: #0f1c2e;
+        color: var(--rdf-teal);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover { background: #1a2f48; }
+    
+    .badge {
+        background: rgba(79, 209, 197, 0.1);
+        color: var(--rdf-teal);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .btn-icon {
+        color: white;
+        margin-right: 10px;
+        text-decoration: none;
+        font-size: 1.1rem;
+        transition: color 0.2s;
+    }
+    .btn-icon:hover { color: var(--rdf-teal); }
+    .btn-icon.delete:hover { color: #ef4444; }
+</style>
+{% endblock %}

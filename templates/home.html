@@ -192,9 +192,132 @@
     </div>
 </div>
 
+<!-- NEWS SECTION -->
+{% if news %}
+<div class="container" style="margin-top: 60px; margin-bottom: 60px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="color: white; font-size: 2rem; margin: 0;">Latest News</h2>
+        <a href="#" style="color: var(--rdf-teal); font-weight: 600; text-decoration: none;">All News <i class="fas fa-arrow-right"></i></a>
+    </div>
+
+    <div class="news-grid">
+        {% for item in news %}
+        <a href="{{ item.link if item.link else '#' }}" class="news-card" style="background-image: url('{{ item.image_url }}');">
+            <div class="news-overlay"></div>
+            <div class="news-badge">
+                <span class="news-cat">{{ item.category }}</span>
+                <div class="news-title-row">
+                    <span class="news-title">{{ item.title }}</span>
+                    <i class="fas fa-arrow-right news-arrow"></i>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <div style="height: 100px;"></div> <!-- Spacer -->
 
 <style>
+    /* News Grid Layout (Bento Style) */
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Responsive Grid */
+        gap: 20px;
+        grid-auto-rows: 300px; /* Fixe Höhe für Einheitlichkeit */
+    }
+
+    /* Kachel Design */
+    .news-card {
+        position: relative;
+        display: block;
+        background-size: cover;
+        background-position: center;
+        border-radius: 12px; /* Runde Ecken wie im Bild */
+        overflow: hidden;
+        text-decoration: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Hover Effekt für Kachel */
+    .news-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+    }
+
+    /* Dunkles Overlay für Lesbarkeit (optional, im Bild eher nicht, aber gut für Text) */
+    .news-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6) 100%);
+        transition: opacity 0.3s;
+    }
+
+    /* Der Türkise Badge */
+    .news-badge {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        right: 20px; /* Damit es nicht ganz bis zum Rand geht, oder width auto */
+        background-color: var(--rdf-teal); /* Türkis */
+        color: var(--rdf-navy); /* Dunkle Schrift */
+        padding: 15px;
+        border-radius: 8px; /* Leicht abgerundet */
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        transition: background-color 0.2s;
+    }
+    
+    /* Kategorie (klein oben) */
+    .news-cat {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        opacity: 0.8;
+        letter-spacing: 1px;
+    }
+
+    /* Titel Zeile mit Pfeil */
+    .news-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .news-title {
+        font-weight: 800;
+        font-size: 1rem;
+        line-height: 1.2;
+        max-width: 90%; /* Platz für Pfeil lassen */
+    }
+
+    .news-arrow {
+        font-size: 1.2rem;
+        transform: translateX(0);
+        transition: transform 0.3s ease;
+    }
+
+    /* Hover Effekt für Pfeil */
+    .news-card:hover .news-arrow {
+        transform: translateX(5px);
+    }
+
+    /* Großes Highlight-Item (optional: das erste Item doppelt so breit machen) */
+    @media (min-width: 768px) {
+        .news-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        /* Erstes Item spannt über 2 Spalten wenn gewünscht */
+        /* .news-card:nth-child(1) { grid-column: span 2; } */
+    }
+    @media (min-width: 1024px) {
+        .news-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
     @keyframes pulse-red {
         0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); opacity: 1; }
         50% { opacity: 0.5; }

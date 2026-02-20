@@ -88,6 +88,7 @@ DRIVERS_FILE = os.path.join(BASE_DATA_DIR, 'drivers.json')
 CONFIG_FILE = os.path.join(BASE_DATA_DIR, 'site_config.json')
 CARS_FILE = os.path.join(BASE_DATA_DIR, 'cars.json')
 EVENTS_FILE = os.path.join(BASE_DATA_DIR, 'events.json')
+NEWS_FILE = os.path.join(BASE_DATA_DIR, 'news.json')
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
 
 UPLOAD_FOLDER = os.path.join(BASE_DATA_DIR, 'static/uploads')
@@ -136,7 +137,7 @@ def init_persistence():
         print(f"Fehler beim Symlink Handling: {e}")
 
     # 4. JSON Dateien initialisieren
-    for filename in ['drivers.json', 'site_config.json', 'cars.json', 'events.json']:
+    for filename in ['drivers.json', 'site_config.json', 'cars.json', 'events.json', 'news.json']:
         target_file = os.path.join(BASE_DATA_DIR, filename)
         source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
         
@@ -179,6 +180,22 @@ def load_events():
 def save_events(events):
     with open(EVENTS_FILE, 'w') as f:
         json.dump(events, f, indent=4)
+
+def load_news():
+    if not os.path.exists(NEWS_FILE):
+        return []
+    with open(NEWS_FILE, 'r') as f:
+        try:
+            news = json.load(f)
+            # Sortieren nach Datum (absteigend, neueste zuerst)
+            news.sort(key=lambda x: x.get('date', ''), reverse=True)
+            return news
+        except json.JSONDecodeError:
+            return []
+
+def save_news(news):
+    with open(NEWS_FILE, 'w') as f:
+        json.dump(news, f, indent=4)
 
 def get_next_event():
     events = load_events()
@@ -822,6 +839,91 @@ def admin_save_drivers_list():
     # Route für Drag&Drop Sortierung oder ähnliches
     return redirect(url_for('admin_team'))
 
+# --- Admin News Routen ---
+
+@app.route('/admin/news')
+@login_required
+def admin_news():
+    news = load_news()
+    return render_template('admin_news.html', news=news)
+
+@app.route('/admin/news/new')
+@login_required
+def admin_news_new():
+    news_item = {
+        "id": "",
+        "title": "",
+        "category": "ARTICLE", # Default
+        "image_url": "",
+        "link": "",
+        "date": datetime.now().strftime('%Y-%m-%d')
+    }
+    return render_template('admin_edit_news.html', news=news_item, mode="new")
+
+@app.route('/admin/news/edit/<news_id>')
+@login_required
+def admin_news_edit(news_id):
+    news = load_news()
+    news_item = next((n for n in news if str(n.get('id')) == str(news_id)), None)
+    
+    if not news_item:
+        flash("News-Eintrag nicht gefunden", "error")
+        return redirect(url_for('admin_news'))
+        
+    return render_template('admin_edit_news.html', news=news_item, mode="edit")
+
+@app.route('/admin/news/save', methods=['POST'])
+@login_required
+def admin_news_save():
+    news = load_news()
+    mode = request.form.get('mode')
+    news_id = request.form.get('id')
+    
+    if mode == 'new':
+        news_id = str(int(datetime.now().timestamp()))
+        news_item = {"id": news_id}
+        news.append(news_item)
+    else:
+        news_item = next((n for n in news if str(n.get('id')) == str(news_id)), None)
+        if not news_item:
+            flash("Fehler beim Speichern", "error")
+            return redirect(url_for('admin_news'))
+
+    # Daten update
+    news_item['title'] = request.form.get('title')
+    news_item['category'] = request.form.get('category').upper() # Immer Großbuchstaben
+    news_item['date'] = request.form.get('date')
+    news_item['link'] = request.form.get('link')
+    
+    # Bild Upload
+    if 'news_image' in request.files:
+        file = request.files['news_image']
+        if file and file.filename != '' and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            ts = int(datetime.now().timestamp())
+            filename = f"news_{news_id}_{ts}_{filename}"
+            
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+                
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            news_item['image_url'] = url_for('static', filename=f'uploads/{filename}')
+
+    save_news(news)
+    flash("News gespeichert!", "success")
+    return redirect(url_for('admin_news'))
+
+@app.route('/admin/news/delete/<news_id>')
+@login_required
+def admin_news_delete(news_id):
+    news = load_news()
+    news = [n for n in news if str(n.get('id')) != str(news_id)]
+    save_news(news)
+    flash("News gelöscht.", "info")
+    return redirect(url_for('admin_news'))
+
 @app.route('/admin/debug_iracing')
 def debug_iracing():
     if not session.get('admin_logged_in'):
@@ -1083,10 +1185,12 @@ def index():
     try:
         # Für die Home-Seite laden wir auch die Fahrerdaten, um die "Top Fahrer" anzuzeigen
         data = get_drivers_data()
-        # Sortieren nach iRating (Sports Car) absteigend für die Anzeige
-        # Hinweis: Mock-Daten sind strings oder ints, wir müssen aufpassen. 
-        # Im echten Leben: Sortierlogik einbauen.
-        return render_template('home.html', drivers=data)
+        
+        # News laden (limitiert auf die neuesten 6 für die Startseite)
+        all_news = load_news()
+        latest_news = all_news[:6]
+        
+        return render_template('home.html', drivers=data, news=latest_news)
     except Exception as e:
         import traceback
         traceback.print_exc()
