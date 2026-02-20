@@ -71,6 +71,26 @@ nav {
     padding: 1rem 2rem;
 }
 
+.hamburger {
+    display: none; /* Standard: Aus */
+    flex-direction: column;
+    cursor: pointer;
+    gap: 5px;
+    z-index: 1001; /* Über dem Menü */
+}
+
+.hamburger span {
+    width: 30px;
+    height: 3px;
+    background-color: var(--rdf-white);
+    transition: all 0.3s;
+}
+
+/* Hamburger Animation */
+.hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); }
+.hamburger.active span:nth-child(2) { opacity: 0; }
+.hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+
 .logo-container img {
     height: 60px; /* Logo Größe anpassen */
 }
@@ -260,7 +280,32 @@ footer {
         hyphens: auto;
     }
     
-    nav { flex-direction: column; gap: 20px; }
+    /* Mobile Navigation */
+    .hamburger { display: flex; }
+    
+    .nav-links {
+        position: fixed;
+        top: 0;
+        right: -100%; /* Start outside */
+        width: 100%; /* Full width */
+        height: 100vh;
+        background-color: rgba(11, 24, 41, 0.98);
+        backdrop-filter: blur(15px);
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: right 0.4s ease;
+        gap: 40px;
+        z-index: 1000;
+    }
+    
+    .nav-links.active {
+        right: 0; /* Slide in */
+    }
+    
+    .nav-links a {
+        font-size: 2rem;
+    }
     
     .hero {
         padding: 100px 20px 40px 20px; /* Mehr Platz oben, weniger seitlich */
