@@ -796,13 +796,39 @@ def debug_iracing():
     debug_info.append(f"Username set: {'YES' if u else 'NO'} ({len(u)} chars)")
     debug_info.append(f"Password set: {'YES' if p else 'NO'} ({len(p)} chars)")
     
-    # 4. Check Client Init (ohne Login)
+    # 4. Check Client Init & Login Test
     try:
-        # Nur Import prüfen
         from iracingdataapi.client import irDataClient
         debug_info.append("irDataClient Class: Found")
+        
+        # Test Login (Klartext)
+        if u and p:
+            try:
+                idc = irDataClient(username=u, password=p)
+                # Versuche simplen Call
+                cars = idc.cars
+                if cars:
+                    debug_info.append("Login (Plaintext): SUCCESS (Cars loaded)")
+                else:
+                    debug_info.append("Login (Plaintext): FAILED (No cars returned)")
+            except Exception as e:
+                debug_info.append(f"Login (Plaintext): ERROR ({e})")
+
+            # Test Login (Hashed) - Workaround Versuch
+            import hashlib, base64
+            try:
+                hashed = base64.b64encode(hashlib.sha256((p + u.lower()).encode('utf-8')).digest()).decode('utf-8')
+                idc_hash = irDataClient(username=u, password=hashed)
+                cars = idc_hash.cars
+                if cars:
+                    debug_info.append("Login (Hashed): SUCCESS (Cars loaded)")
+                else:
+                    debug_info.append("Login (Hashed): FAILED (No cars returned)")
+            except Exception as e:
+                debug_info.append(f"Login (Hashed): ERROR ({e})")
+
     except Exception as e:
-        debug_info.append(f"irDataClient Import: FAILED ({e})")
+        debug_info.append(f"irDataClient Import/Test: FAILED ({e})")
 
     return "<br>".join(debug_info)
 
