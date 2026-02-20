@@ -771,8 +771,8 @@ def admin_save_drivers_list():
 
 @app.route('/admin/debug_iracing')
 def debug_iracing():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
         
     debug_info = []
     
