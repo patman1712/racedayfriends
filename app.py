@@ -779,6 +779,10 @@ def admin_driver_save():
     driver['nationality'] = request.form.get('nationality')
     driver['twitch'] = request.form.get('twitch') # Twitch Kanal
     
+    # Manuelle Stats
+    driver['ir_sports'] = request.form.get('ir_sports')
+    driver['sr_sports'] = request.form.get('sr_sports')
+    
     # Bild Upload
     if 'driver_image' in request.files:
         file = request.files['driver_image']
