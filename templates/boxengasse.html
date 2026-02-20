@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px;">
+    <div class="dashboard-header">
+        <h1 style="color: var(--rdf-teal); text-transform: uppercase;">Boxengasse</h1>
+        <p style="color: var(--rdf-silver);">Willkommen zurück, {{ driver.name if driver else 'Fahrer' }}!</p>
+    </div>
+
+    <div class="grid">
+        <!-- Kachel: Mein Profil -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-id-card"></i> Mein Profil</h3>
+            </div>
+            <div class="card-body">
+                {% if driver %}
+                <div class="profile-info">
+                    <img src="{{ driver.image_url }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--rdf-teal); margin-bottom: 15px;">
+                    <p><strong>Name:</strong> {{ driver.name }}</p>
+                    <p><strong>iRacing ID:</strong> {{ driver.id }}</p>
+                    <p><strong>Username:</strong> {{ driver.username }}</p>
+                </div>
+                {% else %}
+                <p>Keine Fahrerdaten gefunden.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Kachel: Team Infos (Platzhalter) -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-bullhorn"></i> Team Infos</h3>
+            </div>
+            <div class="card-body">
+                <p style="color: var(--rdf-silver);">Hier stehen interne Ankündigungen und Team-Infos.</p>
+                <div style="margin-top: 20px; padding: 15px; background: rgba(79, 209, 197, 0.1); border-left: 3px solid var(--rdf-teal);">
+                    <strong>Nächstes Meeting:</strong><br>
+                    Mittwoch, 20:00 Uhr im Discord.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 40px; text-align: right;">
+        <a href="/logout" class="btn-secondary">Motor abstellen (Logout)</a>
+    </div>
+</div>
+
+<style>
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+    }
+    .card {
+        background: #0B1829;
+        border: 1px solid var(--rdf-border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .card-header {
+        background: #0f1c2e;
+        padding: 20px;
+        border-bottom: 1px solid var(--rdf-border);
+    }
+    .card-body {
+        padding: 20px;
+        color: white;
+    }
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid var(--rdf-silver);
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: white;
+    }
+</style>
+{% endblock %}

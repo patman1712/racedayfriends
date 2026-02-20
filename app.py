@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from functools import wraps
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Versuche iracingdataapi zu importieren
 try:
@@ -266,6 +267,14 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def driver_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'driver_logged_in' not in session:
+            return redirect(url_for('driver_login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # ... (Rest der Funktionen load_drivers, get_client etc. bleiben gleich)
 
 def load_drivers():
@@ -436,6 +445,47 @@ def get_drivers_data():
     return data_list
 
 # --- Admin Routen ---
+
+@app.route('/login', methods=['GET', 'POST'])
+def driver_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        drivers = load_drivers()
+        # Suche Fahrer mit passendem Username
+        user = next((d for d in drivers if d.get('username') == username), None)
+        
+        if user and user.get('password_hash'):
+            if check_password_hash(user['password_hash'], password):
+                session['driver_logged_in'] = True
+                session['driver_id'] = user['id']
+                session['driver_name'] = user['name']
+                session.permanent = True # Bleibt eingeloggt
+                flash(f"Willkommen zurück, {user['name']}!", "success")
+                return redirect(url_for('boxengasse'))
+            else:
+                flash("Falsches Passwort.", "error")
+        else:
+            flash("Benutzer nicht gefunden oder keine Zugangsdaten hinterlegt.", "error")
+            
+    return render_template('driver_login.html')
+
+@app.route('/logout')
+def driver_logout():
+    session.pop('driver_logged_in', None)
+    session.pop('driver_id', None)
+    session.pop('driver_name', None)
+    flash("Du wurdest ausgeloggt.", "info")
+    return redirect(url_for('index'))
+
+@app.route('/boxengasse')
+@driver_login_required
+def boxengasse():
+    driver_id = session.get('driver_id')
+    drivers = load_drivers()
+    current_driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    return render_template('boxengasse.html', driver=current_driver)
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -838,6 +888,12 @@ def admin_driver_save():
     driver['number'] = request.form.get('number')
     driver['nationality'] = request.form.get('nationality')
     driver['twitch'] = request.form.get('twitch') # Twitch Kanal
+    
+    # Login Daten
+    driver['username'] = request.form.get('username')
+    new_password = request.form.get('password')
+    if new_password:
+        driver['password_hash'] = generate_password_hash(new_password)
     
     # Manuelle Stats
     driver['ir_sports'] = request.form.get('ir_sports')

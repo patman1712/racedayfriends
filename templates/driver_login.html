@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-box">
+        <h2 style="color: var(--rdf-teal); margin-bottom: 20px;">BOXENGASSE</h2>
+        <p style="color: var(--rdf-silver); margin-bottom: 30px;">Login für Team-Mitglieder</p>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Benutzername" required class="form-control">
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Passwort" required class="form-control">
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">Motor starten</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        background: radial-gradient(circle at center, #1a2a40 0%, #0b1829 100%);
+    }
+
+    .login-box {
+        background: rgba(11, 24, 41, 0.9);
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        border: 1px solid var(--rdf-border);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        background: #15273d;
+        border: 1px solid var(--rdf-border);
+        color: white;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .flash-error {
+        color: #ff4d4d;
+        background: rgba(255, 77, 77, 0.1);
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}

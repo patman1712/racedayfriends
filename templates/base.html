@@ -60,6 +60,12 @@
                     <li><a href="/gallery" onclick="toggleMenu()">Galerie</a></li>
                     <li><a href="/calendar" onclick="toggleMenu()">Rennkalender</a></li>
                 {% endif %}
+                
+                {% if session.get('driver_logged_in') %}
+                <li><a href="/boxengasse" onclick="toggleMenu()" style="color: var(--rdf-teal); font-weight: bold;"><i class="fas fa-wrench"></i> Boxengasse</a></li>
+                {% else %}
+                <li><a href="/login" onclick="toggleMenu()" class="login-link"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>
