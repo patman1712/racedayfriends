@@ -820,13 +820,13 @@ def update_iracing_stats():
 
     drivers = load_drivers()
     updated_count = 0
+    errors = []
     
     try:
         # Versuche Login explizit
         try:
             idc = irDataClient(username=IRACING_USER, password=IRACING_PASSWORD)
         except Exception as e:
-            # Login Fehler detailliert ausgeben
             flash(f"Login bei iRacing fehlgeschlagen: {str(e)}", "error")
             return redirect(url_for('admin_dashboard'))
             
@@ -840,37 +840,47 @@ def update_iracing_stats():
             
             # Prüfen ob ID gültig ist (muss eine Zahl sein)
             if not cust_id or not str(cust_id).isdigit(): 
-                print(f"Skipping driver {driver.get('name')} - Invalid ID: {cust_id}")
                 continue
 
             try:
                 # API Call
                 stats = idc.stats_member_career(cust_id=int(cust_id))
-                if not stats: continue
+                if not stats: 
+                    errors.append(f"Keine Daten für ID {cust_id} gefunden.")
+                    continue
 
-                # Suche Sports Car (2) oder Formula (1)
-                target_stats = next((s for s in stats if s['category_id'] == 2), 
-                                  next((s for s in stats if s['category_id'] == 1), None))
+                # Wir nehmen einfach die erste Kategorie die wir finden, falls Sports/Formula nicht da sind
+                # Bevorzugte Reihenfolge: Sports Car (2), Formula (1), Oval (3), Dirt Oval (4)
+                target_stats = None
+                for cat_id in [2, 1, 3, 4]:
+                    target_stats = next((s for s in stats if s['category_id'] == cat_id), None)
+                    if target_stats: break
                 
                 if target_stats:
                     driver['ir_sports'] = target_stats['irating']
                     driver['sr_sports'] = f"{target_stats['license_class']} {target_stats['safety_rating']}"
                     updated_count += 1
+                else:
+                    errors.append(f"ID {cust_id}: Daten gefunden, aber keine passende Kategorie (Sports/Formula/Oval).")
+
             except Exception as inner_e:
-                print(f"Fehler bei Fahrer {cust_id}: {inner_e}")
-                # Wir machen weiter mit dem nächsten Fahrer
+                errors.append(f"Fehler bei ID {cust_id}: {str(inner_e)}")
                 continue
                 
         if updated_count > 0:
             save_data()
-            flash(f"{updated_count} Fahrer erfolgreich aktualisiert!", "success")
+            msg = f"{updated_count} Fahrer erfolgreich aktualisiert!"
+            if errors:
+                msg += f" (Aber {len(errors)} Fehler: {'; '.join(errors[:3])})"
+            flash(msg, "success")
         else:
-            flash("Keine Fahrer aktualisiert. Sind die IDs korrekt?", "warning")
+            if errors:
+                flash(f"Fehler: {'; '.join(errors[:3])}", "error")
+            else:
+                flash("Keine Fahrer aktualisiert. IDs geprüft?", "warning")
             
     except Exception as e:
-        # Globaler Catch-All für alles andere
-        flash(f"Kritischer Fehler beim Update: {str(e)}", "error")
-        print(f"CRITICAL ERROR: {e}")
+        flash(f"Kritischer Fehler: {str(e)}", "error")
 
     return redirect(url_for('admin_dashboard'))
 
