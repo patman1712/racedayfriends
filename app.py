@@ -9,10 +9,13 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 
 # Lade Umgebungsvariablen
-load_dotenv()
+try:
+    load_dotenv()
+except Exception as e:
+    print(f"Warnung: Konnte .env nicht laden: {e}")
 
 app = Flask(__name__)
-app.secret_key = 'super-secret-key-for-dev' # Notwendig für Flash-Messages
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'super-secret-key-for-dev') # Notwendig für Flash-Messages
 DRIVERS_FILE = 'drivers.json'
 CONFIG_FILE = 'site_config.json'
 CARS_FILE = 'cars.json'
@@ -21,7 +24,18 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static/uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
+# Ordner sicherstellen
+try:
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+except Exception as e:
+    print(f"Fehler beim Erstellen von {UPLOAD_FOLDER}: {e}")
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# iRacing Zugangsdaten
+IRACING_USER = os.getenv('IRACING_USERNAME', '')
+IRACING_PASSWORD = os.getenv('IRACING_PASSWORD', '')
 
 # --- Hilfsfunktionen ---
 
