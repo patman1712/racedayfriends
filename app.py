@@ -16,6 +16,55 @@ except Exception as e: # Fange ALLE Fehler, nicht nur ImportError!
     IRACING_AVAILABLE = False
     print(f"Warnung: iracingdataapi konnte nicht geladen werden: {e}")
 
+# --- Eigener Mini-Client (Fallback) ---
+import hashlib
+import base64
+import requests
+
+class SimpleIRacingClient:
+    def __init__(self, username, password):
+        self.session = requests.Session()
+        self.username = username
+        self.password = password
+        self.authenticated = False
+        self.login()
+
+    def login(self):
+        # 1. Passwort Hashen (Standard iRacing Hash)
+        hash_val = hashlib.sha256((self.password + self.username.lower()).encode('utf-8')).digest()
+        pw_hash = base64.b64encode(hash_val).decode('utf-8')
+        
+        # 2. Login Request
+        url = "https://members-ng.iracing.com/auth"
+        headers = {'Content-Type': 'application/json'}
+        data = {"email": self.username, "password": pw_hash}
+        
+        try:
+            resp = self.session.post(url, json=data, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                self.authenticated = True
+                print("SimpleClient: Login erfolgreich!")
+            else:
+                print(f"SimpleClient: Login fehlgeschlagen ({resp.status_code}): {resp.text[:100]}")
+                raise Exception(f"Login Failed: {resp.status_code}")
+        except Exception as e:
+            print(f"SimpleClient: Connection Error: {e}")
+            raise e
+
+    def get_stats(self, cust_id):
+        if not self.authenticated:
+            raise Exception("Not authenticated")
+            
+        url = "https://members-ng.iracing.com/data/stats/member_career"
+        params = {"cust_id": cust_id}
+        
+        resp = self.session.get(url, params=params, timeout=10)
+        if resp.status_code == 200:
+            return resp.json().get('stats', [])
+        else:
+            print(f"Stats Error {cust_id}: {resp.status_code}")
+            return None
+
 # Lade Umgebungsvariablen
 try:
     load_dotenv()
@@ -859,96 +908,90 @@ def debug_iracing():
 @app.route('/admin/update_iracing_stats')
 @login_required
 def update_iracing_stats():
-    if not IRACING_AVAILABLE:
-        flash("iRacing API Bibliothek ist nicht installiert.", "error")
-        return redirect(url_for('admin_dashboard'))
-
-    # Debugging Info (nur für uns, damit wir sehen ob Vars da sind)
+    # Debugging Info
     if not IRACING_USER or not IRACING_PASSWORD:
-        flash(f"Keine iRacing Zugangsdaten konfiguriert. User: {'Gesetzt' if IRACING_USER else 'Fehlt'}", "error")
+        flash(f"Keine iRacing Zugangsdaten konfiguriert.", "error")
         return redirect(url_for('admin_dashboard'))
 
     drivers = load_drivers()
-# --- Eigener Mini-Client (da Library zickt) ---
-import hashlib
-import base64
-import requests
-
-class SimpleIRacingClient:
-    def __init__(self, username, password):
-        self.session = requests.Session()
-        self.username = username
-        self.password = password
-        self.authenticated = False
-        self.login()
-
-    def login(self):
-        # 1. Passwort Hashen
-        hash_val = hashlib.sha256((self.password + self.username.lower()).encode('utf-8')).digest()
-        pw_hash = base64.b64encode(hash_val).decode('utf-8')
-        
-        # 2. Login Request
-        url = "https://members-ng.iracing.com/auth"
-        headers = {'Content-Type': 'application/json'}
-        data = {"email": self.username, "password": pw_hash}
-        
-        try:
-            resp = self.session.post(url, json=data, headers=headers, timeout=10)
-            if resp.status_code == 200:
-                self.authenticated = True
-                print("SimpleClient: Login erfolgreich!")
-            else:
-                print(f"SimpleClient: Login fehlgeschlagen ({resp.status_code}): {resp.text[:100]}")
-                raise Exception(f"Login Failed: {resp.status_code}")
-        except Exception as e:
-            print(f"SimpleClient: Connection Error: {e}")
-            raise e
-
-    def get_stats(self, cust_id):
-        if not self.authenticated:
-            raise Exception("Not authenticated")
-            
-        url = "https://members-ng.iracing.com/data/stats/member_career"
-        params = {"cust_id": cust_id}
-        
-        resp = self.session.get(url, params=params, timeout=10)
-        if resp.status_code == 200:
-            return resp.json().get('stats', [])
-        else:
-            print(f"Stats Error {cust_id}: {resp.status_code}")
-            return None
-
-# ... (Rest bleibt)
-
-@app.route('/admin/update_iracing_stats')
-@login_required
-def update_iracing_stats():
-    # ...
+    updated_count = 0
+    errors = []
     
-    # Statt irDataClient nutzen wir unseren SimpleClient
+    # Wir versuchen ZUERST den SimpleClient, da der robuster ist
+    client_to_use = None
+    
     try:
-        # Versuche Login explizit
+        # 1. Versuch: SimpleClient (Requests + Hash)
         try:
-            # Wir nutzen hier den SimpleClient
-            idc = SimpleIRacingClient(username=IRACING_USER, password=IRACING_PASSWORD)
+            client_to_use = SimpleIRacingClient(username=IRACING_USER, password=IRACING_PASSWORD)
+            print("Nutze SimpleIRacingClient")
         except Exception as e:
-            # Fallback auf Library Client falls SimpleClient fehlschlägt? Nein, wir wollen Klarheit.
-            flash(f"Login bei iRacing fehlgeschlagen: {str(e)}", "error")
+            print(f"SimpleClient Init Failed: {e}")
+            # 2. Versuch: Library Client (Falls installiert)
+            if IRACING_AVAILABLE:
+                try:
+                    from iracingdataapi.client import irDataClient
+                    client_to_use = irDataClient(username=IRACING_USER, password=IRACING_PASSWORD)
+                    print("Nutze iracingdataapi Library")
+                except Exception as lib_e:
+                    print(f"Library Client Init Failed: {lib_e}")
+    
+        if not client_to_use:
+            flash("Login bei iRacing mit allen Methoden fehlgeschlagen.", "error")
             return redirect(url_for('admin_dashboard'))
             
         for driver in drivers:
-            # ... (ID Logik) ...
+            # ID Logik
+            cust_id = driver.get('iracing_id')
+            if not cust_id: cust_id = driver.get('id')
+            
+            if not cust_id or not str(cust_id).isdigit(): 
+                continue
 
             try:
-                # API Call (angepasst an SimpleClient)
-                # stats = idc.stats_member_career(cust_id=int(cust_id)) <-- ALT
-                stats = idc.get_stats(cust_id=int(cust_id)) # <-- NEU
-                
-                if not stats: 
-                    errors.append(f"Keine Daten für ID {cust_id} gefunden.")
-                    continue
-                # ...
+                # API Call - Unterscheidung je nach Client Typ
+                stats = []
+                if isinstance(client_to_use, SimpleIRacingClient):
+                    stats = client_to_use.get_stats(cust_id=int(cust_id))
+                else:
+                    # Library Client
+                    stats = client_to_use.stats_member_career(cust_id=int(cust_id))
 
+                if not stats: 
+                    errors.append(f"Keine Daten für ID {cust_id}")
+                    continue
+
+                # Kategorie Suche
+                target_stats = None
+                for cat_id in [2, 1, 3, 4]:
+                    target_stats = next((s for s in stats if s['category_id'] == cat_id), None)
+                    if target_stats: break
+                
+                if target_stats:
+                    driver['ir_sports'] = target_stats['irating']
+                    driver['sr_sports'] = f"{target_stats['license_class']} {target_stats['safety_rating']}"
+                    updated_count += 1
+                else:
+                    errors.append(f"ID {cust_id}: Keine passende Kategorie.")
+
+            except Exception as inner_e:
+                errors.append(f"Fehler bei ID {cust_id}: {str(inner_e)}")
+                continue
+                
+        if updated_count > 0:
+            save_drivers(drivers)
+            msg = f"{updated_count} Fahrer erfolgreich aktualisiert!"
+            if errors:
+                msg += f" (Aber {len(errors)} Fehler: {'; '.join(errors[:3])})"
+            flash(msg, "success")
+        else:
+            if errors:
+                flash(f"Fehler: {'; '.join(errors[:3])}", "error")
+            else:
+                flash("Keine Fahrer aktualisiert.", "warning")
+            
+    except Exception as e:
+        flash(f"Kritischer Fehler: {str(e)}", "error")
 
     return redirect(url_for('admin_dashboard'))
 
@@ -978,16 +1021,9 @@ def get_drivers_data():
         driver_entry.setdefault('ir_sports', '-')
         driver_entry.setdefault('sr_sports', '-')
         
-        if client and ir_id:
-            try:
-                # API Call (vereinfacht, hier könnte man Caching einbauen)
-                # Wir nutzen Mock oder Echte API
-                # Um API Calls zu sparen, könnte man das nur alle X Stunden machen
-                pass 
-                # Für Demo nehmen wir an, die API liefert was zurück, wenn wir wollen
-                # Aber da wir jetzt "Manuelle" Fahrer haben, ist die API optional
-            except:
-                pass
+        # HINWEIS: Wir holen hier KEINE Live-Daten mehr, sondern nutzen die gespeicherten!
+        # Das spart API Calls und macht die Seite schneller.
+        # Die Daten werden nur über den Admin-Button aktualisiert.
         
         data_list.append(driver_entry)
 
