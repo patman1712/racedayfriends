@@ -32,18 +32,23 @@
     <!-- Header / Navigation -->
     <header>
         <nav>
-            <div class="logo-container">
-                <!-- Logo auch im Header -->
-                <a href="/">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="RaceDayFriends" style="height: 60px; width: auto;">
-                </a>
+            <a href="/" class="nav-logo">
+                <i class="fas fa-flag-checkered"></i> RaceDayFriends
+            </a>
+            
+            <!-- Mobile Menu Toggle -->
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
-            <ul class="nav-links">
-                {% for item in site_config.navigation %}
-                <li><a href="{{ item.link }}">{{ item.text }}</a></li>
-                {% endfor %}
-                <!-- Admin Link (diskret) -->
-                <li><a href="/admin" style="opacity: 0.3; font-size: 0.8em;"><i class="fas fa-cog"></i></a></li>
+
+            <ul class="nav-links" id="nav-menu">
+                <li><a href="/" onclick="toggleMenu()">Home</a></li>
+                <li><a href="/team" onclick="toggleMenu()">Das Team</a></li>
+                <li><a href="/#news" onclick="toggleMenu()">News</a></li>
+                <li><a href="/gallery" onclick="toggleMenu()">Galerie</a></li>
+                <li><a href="/calendar" onclick="toggleMenu()">Rennkalender</a></li>
             </ul>
         </nav>
     </header>
@@ -73,6 +78,18 @@
     </footer>
 
     <script>
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const nav = document.getElementById('nav-menu');
+            const burger = document.querySelector('.hamburger');
+            
+            // Nur auf Mobile togglen
+            if (window.innerWidth <= 768) {
+                nav.classList.toggle('active');
+                burger.classList.toggle('active');
+            }
+        }
+
         // Intro Animation Logic
         window.addEventListener('load', function() {
             const preloader = document.getElementById('preloader');
