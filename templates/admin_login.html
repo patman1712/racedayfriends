@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 150px; max-width: 800px;">
+    <h1>Admin Login</h1>
+    <div class="card" style="padding: 40px; margin-top: 20px;">
+        <form method="post">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px; color: var(--rdf-silver);">Passwort</label>
+                <input type="password" name="password" required 
+                       style="width: 100%; padding: 15px; background: #0B1829; border: 1px solid var(--rdf-border); color: white; border-radius: 4px; font-size: 1.2rem;">
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">Login</button>
+        </form>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="margin-top: 20px; padding: 10px; color: #ef4444; border: 1px solid #ef4444; text-align: center;">
+                  {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}

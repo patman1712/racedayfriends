@@ -1,0 +1,45 @@
+{
+    "hero": {
+        "badge": "Season 2026",
+        "title_line1": "WE RACE",
+        "title_line2": "AS ONE.",
+        "description": "RaceDayFriends eSports. Performance, Passion & Precision.",
+        "button_text": "Meet the Team",
+        "button_link": "/team",
+        "image_url": "/static/uploads/1771572945_564_240623KVe0042.jpg"
+    },
+    "next_race": {
+        "series": "Next Event",
+        "title": "IEC Liga Race 6",
+        "track": "Imola",
+        "date": "2026-02-28T17:00",
+        "league": "IEC",
+        "twitch": "patman1712",
+        "description": "Ligarennen",
+        "car_class": "GT3 (GTD)",
+        "car_model": "McLaren 720S GT3 EVO",
+        "drivers": []
+    },
+    "navigation": [
+        {
+            "text": "Home",
+            "link": "/"
+        },
+        {
+            "text": "Team & Drivers",
+            "link": "/team"
+        },
+        {
+            "text": "Car",
+            "link": "#"
+        },
+        {
+            "text": "Partners",
+            "link": "#"
+        },
+        {
+            "text": "Kalender",
+            "link": "/calendar"
+        }
+    ]
+}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; max-width: 800px;">
+    <a href="/admin" style="color: var(--rdf-teal); font-weight: bold; margin-bottom: 20px; display: inline-block;">&larr; Zurück zum Dashboard</a>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3>Hero Section Bearbeiten</h3>
+        </div>
+        <div class="card-body">
+            <form action="/admin/update_hero" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Badge Text (z.B. Season 2026)</label>
+                    <input type="text" name="badge" value="{{ config.hero.badge }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Titel Zeile 1</label>
+                    <input type="text" name="title_line1" value="{{ config.hero.title_line1 }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Titel Zeile 2 (Accent Color)</label>
+                    <input type="text" name="title_line2" value="{{ config.hero.title_line2 }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Beschreibung</label>
+                    <textarea name="description" class="form-control" rows="3">{{ config.hero.description }}</textarea>
+                </div>
+                
+                <div class="form-group" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 4px;">
+                    <label style="color: var(--rdf-teal);">Hintergrundbild ändern</label>
+                    
+                    <!-- Vorschau -->
+                    {% if config.hero.image_url %}
+                    <div style="margin-bottom: 10px;">
+                        <img src="{{ config.hero.image_url }}" style="max-height: 150px; border-radius: 4px; border: 1px solid var(--rdf-border);">
+                    </div>
+                    {% endif %}
+
+                    <label for="hero_image" style="cursor: pointer; display: inline-block; background: var(--rdf-navy-light); padding: 10px 20px; border: 1px solid var(--rdf-teal); color: white; border-radius: 4px;">
+                        <i class="fas fa-upload"></i> Datei auswählen...
+                    </label>
+                    <input type="file" id="hero_image" name="hero_image" style="display: none;" onchange="document.getElementById('file-name').textContent = this.files[0].name">
+                    <span id="file-name" style="margin-left: 10px; color: var(--rdf-silver);">Keine Datei ausgewählt</span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                        <label>Button Text</label>
+                        <input type="text" name="button_text" value="{{ config.hero.button_text }}" class="form-control">
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>Button Link</label>
+                        <input type="text" name="button_link" value="{{ config.hero.button_link }}" class="form-control">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; text-align: right; border-top: 1px solid var(--rdf-border); padding-top: 20px;">
+                    <button type="submit" class="btn-primary" onclick="console.log('Sende Formular...');" style="font-size: 1.2rem; padding: 15px 40px; background-color: var(--rdf-teal); color: var(--rdf-navy);">
+                        <i class="fas fa-save"></i> Änderungen Speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-group { margin-bottom: 20px; }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        background: #0B1829;
+        border: 1px solid var(--rdf-border);
+        color: white;
+        border-radius: 4px;
+        font-family: var(--font-body);
+    }
+    .form-control:focus {
+        border-color: var(--rdf-teal);
+        outline: none;
+    }
+    .form-row { display: flex; gap: 20px; }
+    label { display: block; margin-bottom: 8px; color: var(--rdf-silver); font-family: var(--font-tech); text-transform: uppercase; letter-spacing: 1px; }
+</style>
+{% endblock %}

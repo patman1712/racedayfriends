@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; max-width: 800px;">
+    <a href="/admin/team" style="color: var(--rdf-teal); font-weight: bold; margin-bottom: 20px; display: inline-block;">&larr; Zurück zur Übersicht</a>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>{% if mode == 'new' %}Neuen Fahrer anlegen{% else %}Fahrer bearbeiten{% endif %}</h3>
+        </div>
+        <div class="card-body">
+            <form action="/admin/driver/save" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="{{ driver.id }}">
+                <input type="hidden" name="mode" value="{{ mode }}">
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Name</label>
+                        <input type="text" name="name" value="{{ driver.name }}" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Spitzname / Racing Name</label>
+                        <input type="text" name="nickname" value="{{ driver.nickname }}" class="form-control" placeholder="z.B. The Rocket">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>iRacing ID</label>
+                        <input type="text" name="iracing_id" value="{{ driver.iracing_id }}" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Startnummer</label>
+                        <input type="text" name="number" value="{{ driver.number }}" class="form-control" placeholder="z.B. 23">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Nationalität (ISO Code)</label>
+                        <input type="text" name="nationality" value="{{ driver.nationality }}" class="form-control" placeholder="DE, AT, CH...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Twitch Kanal Name</label>
+                    <div style="display: flex; align-items: center; background: #0B1829; border: 1px solid var(--rdf-border); border-radius: 4px;">
+                        <span style="padding: 10px; color: var(--rdf-silver); border-right: 1px solid var(--rdf-border);">twitch.tv/</span>
+                        <input type="text" name="twitch" value="{{ driver.twitch }}" class="form-control" style="border: none;" placeholder="z.B. maxverstappen">
+                    </div>
+                </div>
+
+                <div class="form-group" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 4px;">
+                    <label style="color: var(--rdf-teal);">Fahrerbild (Freigestellt)</label>
+                    <p style="font-size: 0.8rem; color: var(--rdf-silver); margin-bottom: 15px;">Empfohlen: PNG mit transparentem Hintergrund.</p>
+                    
+                    {% if driver.image_url %}
+                    <div style="margin-bottom: 15px; text-align: center; background: #0B1829; padding: 10px; border-radius: 4px;">
+                        <img src="{{ driver.image_url }}" style="max-height: 200px;">
+                    </div>
+                    {% endif %}
+                    
+                    <div style="position: relative; overflow: hidden; display: inline-block;">
+                        <label for="driver_image" style="cursor: pointer; display: inline-block; background: var(--rdf-navy-light); padding: 10px 20px; border: 1px solid var(--rdf-teal); color: white; border-radius: 4px;">
+                            <i class="fas fa-upload"></i> Bild auswählen...
+                        </label>
+                        <input type="file" id="driver_image" name="driver_image" style="display: none;" onchange="document.getElementById('file-name').textContent = this.files[0].name">
+                        <span id="file-name" style="margin-left: 10px; color: var(--rdf-silver);">Keine Datei ausgewählt</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Rolle im Team</label>
+                    <input type="text" name="role" value="{{ driver.role }}" class="form-control" placeholder="z.B. Driver, Team Manager">
+                </div>
+
+                <button type="submit" class="btn-primary">Speichern</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-group { margin-bottom: 20px; }
+    .form-control { width: 100%; padding: 12px; background: #0B1829; border: 1px solid var(--rdf-border); color: white; border-radius: 4px; }
+    .form-row { display: flex; gap: 20px; }
+</style>
+{% endblock %}

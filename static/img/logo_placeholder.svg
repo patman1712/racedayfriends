@@ -1,0 +1,11 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Hexagon Background -->
+  <path d="M200 20 L373 120 L373 320 L200 420 L27 320 L27 120 Z" fill="#0B1829" stroke="#4FD1C5" stroke-width="10"/>
+  
+  <!-- Stylized Text -->
+  <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="50" fill="#4FD1C5">RACEDAY</text>
+  <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="50" fill="#ffffff">FRIENDS</text>
+  
+  <!-- Car Silhouette (Simplified) -->
+  <path d="M100 200 Q200 150 300 200" stroke="#4FD1C5" stroke-width="5" fill="none"/>
+</svg>

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; max-width: 800px;">
+    <a href="/admin/events" style="color: var(--rdf-teal); font-weight: bold; margin-bottom: 20px; display: inline-block;">&larr; Zurück zur Übersicht</a>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>{% if mode == 'new' %}Neues Event erstellen{% else %}Event bearbeiten{% endif %}</h3>
+        </div>
+        <div class="card-body">
+            <form action="/admin/event/save" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="{{ event.id }}">
+                <input type="hidden" name="mode" value="{{ mode }}">
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Serie / Label</label>
+                        <input type="text" name="series" value="{{ event.series }}" class="form-control" placeholder="z.B. IMSA Endurance">
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>Event Titel</label>
+                        <input type="text" name="title" value="{{ event.title }}" class="form-control" placeholder="z.B. Daytona 24h">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Strecke</label>
+                        <input type="text" name="track" value="{{ event.track }}" class="form-control">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Datum & Uhrzeit</label>
+                        <input type="datetime-local" name="date" value="{{ event.date }}" class="form-control">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Dauer (Stunden)</label>
+                        <input type="number" name="duration" value="{{ event.duration or 1 }}" class="form-control" min="1" step="0.5">
+                    </div>
+                </div>
+
+                <hr style="border-color: var(--rdf-border); margin: 30px 0;">
+
+                <div class="form-group">
+                    <label>Liga / Organisation</label>
+                    <input type="text" name="league" value="{{ event.league }}" class="form-control" placeholder="z.B. VCO">
+                </div>
+
+                <!-- Auto Auswahl -->
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Fahrzeugklasse</label>
+                        <select id="car_class" name="car_class" class="form-control" onchange="updateCarModels()">
+                            <option value="">-- Bitte wählen --</option>
+                            {% for class_name in cars_data.keys() %}
+                            <option value="{{ class_name }}" {% if event.car_class == class_name %}selected{% endif %}>{{ class_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Fahrzeug</label>
+                        <select id="car_model" name="car_model" class="form-control">
+                            <option value="{{ event.car_model }}">{{ event.car_model or '-- Erst Klasse wählen --' }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Twitch Kanal (optional)</label>
+                    <input type="text" name="twitch" value="{{ event.twitch }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>Beschreibung</label>
+                    <textarea name="description" class="form-control" rows="4">{{ event.description }}</textarea>
+                </div>
+
+                <div class="form-group" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 4px;">
+                    <label style="color: var(--rdf-teal);">Event Hintergrundbild (Hero)</label>
+                    
+                    {% if event.image_url %}
+                    <div style="margin-bottom: 15px;">
+                        <img src="{{ event.image_url }}" style="max-height: 150px; border-radius: 4px; border: 1px solid var(--rdf-border);">
+                    </div>
+                    {% endif %}
+                    
+                    <div style="position: relative; overflow: hidden; display: inline-block;">
+                        <label for="event_image" style="cursor: pointer; display: inline-block; background: var(--rdf-navy-light); padding: 10px 20px; border: 1px solid var(--rdf-teal); color: white; border-radius: 4px;">
+                            <i class="fas fa-upload"></i> Bild auswählen...
+                        </label>
+                        <input type="file" id="event_image" name="event_image" style="display: none;" onchange="document.getElementById('file-name').textContent = this.files[0].name">
+                        <span id="file-name" style="margin-left: 10px; color: var(--rdf-silver);">Keine Datei ausgewählt</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Platzierung / Ergebnis (bei Archiv-Events)</label>
+                    <input type="text" name="result" value="{{ event.result }}" class="form-control" placeholder="z.B. P1, 3. Platz, DNF">
+                </div>
+
+                <div class="form-group">
+                    <label>Fahrer Lineup</label>
+                    <div style="background: #0B1829; border: 1px solid var(--rdf-border); padding: 15px; border-radius: 4px; max-height: 200px; overflow-y: auto;">
+                        {% for driver in all_drivers %}
+                        <div style="margin-bottom: 8px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; text-transform: none;">
+                                <input type="checkbox" name="driver_ids" value="{{ driver.id }}" 
+                                    {% if driver.id|string in event.drivers %}checked{% endif %}
+                                    style="margin-right: 10px;">
+                                {{ driver.name }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Speichern</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const carsData = {{ cars_data | tojson }};
+    
+    function updateCarModels() {
+        const classSelect = document.getElementById('car_class');
+        const modelSelect = document.getElementById('car_model');
+        const selectedClass = classSelect.value;
+        
+        modelSelect.innerHTML = '<option value="">-- Bitte wählen --</option>';
+        
+        if (selectedClass && carsData[selectedClass]) {
+            carsData[selectedClass].forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.text = model;
+                modelSelect.appendChild(option);
+            });
+        }
+    }
+</script>
+
+<style>
+    .form-group { margin-bottom: 20px; }
+    .form-control { width: 100%; padding: 12px; background: #0B1829; border: 1px solid var(--rdf-border); color: white; border-radius: 4px; }
+    .form-row { display: flex; gap: 20px; }
+</style>
+{% endblock %}

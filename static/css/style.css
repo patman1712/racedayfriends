@@ -1,0 +1,256 @@
+/* --- RaceDayFriends Theme (Inspired by Mercedes-AMG F1) --- */
+
+:root {
+    --rdf-navy: #0B1829;
+    --rdf-navy-light: #15273d;
+    --rdf-teal: #4FD1C5;  /* Mint Green aus dem Logo */
+    --rdf-teal-dark: #38b2ac;
+    --rdf-white: #ffffff;
+    --rdf-silver: #cbd5e1;
+    --rdf-border: rgba(255, 255, 255, 0.1);
+    /* Neue Schriftarten */
+    --font-heading: 'Teko', sans-serif;
+    --font-tech: 'Rajdhani', sans-serif;
+    --font-body: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--rdf-navy);
+    color: var(--rdf-white);
+    font-family: var(--font-tech); /* Standard ist jetzt technisch */
+    font-size: 1.1rem; /* Rajdhani ist etwas kleiner, daher größerer Base-Size */
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+ul {
+    list-style: none;
+}
+
+/* --- Typography --- */
+h1, h2, h3, h4 {
+    font-family: var(--font-heading); /* Teko für alle Headlines */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+h1 { font-size: 5rem; line-height: 0.9; margin-bottom: 1rem; letter-spacing: 2px; }
+h2 { font-size: 3rem; margin-bottom: 2rem; border-left: 5px solid var(--rdf-teal); padding-left: 15px; }
+h3 { font-size: 1.8rem; margin-bottom: 1rem; letter-spacing: 1px; }
+
+/* --- Header / Navigation --- */
+header {
+    background-color: rgba(11, 24, 41, 0.95);
+    backdrop-filter: blur(10px);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--rdf-border);
+}
+
+nav {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+.logo-container img {
+    height: 60px; /* Logo Größe anpassen */
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a {
+    font-family: var(--font-heading);
+    font-size: 1.4rem; /* Teko braucht mehr Größe */
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    padding: 5px 0;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--rdf-teal);
+    transition: width 0.3s;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+.nav-links a:hover {
+    color: var(--rdf-teal);
+}
+
+/* --- Hero Section --- */
+.hero {
+    height: 100vh;
+    background: linear-gradient(rgba(11, 24, 41, 0.6), rgba(11, 24, 41, 0.8)), url('https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=2070&auto=format&fit=crop'); /* Placeholder Racing Image */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 10%;
+    margin-top: 0; /* Override margin because of fixed header */
+    padding-top: 80px;
+}
+
+.hero-content {
+    max-width: 600px;
+    animation: slideInLeft 1s ease-out;
+}
+
+.hero-tag {
+    color: var(--rdf-teal);
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Hero Button Font Update */
+.btn-primary {
+    display: inline-block;
+    background-color: var(--rdf-teal);
+    color: var(--rdf-navy);
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    padding: 8px 30px; /* Teko ist hoch, padding anpassen */
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 2px; /* Slight rounded corners like Mercedes */
+    margin-top: 20px;
+    border: 2px solid var(--rdf-teal);
+}
+
+.btn-primary:hover {
+    background-color: transparent;
+    color: var(--rdf-teal);
+}
+
+/* --- Container --- */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 20px;
+}
+
+/* --- Cards (Drivers/News) --- */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.card {
+    background-color: var(--rdf-navy-light);
+    border: 1px solid var(--rdf-border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    border-color: var(--rdf-teal);
+}
+
+.card-header {
+    background-color: rgba(0,0,0,0.2);
+    padding: 20px;
+    border-bottom: 1px solid var(--rdf-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--rdf-border);
+    padding-bottom: 5px;
+}
+
+.stat-label { color: var(--rdf-silver); font-size: 0.9rem; }
+.stat-value { font-weight: bold; color: var(--rdf-teal); }
+
+/* --- Footer --- */
+footer {
+    background-color: #050c16;
+    padding: 50px 20px;
+    border-top: 1px solid var(--rdf-border);
+    text-align: center;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.social-links a {
+    color: var(--rdf-silver);
+    font-size: 1.5rem;
+    margin: 0 10px;
+}
+
+.social-links a:hover { color: var(--rdf-teal); }
+
+/* --- Animations --- */
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- Badge & Utils --- */
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.badge-demo { background-color: #e65100; color: white; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    h1 { font-size: 2.5rem; }
+    nav { flex-direction: column; gap: 20px; }
+}

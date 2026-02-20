@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 150px; padding-bottom: 60px;">
+    <h1 style="font-size: 4rem; margin-bottom: 40px; text-align: center;">Race Calendar</h1>
+
+    <!-- Upcoming Events -->
+    <h2 style="color: var(--rdf-teal); border-bottom: 1px solid var(--rdf-border); padding-bottom: 15px; margin-bottom: 30px;">
+        <i class="fas fa-flag-checkered"></i> Upcoming Events
+    </h2>
+    
+    {% if upcoming %}
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-bottom: 60px;">
+        {% for event in upcoming %}
+        <a href="/event/{{ event.id }}" class="card" style="display: block; text-decoration: none; transition: transform 0.3s ease;">
+            <div style="background: var(--rdf-teal); color: var(--rdf-navy); font-weight: bold; padding: 5px 10px; display: inline-block; border-radius: 2px; margin-bottom: 15px;">
+                {{ event.series }}
+            </div>
+            <h3 style="color: white; margin-bottom: 10px;">{{ event.title }}</h3>
+            <div style="color: var(--rdf-silver); margin-bottom: 15px;">
+                <i class="fas fa-map-marker-alt" style="color: var(--rdf-teal); width: 20px;"></i> {{ event.track }}
+            </div>
+            <div style="color: var(--rdf-silver);">
+                <i class="far fa-calendar-alt" style="color: var(--rdf-teal); width: 20px;"></i> {{ event.date.replace('T', ' ') }}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--rdf-silver); margin-bottom: 60px;">No upcoming races scheduled.</p>
+    {% endif %}
+
+    <!-- Archive / Past Events -->
+    <h2 style="color: var(--rdf-silver); border-bottom: 1px solid var(--rdf-border); padding-bottom: 15px; margin-bottom: 30px;">
+        <i class="fas fa-history"></i> Race Archive
+    </h2>
+
+    {% if past %}
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        {% for event in past %}
+        <a href="/event/{{ event.id }}" class="card" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none; transition: background 0.2s;">
+            <div>
+                <div style="font-weight: bold; font-size: 1.2rem; color: white;">{{ event.title }}</div>
+                <div style="color: var(--rdf-silver); font-size: 0.9rem;">
+                    {{ event.date.replace('T', ' ') }} | {{ event.track }}
+                </div>
+            </div>
+            
+            {% if event.result %}
+            <div style="background: rgba(79, 209, 197, 0.1); border: 1px solid var(--rdf-teal); color: var(--rdf-teal); padding: 8px 15px; border-radius: 4px; font-weight: bold;">
+                {{ event.result }}
+            </div>
+            {% else %}
+            <div style="color: var(--rdf-silver); font-size: 0.9rem;">
+                Rennen beendet
+            </div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--rdf-silver);">No past races in archive.</p>
+    {% endif %}
+
+</div>
+
+<style>
+    .card:hover {
+        transform: translateY(-5px);
+        border-color: var(--rdf-teal);
+    }
+</style>
+{% endblock %}

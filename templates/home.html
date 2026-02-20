@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section mit Split Layout -->
+<div class="hero-wrapper">
+    <div class="hero-grid">
+        <!-- Linke Seite: Bild & Großer Text -->
+        <div class="hero-image-section" style="background-image: linear-gradient(rgba(11, 24, 41, 0.3), rgba(11, 24, 41, 0.8)), url('{{ site_config.hero.image_url }}');">
+            <div class="hero-text">
+                <span class="badge" style="background: rgba(255,255,255,0.1); border: 1px solid var(--rdf-teal); color: var(--rdf-teal); margin-bottom: 15px; display: inline-block;">
+                    {{ site_config.hero.badge }}
+                </span>
+                <h1>{{ site_config.hero.title_line1 }}<br><span style="color: var(--rdf-teal);">{{ site_config.hero.title_line2 }}</span></h1>
+                <p style="font-size: 1.2rem; color: #e2e8f0; max-width: 500px; margin-bottom: 30px;">
+                    {{ site_config.hero.description }}
+                </p>
+                <a href="{{ site_config.hero.button_link }}" class="btn-primary">{{ site_config.hero.button_text }} <i class="fas fa-arrow-right" style="margin-left: 8px;"></i></a>
+            </div>
+        </div>
+
+        <!-- Rechte Seite: Next Race Widget (Sidebar) -->
+        <div class="next-race-section">
+            {% if next_event %}
+            <div class="next-race-card">
+                <span class="race-series">{{ next_event.series }}</span>
+                <h2 class="race-title">{{ next_event.title }}</h2>
+                <div class="race-track">
+                    <i class="fas fa-map-marker-alt" style="color: var(--rdf-teal);"></i> {{ next_event.track }}
+                </div>
+                
+                {% if next_event.is_live %}
+                <!-- LIVE Anzeige -->
+                <div class="countdown-container" style="justify-content: center; border: none; background: transparent; padding: 20px 0;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                        <div style="font-size: 1.2rem; color: var(--rdf-silver); letter-spacing: 2px; font-weight: 300;">RACE IN PROGRESS</div>
+                        
+                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="display: inline-block; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; animation: pulse-red 1.5s infinite;"></span>
+                                <span style="color: white; font-weight: bold; font-size: 1.5rem; letter-spacing: 1px;">LIVE ON TRACK</span>
+                            </div>
+                            
+                            {% if next_event.twitch %}
+                            <!-- Watch Live Button (Initial versteckt, wird per JS eingeblendet wenn LIVE) -->
+                            <a id="watch-stream-btn" href="/event/{{ next_event.id }}" class="btn-primary" style="display: none; background-color: transparent; border: 1px solid #ef4444; color: #ef4444; font-size: 0.8rem; padding: 5px 15px; align-items: center; gap: 5px;">
+                                <i class="fab fa-twitch"></i> WATCH STREAM
+                            </a>
+                            <!-- Hidden Player for Status Check -->
+                            <div id="twitch-checker" style="display: none;"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Normaler Countdown -->
+                <div class="countdown-container" id="countdown">
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="days">00</span>
+                        <span class="countdown-label">Days</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="hours">00</span>
+                        <span class="countdown-label">Hrs</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="minutes">00</span>
+                        <span class="countdown-label">Mins</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="seconds">00</span>
+                        <span class="countdown-label">Secs</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="next-race-actions" style="display: flex; gap: 15px;">
+                    <a href="/event/{{ next_event.id }}" class="btn-primary" style="background-color: var(--rdf-teal); color: var(--rdf-navy); flex: 1; text-align: center; border: none;">EVENT INFO</a>
+                    <a href="/calendar" class="btn-primary" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; flex: 1; text-align: center;">CALENDAR</a>
+                </div>
+            </div>
+            {% else %}
+            <!-- Fallback wenn kein Event geplant ist -->
+            <div class="next-race-card" style="text-align: center; padding: 40px;">
+                <h2 class="race-title">No Upcoming Events</h2>
+                <p style="color: var(--rdf-silver); margin-bottom: 20px;">Currently no races scheduled.</p>
+                <a href="/calendar" class="btn-primary" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.2); color: white;">VIEW ARCHIVE</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript für Countdown & Live Check -->
+<script>
+    {% if next_event and next_event.is_live and next_event.twitch %}
+    // Twitch Live Checker
+    // Wir laden den Player unsichtbar und muted, nur um den Status zu checken
+    const script = document.createElement('script');
+    script.src = "https://embed.twitch.tv/embed/v1.js";
+    script.onload = function() {
+        const embed = new Twitch.Embed("twitch-checker", {
+            width: 10,
+            height: 10,
+            channel: "{{ next_event.twitch }}",
+            layout: "video",
+            autoplay: true,
+            muted: true,
+            parent: ["localhost", "127.0.0.1"]
+        });
+
+        embed.addEventListener(Twitch.Embed.ONLINE, () => {
+            console.log("Stream is ONLINE -> Show Button");
+            const btn = document.getElementById('watch-stream-btn');
+            if(btn) {
+                btn.style.display = 'inline-flex';
+                // Optional: Player wieder zerstören um Ressourcen zu sparen, 
+                // aber dann verlieren wir den Status bei Refresh. 
+                // Besser: Laufen lassen (muted, hidden)
+            }
+        });
+    };
+    document.body.appendChild(script);
+    {% endif %}
+
+    {% if next_event and not next_event.is_live %}
+    // Setze das Datum des nächsten Rennens dynamisch
+    const raceDateStr = "{{ next_event.date }}"; // z.B. 2026-03-15T14:00
+    
+    let raceDate;
+    if (!raceDateStr || raceDateStr === "None") {
+        raceDate = new Date();
+        raceDate.setDate(raceDate.getDate() + 1);
+    } else {
+        raceDate = new Date(raceDateStr);
+    }
+    
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const distance = raceDate - now;
+
+        if (isNaN(distance) || distance < 0) {
+            document.getElementById("days").innerText = "00";
+            document.getElementById("hours").innerText = "00";
+            document.getElementById("minutes").innerText = "00";
+            document.getElementById("seconds").innerText = "00";
+            return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById("days").innerText = days < 10 ? "0" + days : days;
+        document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
+        document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+        document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+    {% endif %}
+</script>
+
+<!-- Rest of the content (Top Drivers) -->
+<div class="container" style="margin-top: -50px; position: relative; z-index: 10;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+        <h3 style="margin: 0; color: white;">Top Performers</h3>
+        <a href="/team" style="color: var(--rdf-teal); font-size: 0.9rem;">View All <i class="fas fa-chevron-right"></i></a>
+    </div>
+    
+    <div class="grid">
+        {% for d in drivers[:3] %}
+        <div class="card">
+            <div class="card-header">
+                <h3 style="margin:0; font-size: 1.2rem;">{{ d.name }}</h3>
+                <span style="color: var(--rdf-teal); font-weight:bold;">#{{ d.id }}</span>
+            </div>
+            <div class="card-body">
+                <div class="stat-row">
+                    <span class="stat-label">Sports Car iRating</span>
+                    <span class="stat-value">{{ d.ir_sports }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Formula iRating</span>
+                    <span class="stat-value">{{ d.ir_formula }}</span>
+                </div>
+                <a href="/driver/{{ d.id }}" class="btn-primary" style="width:100%; text-align:center; margin-top:15px; padding: 10px;">Stats</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div style="height: 100px;"></div> <!-- Spacer -->
+
+<style>
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); opacity: 1; }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40">
+  <!-- Body Shape -->
+  <path d="M10 30 
+           L20 20 
+           L45 15 
+           L75 15 
+           L95 22 
+           L110 22 
+           L115 30 
+           Z" 
+        fill="#4FD1C5" />
+        
+  <!-- Roof / Cockpit -->
+  <path d="M40 15 
+           L50 8 
+           L75 8 
+           L85 15" 
+        fill="#1A3C5E" />
+
+  <!-- Rear Wing -->
+  <path d="M95 15 
+           L105 5 
+           L115 5 
+           L115 8 
+           L105 12 
+           L100 22" 
+        fill="none" stroke="#4FD1C5" stroke-width="2"/>
+  
+  <!-- Wheels -->
+  <circle cx="25" cy="30" r="7" fill="#0B1829" stroke="#4FD1C5" stroke-width="2"/>
+  <circle cx="95" cy="30" r="8" fill="#0B1829" stroke="#4FD1C5" stroke-width="2"/>
+  
+  <!-- Speed Lines behind -->
+  <path d="M0 25 L-10 25 M-5 30 L-15 30" stroke="#4FD1C5" stroke-width="1" opacity="0.5"/>
+</svg>

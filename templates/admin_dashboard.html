@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <h1>Admin Control Center</h1>
+        <a href="/admin/logout" class="btn-primary" style="background: transparent; border-color: #ef4444; color: #ef4444;">Logout</a>
+    </div>
+
+    <!-- Feedback Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="margin-bottom: 30px; padding: 15px; background: rgba(79, 209, 197, 0.1); border-left: 4px solid var(--rdf-teal); color: white;">
+              {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="grid">
+        
+        <!-- Kachel: Hero Section -->
+        <a href="/admin/hero" class="admin-card">
+            <div class="admin-icon"><i class="fas fa-image"></i></div>
+            <h3>Startseite Hero</h3>
+            <p>Bild, Titel und Slogan anpassen</p>
+        </a>
+
+        <!-- Kachel: Next Race / Events -->
+        <a href="/admin/events" class="admin-card">
+            <div class="admin-icon"><i class="fas fa-calendar-alt"></i></div>
+            <h3>Event Kalender</h3>
+            <p>Rennen planen & Archiv verwalten</p>
+        </a>
+
+        <!-- Kachel: Navigation -->
+        <a href="/admin/nav" class="admin-card">
+            <div class="admin-icon"><i class="fas fa-bars"></i></div>
+            <h3>Hauptmenü</h3>
+            <p>Links und Navigation bearbeiten</p>
+        </a>
+
+        <!-- Kachel: Team -->
+        <a href="/admin/team" class="admin-card">
+            <div class="admin-icon"><i class="fas fa-users"></i></div>
+            <h3>Team Management</h3>
+            <p>Fahrer, Bilder & Rollen verwalten</p>
+        </a>
+
+    </div>
+</div>
+
+<style>
+    .admin-card {
+        background: #15273d;
+        border: 1px solid var(--rdf-border);
+        padding: 30px;
+        border-radius: 4px;
+        text-align: center;
+        transition: all 0.3s ease;
+        display: block;
+        text-decoration: none;
+    }
+    .admin-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--rdf-teal);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .admin-icon {
+        font-size: 3rem;
+        color: var(--rdf-teal);
+        margin-bottom: 20px;
+    }
+    .admin-card h3 { color: white; margin-bottom: 10px; }
+    .admin-card p { color: var(--rdf-silver); font-size: 0.9rem; }
+</style>
+{% endblock %}

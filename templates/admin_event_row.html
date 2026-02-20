@@ -1,0 +1,26 @@
+<div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding: 15px 10px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="flex: 1;">
+        <div style="color: var(--rdf-silver); font-size: 0.9rem;">{{ event.date.replace('T', ' ') }}</div>
+        <div style="font-weight: bold; font-size: 1.1rem;">{{ event.title }}</div>
+        <div style="color: var(--rdf-teal); font-size: 0.9rem;">{{ event.series }}</div>
+    </div>
+    
+    <div style="flex: 1; text-align: center;">
+        {% if event.result %}
+        <span style="color: var(--rdf-teal); background: rgba(79, 209, 197, 0.1); padding: 4px 8px; border-radius: 4px; font-weight: bold;">
+            <i class="fas fa-check"></i> {{ event.result }}
+        </span>
+        {% else %}
+            {% if event in upcoming %}
+            <span style="color: var(--rdf-silver); border: 1px solid var(--rdf-border); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">Geplant</span>
+            {% else %}
+            <span style="color: #ef4444; border: 1px solid #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">Ausstehend</span>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div style="flex: 0 0 100px; text-align: right;">
+        <a href="/admin/event/edit/{{ event.id }}" style="color: white; margin-right: 15px; font-size: 1.1rem;"><i class="fas fa-edit"></i></a>
+        <a href="/admin/event/delete/{{ event.id }}" style="color: #ef4444; font-size: 1.1rem;" onclick="return confirm('Wirklich löschen?');"><i class="fas fa-trash"></i></a>
+    </div>
+</div>

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; max-width: 900px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <a href="/admin" style="color: var(--rdf-teal); font-weight: bold;">&larr; Zurück zum Dashboard</a>
+        <div>
+            <a href="/admin/update_iracing_stats" class="btn-primary" style="margin-right: 10px; background: transparent; border: 1px solid var(--rdf-teal); color: var(--rdf-teal);">
+                <i class="fas fa-sync"></i> iRacing Stats Update
+            </a>
+            <a href="/admin/driver/new" class="btn-primary"><i class="fas fa-plus"></i> Neuen Fahrer anlegen</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Team Management</h3>
+        </div>
+        <div class="card-body">
+            {% if drivers %}
+            <table style="width: 100%; border-collapse: collapse; color: white;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--rdf-border); text-align: left;">
+                        <th style="padding: 10px;">Bild</th>
+                        <th style="padding: 10px;">Name</th>
+                        <th style="padding: 10px;">Nummer</th>
+                        <th style="padding: 10px;">Rolle</th>
+                        <th style="padding: 10px; text-align: right;">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for driver in drivers %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 10px;">
+                            {% if driver.image_url %}
+                            <img src="{{ driver.image_url }}" style="height: 40px; border-radius: 4px;">
+                            {% else %}
+                            <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 4px;"></div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px 10px; font-weight: bold;">{{ driver.name }}</td>
+                        <td style="padding: 15px 10px; color: var(--rdf-teal);">{{ driver.number or '-' }}</td>
+                        <td style="padding: 15px 10px; color: var(--rdf-silver);">{{ driver.role or 'Driver' }}</td>
+                        <td style="padding: 15px 10px; text-align: right;">
+                            <a href="/admin/driver/edit/{{ driver.id }}" style="color: white; margin-right: 15px;"><i class="fas fa-edit"></i></a>
+                            <a href="/admin/driver/delete/{{ driver.id }}" style="color: #ef4444;" onclick="return confirm('Wirklich löschen?');"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; color: var(--rdf-silver); padding: 20px;">Noch keine Fahrer im Team.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+[
+    {
+        "id": "1771591892",
+        "name": "Patrick Scheiber",
+        "iracing_id": "",
+        "role": "Driver",
+        "number": "21",
+        "nationality": "DE",
+        "twitch": "patman1712",
+        "nickname": "patman1712",
+        "image_url": "/static/uploads/driver_1771591892_1771594421_ChatGPT_Image_20._Feb._2026_14_30_27.png"
+    },
+    {
+        "id": "1771594254",
+        "name": "Adrian Beume",
+        "iracing_id": "",
+        "role": "Fahrer",
+        "number": "69",
+        "nationality": "DE",
+        "twitch": "",
+        "image_url": "/static/uploads/driver_1771594254_1771594254_ChatGPT_Image_20._Feb._2026_14_30_27.png",
+        "nickname": "addi"
+    }
+]

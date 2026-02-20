@@ -1,0 +1,53 @@
+[
+    {
+        "id": "1",
+        "title": "Daytona 24h",
+        "series": "IMSA Endurance Series",
+        "track": "Daytona International Speedway",
+        "date": "2026-01-20T14:00",
+        "league": "iRacing Special Event",
+        "car_class": "",
+        "car_model": "BMW M Hybrid V8",
+        "description": "Das erste gro\u00dfe Rennen des Jahres!",
+        "twitch": "racedayfriends",
+        "drivers": [
+            "1771591892"
+        ],
+        "result": "P5 (Split 2)",
+        "duration": "1"
+    },
+    {
+        "id": "2",
+        "title": "Sebring 12h",
+        "series": "VCO Infinity",
+        "track": "Sebring International Raceway",
+        "date": "2026-02-20T12:00",
+        "league": "VCO",
+        "car_class": "GT3 (GTD)",
+        "car_model": "McLaren 720S GT3 EVO",
+        "description": "Harte Bodenwellen, harte Action.",
+        "twitch": "racedayfriends",
+        "drivers": [],
+        "result": "3",
+        "image_url": "/static/uploads/event_2_1771585152_564_240623KVe0042.jpg",
+        "duration": "1"
+    },
+    {
+        "id": "1771600365",
+        "title": "Ligarennen",
+        "series": "GT3 Endurance",
+        "track": "Imola",
+        "date": "2026-02-28T17:00",
+        "duration": "6",
+        "league": "IEC",
+        "car_class": "GT3 (GTD)",
+        "car_model": "McLaren 720S GT3 EVO",
+        "twitch": "",
+        "description": "Letztes Rennen der Saison",
+        "result": "",
+        "drivers": [
+            "1771591892",
+            "1771594254"
+        ]
+    }
+]

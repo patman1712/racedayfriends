@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Header für Event -->
+<div class="event-hero" style="padding-top: 150px; padding-bottom: 80px; text-align: center; position: relative; background-color: #0B1829; overflow: hidden;">
+    
+    <!-- Hintergrundbild -->
+    {% if event.image_url %}
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('{{ event.image_url }}'); background-size: cover; background-position: center; opacity: 0.7;"></div>
+    <!-- Verlauf Overlay damit Text lesbar bleibt (etwas heller) -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(11,24,41,0.5) 0%, rgba(11,24,41,0.85) 100%);"></div>
+    {% else %}
+    <!-- Fallback Gradient -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, #0B1829, #15273d);"></div>
+    {% endif %}
+
+    <div class="container" style="position: relative; z-index: 2;">
+        <span class="badge" style="background: var(--rdf-teal); color: var(--rdf-navy); padding: 5px 15px; font-weight: bold; margin-bottom: 20px; display: inline-block;">
+            {{ event.series }}
+        </span>
+        <h1 style="font-size: 5rem; margin-bottom: 10px;">{{ event.title }}</h1>
+        <div style="font-size: 1.5rem; color: var(--rdf-silver); margin-bottom: 30px;">
+            <i class="fas fa-map-marker-alt" style="color: var(--rdf-teal);"></i> {{ event.track }}
+            {% if event.league %}
+            <span style="margin: 0 15px;">|</span>
+            <i class="fas fa-trophy" style="color: var(--rdf-teal);"></i> {{ event.league }}
+            {% endif %}
+            {% if event.car_model %}
+            <span style="margin: 0 15px;">|</span>
+            <i class="fas fa-car" style="color: var(--rdf-teal);"></i> {{ event.car_model }}
+            {% endif %}
+        </div>
+        
+        <!-- Resultat oder Status -->
+        {% if event.result or is_past %}
+            {% if event.result %}
+            <div style="margin-top: 20px; font-size: 2rem; color: var(--rdf-teal); font-weight: bold; background: rgba(0,0,0,0.3); display: inline-block; padding: 10px 30px; border-radius: 50px; border: 1px solid var(--rdf-teal);">
+                <i class="fas fa-trophy"></i> Platzierung: {{ event.result }}
+            </div>
+            {% else %}
+            <div style="margin-top: 20px; font-size: 2rem; color: var(--rdf-silver); font-weight: bold; opacity: 0.7;">
+                <i class="fas fa-flag-checkered"></i> Rennen beendet
+            </div>
+            {% endif %}
+        {% else %}
+        <!-- Countdown groß -->
+        <div class="countdown-container" style="justify-content: center; border: none; max-width: 600px; margin: 0 auto;">
+            <div class="countdown-item"><span class="countdown-number" id="days-lg">00</span><span class="countdown-label">DAYS</span></div>
+            <div class="countdown-item"><span class="countdown-number" id="hours-lg">00</span><span class="countdown-label">HRS</span></div>
+            <div class="countdown-item"><span class="countdown-number" id="minutes-lg">00</span><span class="countdown-label">MINS</span></div>
+            <div class="countdown-item"><span class="countdown-number" id="seconds-lg">00</span><span class="countdown-label">SECS</span></div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container" style="padding: 60px 0;">
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 60px;">
+        
+        <!-- Links: Info & Lineup -->
+        <div>
+            <!-- Briefing nur anzeigen, wenn KEIN Ergebnis da ist (also Event noch aktiv/geplant) -->
+            {% if not event.result and event.description %}
+            <div class="card" style="margin-bottom: 40px; padding: 30px;">
+                <h3>Event Briefing</h3>
+                <p style="white-space: pre-line; color: var(--rdf-silver);">{{ event.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Race Control -->
+            <div class="card" style="padding: 30px; margin-bottom: 40px;">
+                <h3>Race Control</h3>
+                <ul style="list-style: none; margin-top: 20px;">
+                    <li style="margin-bottom: 15px; display: flex; justify-content: space-between;">
+                        <span style="color: var(--rdf-silver);">Datum:</span>
+                        <span>{{ event.date.replace('T', ' ') }}</span>
+                    </li>
+                    <li style="margin-bottom: 15px; display: flex; justify-content: space-between;">
+                        <span style="color: var(--rdf-silver);">Strecke:</span>
+                        <span>{{ event.track }}</span>
+                    </li>
+                    <li style="margin-bottom: 15px; display: flex; justify-content: space-between;">
+                        <span style="color: var(--rdf-silver);">Liga:</span>
+                        <span>{{ event.league or '-' }}</span>
+                    </li>
+                    <li style="margin-bottom: 15px; display: flex; justify-content: space-between;">
+                        <span style="color: var(--rdf-silver);">Klasse:</span>
+                        <span>{{ event.car_class or '-' }}</span>
+                    </li>
+                    <li style="margin-bottom: 15px; display: flex; justify-content: space-between;">
+                        <span style="color: var(--rdf-silver);">Fahrzeug:</span>
+                        <span>{{ event.car_model or '-' }}</span>
+                    </li>
+                </ul>
+            </div>
+
+            <h2 style="margin-bottom: 30px;">Driver Lineup</h2>
+            {% if drivers %}
+            <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+                {% for driver in drivers %}
+                <div class="driver-card">
+                    <div class="driver-avatar">
+                        <i class="fas fa-user-helmet-safety"></i>
+                    </div>
+                    <div class="driver-info">
+                        <h3>{{ driver.name }}</h3>
+                        <div class="driver-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">iRating</span>
+                                <span class="stat-value">{{ driver.ir_sports }}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Safety</span>
+                                <span class="stat-value">{{ driver.sr_sports }}</span>
+                            </div>
+                        </div>
+                        <a href="/driver/{{ driver.id }}" class="btn-primary" style="margin-top: 15px; width: 100%; text-align: center; font-size: 0.9rem;">Profile</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: var(--rdf-silver);">Noch keine Fahrer nominiert.</p>
+            {% endif %}
+        </div>
+
+        <!-- Rechts: Twitch & Infos -->
+        <div>
+            <!-- Twitch nur anzeigen, wenn KEIN Ergebnis da ist -->
+            {% if not event.result %}
+                {% if event.twitch %}
+                <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 30px; border: 1px solid var(--rdf-border); background: #000;">
+                    <!-- Header im Team Design -->
+                    <div style="background: var(--rdf-navy-light); color: var(--rdf-teal); padding: 15px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rdf-border);">
+                        <span style="font-family: var(--font-heading); font-size: 1.2rem; letter-spacing: 1px;"><i class="fab fa-twitch"></i> OFFICIAL BROADCAST</span>
+                        <!-- Status Badge -->
+                        <span id="broadcast-status" style="font-size: 0.8rem; background: rgba(255, 255, 255, 0.05); color: var(--rdf-silver); padding: 4px 10px; border-radius: 2px; border: 1px solid var(--rdf-border); letter-spacing: 1px;">
+                            <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 5px;"></i> OFF AIR
+                        </span>
+                    </div>
+                    
+                    <!-- Twitch Container -->
+                    <div id="twitch-container" style="position: relative; min-height: 350px; background-color: #0B1829; display: flex; flex-direction: column; justify-content: center; align-items: center; background-image: radial-gradient(circle at center, #15273d 0%, #0B1829 100%);">
+                        
+                        <!-- Placeholder Content (Standard sichtbar, wird ausgeblendet wenn LIVE) -->
+                        <div id="twitch-placeholder" style="text-align: center; padding: 20px; z-index: 10;">
+                            <!-- Großes Twitch Icon statt Logo -->
+                            <i class="fab fa-twitch" style="font-size: 5rem; color: rgba(255,255,255,0.1); margin-bottom: 20px;"></i>
+                            
+                            <!-- Status Text -->
+                            <p id="twitch-status-text" style="color: var(--rdf-silver); margin-bottom: 25px; font-size: 1.1rem;">Der aktuelle Broadcast Channel ist aktuell nicht Live</p>
+                            
+                            <div id="twitch-actions">
+                                <a href="https://twitch.tv/{{ event.twitch }}" target="_blank" class="btn-primary" style="font-size: 0.9rem; padding: 10px 25px; background: transparent; border: 1px solid var(--rdf-teal); color: var(--rdf-teal);">
+                                    Zum Kanal <i class="fas fa-external-link-alt" style="margin-left: 5px;"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Hier wird der Player reingeladen (zunächst unsichtbar) -->
+                        <div id="twitch-embed" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; visibility: hidden;"></div>
+                    </div>
+
+                    <div style="padding: 15px; background: var(--rdf-navy); text-align: center; border-top: 1px solid var(--rdf-border);">
+                        <span style="color: var(--rdf-silver); font-size: 0.8rem;">Channel: {{ event.twitch }}</span>
+                    </div>
+
+                    <script src="https://embed.twitch.tv/embed/v1.js"></script>
+                    <script type="text/javascript">
+                      const embed = new Twitch.Embed("twitch-embed", {
+                        width: "100%",
+                        height: 350,
+                        channel: "{{ event.twitch }}",
+                        layout: "video",
+                        autoplay: true, 
+                        muted: true,    
+                        parent: ["localhost", "127.0.0.1"] 
+                      });
+
+                      embed.addEventListener(Twitch.Embed.ONLINE, () => {
+                          document.getElementById('twitch-placeholder').style.display = 'none';
+                          document.getElementById('twitch-embed').style.visibility = 'visible';
+                          embed.setMuted(false); 
+                          
+                          const badge = document.getElementById('broadcast-status');
+                          badge.innerHTML = '<i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 5px;"></i> ON AIR';
+                          badge.style.color = '#fff';
+                          badge.style.background = '#ef4444';
+                          badge.style.borderColor = '#ef4444';
+                          badge.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
+                      });
+
+                      embed.addEventListener(Twitch.Embed.OFFLINE, () => {
+                          document.getElementById('twitch-placeholder').style.display = 'block';
+                          document.getElementById('twitch-embed').style.visibility = 'hidden';
+                          
+                          const badge = document.getElementById('broadcast-status');
+                          badge.innerHTML = '<i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 5px;"></i> OFF AIR';
+                          badge.style.color = 'var(--rdf-silver)';
+                          badge.style.background = 'rgba(255, 255, 255, 0.05)';
+                          badge.style.borderColor = 'var(--rdf-border)';
+                          badge.style.boxShadow = 'none';
+                      });
+                    </script>
+                </div>
+                {% else %}
+                <!-- Fallback wenn kein Twitch Kanal angegeben ist -->
+                <div class="card" style="padding: 40px; text-align: center; margin-bottom: 30px; border: 1px solid var(--rdf-border);">
+                    <i class="fas fa-video-slash" style="font-size: 3rem; color: var(--rdf-silver); margin-bottom: 20px;"></i>
+                    <h3 style="color: white;">No Broadcast</h3>
+                    <p style="color: var(--rdf-silver);">There is no official stream announced for this event yet.</p>
+                </div>
+                {% endif %}
+            {% endif %} <!-- End if not result -->
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    {% if not event.result and not is_past %}
+    const raceDateStr = "{{ event.date }}";
+    let raceDate;
+    if (!raceDateStr || raceDateStr === "None") {
+        raceDate = new Date();
+        raceDate.setDate(raceDate.getDate() + 1);
+    } else {
+        raceDate = new Date(raceDateStr);
+    }
+
+    function updateCountdownLg() {
+        const now = new Date().getTime();
+        const distance = raceDate - now;
+
+        if (distance < 0) return; 
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        const dEl = document.getElementById("days-lg");
+        if(dEl) dEl.innerText = days < 10 ? "0" + days : days;
+        
+        const hEl = document.getElementById("hours-lg");
+        if(hEl) hEl.innerText = hours < 10 ? "0" + hours : hours;
+        
+        const mEl = document.getElementById("minutes-lg");
+        if(mEl) mEl.innerText = minutes < 10 ? "0" + minutes : minutes;
+        
+        const sEl = document.getElementById("seconds-lg");
+        if(sEl) sEl.innerText = seconds < 10 ? "0" + seconds : seconds;
+    }
+
+    setInterval(updateCountdownLg, 1000);
+    updateCountdownLg();
+    {% endif %}
+</script>
+{% endblock %}

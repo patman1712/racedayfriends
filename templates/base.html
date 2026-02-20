@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RaceDayFriends | Official eSports Team</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hero.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/intro.css') }}">
+    <!-- Google Fonts: Teko (Headings) & Rajdhani (Tech/UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Teko:wght@300;400;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Flag Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/6.6.6/css/flag-icons.min.css">
+</head>
+<body>
+
+    <!-- Preloader Intro -->
+    <div id="preloader">
+        <div class="intro-logo">
+            <!-- Logo eingebunden -->
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="RaceDayFriends" style="width: 250px; height: auto; filter: drop-shadow(0 0 20px rgba(79, 209, 197, 0.4));">
+        </div>
+        <div class="loader-track">
+            <div class="loader-bar"></div>
+        </div>
+        <div class="loader-text">Die Motoren werden gestartet...</div>
+    </div>
+
+    <!-- Header / Navigation -->
+    <header>
+        <nav>
+            <div class="logo-container">
+                <!-- Logo auch im Header -->
+                <a href="/">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="RaceDayFriends" style="height: 60px; width: auto;">
+                </a>
+            </div>
+            <ul class="nav-links">
+                {% for item in site_config.navigation %}
+                <li><a href="{{ item.link }}">{{ item.text }}</a></li>
+                {% endfor %}
+                <!-- Admin Link (diskret) -->
+                <li><a href="/admin" style="opacity: 0.3; font-size: 0.8em;"><i class="fas fa-cog"></i></a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content Injection -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="logo-container">
+                <h3>RACEDAY<span style="color: var(--rdf-teal);">FRIENDS</span></h3>
+            </div>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-discord"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-twitch"></i></a>
+            </div>
+            <p style="color: var(--rdf-silver); font-size: 0.8rem;">
+                &copy; 2026 RaceDayFriends eSports. All rights reserved.<br>
+                Not affiliated with iRacing.com Motorsport Simulations.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Intro Animation Logic
+        window.addEventListener('load', function() {
+            const preloader = document.getElementById('preloader');
+            let showIntro = true;
+            
+            // 1. Haben wir das Intro in diesem Tab schon gesehen?
+            const introSeen = sessionStorage.getItem('intro_seen');
+
+            // 2. Wie wurde die Seite geladen?
+            let navType = 'navigate';
+            try {
+                const navEntries = performance.getEntriesByType("navigation");
+                if (navEntries.length > 0) {
+                    navType = navEntries[0].type;
+                }
+            } catch (e) {
+                console.log("Navigation API not supported", e);
+            }
+
+            // 3. Entscheidung treffen
+            if (navType === 'reload') {
+                // Bei F5 / Refresh: IMMER Intro zeigen
+                showIntro = true;
+                // Bei Reload wollen wir es ja nochmal sehen, also flag temporär ignorieren
+                // Aber wir müssen es danach wieder setzen
+            } else if (navType === 'back_forward') {
+                // Bei Zurück: NIE Intro
+                showIntro = false;
+            } else {
+                // Bei normaler Navigation (Link):
+                if (introSeen) {
+                    showIntro = false;
+                } else {
+                    showIntro = true;
+                }
+            }
+
+            if (!showIntro) {
+                // Sofort ausblenden (keine Animation)
+                preloader.style.display = 'none';
+                document.body.classList.add('loaded');
+                // Sicherstellen, dass Flag gesetzt ist (falls Back-Button Navigation)
+                sessionStorage.setItem('intro_seen', 'true');
+            } else {
+                // Intro abspielen
+                // WICHTIG: Flag SOFORT setzen, damit beim nächsten Klick (auch während Intro)
+                // das Intro nicht nochmal kommt.
+                sessionStorage.setItem('intro_seen', 'true');
+                
+                setTimeout(function() {
+                    document.body.classList.add('loaded');
+                    setTimeout(() => {
+                        preloader.style.display = 'none';
+                    }, 800);
+                }, 2500);
+            }
+        });
+    </script>
+
+</body>
+</html>

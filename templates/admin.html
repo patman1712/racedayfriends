@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <h1>Admin Dashboard</h1>
+        <a href="/admin/logout" class="btn-primary" style="background: transparent; border-color: #ef4444; color: #ef4444;">Logout</a>
+    </div>
+
+    <!-- Feedback Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="margin-bottom: 30px; padding: 15px; background: rgba(79, 209, 197, 0.1); border-left: 4px solid var(--rdf-teal); color: white;">
+              {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="grid" style="grid-template-columns: 1fr; gap: 40px;">
+        
+        <!-- Hero Section Editor -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Hero Section Bearbeiten</h3>
+            </div>
+            <div class="card-body">
+                <form action="/admin/update_hero" method="post">
+                    <div class="form-group">
+                        <label>Badge Text (z.B. Season 2026)</label>
+                        <input type="text" name="badge" value="{{ config.hero.badge }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Titel Zeile 1</label>
+                        <input type="text" name="title_line1" value="{{ config.hero.title_line1 }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Titel Zeile 2 (Accent Color)</label>
+                        <input type="text" name="title_line2" value="{{ config.hero.title_line2 }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Beschreibung</label>
+                        <textarea name="description" class="form-control" rows="3">{{ config.hero.description }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Hintergrundbild URL</label>
+                        <input type="text" name="image_url" value="{{ config.hero.image_url }}" class="form-control">
+                        <small style="color: var(--rdf-silver);">Tipp: Rechtsklick auf ein Bild -> Grafikadresse kopieren</small>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label>Button Text</label>
+                            <input type="text" name="button_text" value="{{ config.hero.button_text }}" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1">
+                            <label>Button Link</label>
+                            <input type="text" name="button_link" value="{{ config.hero.button_link }}" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Speichern</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Next Race Editor -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Next Race Widget</h3>
+            </div>
+            <div class="card-body">
+                <form action="/admin/update_next_race" method="post">
+                    <div class="form-group">
+                        <label>Serie / Label</label>
+                        <input type="text" name="series" value="{{ config.next_race.series }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Event Titel</label>
+                        <input type="text" name="title" value="{{ config.next_race.title }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Strecke</label>
+                        <input type="text" name="track" value="{{ config.next_race.track }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Datum & Uhrzeit (für Countdown)</label>
+                        <input type="datetime-local" name="date" value="{{ config.next_race.date }}" class="form-control">
+                    </div>
+                    <button type="submit" class="btn-primary">Speichern</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Navigation Editor -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Navigation Bearbeiten</h3>
+            </div>
+            <div class="card-body">
+                <form action="/admin/update_nav" method="post">
+                    <div id="nav-items">
+                        {% for item in config.navigation %}
+                        <div class="form-row nav-item" style="margin-bottom: 10px;">
+                            <input type="text" name="nav_title" value="{{ item.text }}" placeholder="Titel" class="form-control">
+                            <input type="text" name="nav_link" value="{{ item.link }}" placeholder="Link (/team, /partners...)" class="form-control">
+                        </div>
+                        {% endfor %}
+                        <!-- Extra Slot für neues Item -->
+                        <div class="form-row nav-item" style="margin-bottom: 10px;">
+                            <input type="text" name="nav_title" placeholder="Neuer Menüpunkt" class="form-control" style="border-color: var(--rdf-teal);">
+                            <input type="text" name="nav_link" placeholder="Link" class="form-control" style="border-color: var(--rdf-teal);">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Navigation Speichern</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .form-group { margin-bottom: 20px; }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        background: #0B1829;
+        border: 1px solid var(--rdf-border);
+        color: white;
+        border-radius: 4px;
+        font-family: var(--font-body);
+    }
+    .form-control:focus {
+        border-color: var(--rdf-teal);
+        outline: none;
+    }
+    .form-row { display: flex; gap: 20px; }
+    label { display: block; margin-bottom: 8px; color: var(--rdf-silver); font-family: var(--font-tech); text-transform: uppercase; letter-spacing: 1px; }
+</style>
+{% endblock %}

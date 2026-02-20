@@ -1,0 +1,583 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Driver Navigation Bar -->
+<div class="driver-nav-bar">
+    <div class="container" style="height: 100%; display: flex; align-items: center; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+        {% for d in all_drivers %}
+        <a href="/driver/{{ d.id }}" class="driver-nav-item {% if d.id == driver.id %}active{% endif %}" title="{{ d.name }}">
+            <div class="driver-nav-img">
+                {% if d.image_url %}
+                <img src="{{ d.image_url }}" alt="{{ d.name }}">
+                {% else %}
+                <span style="font-weight: bold; color: var(--rdf-silver);">{{ d.name[:1] }}</span>
+                {% endif %}
+            </div>
+            <div class="driver-nav-info">
+                <span class="driver-nav-number">{{ d.number or '#' }}</span>
+                <span class="driver-nav-name">{{ d.name.split(' ')[-1][:3]|upper }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Driver Hero Section -->
+<div class="driver-hero">
+    <div class="container" style="height: 100%; position: relative; display: flex; align-items: center;">
+        
+        <!-- Linke Seite: Name & Infos -->
+        <div class="driver-hero-info">
+            <!-- Dekorative Linien -->
+            <div class="hero-lines">
+                <span></span>
+                <span></span>
+            </div>
+
+            {% set names = driver.name.split(' ') %}
+            <div class="driver-hero-name">
+                <span class="first-name-script">{{ names[0] }}</span>
+                <span class="last-name-block">{{ names[1:] | join(' ') }}</span>
+            </div>
+
+            <div class="driver-hero-meta">
+                {% if driver.nationality %}
+                <span class="fi fi-{{ driver.nationality.lower() }}"></span>
+                <span class="meta-text">{{ driver.nationality }}</span>
+                <span class="separator">|</span>
+                {% endif %}
+                <span class="meta-text">{{ driver.nickname or 'RaceDayFriends' }}</span>
+                <span class="separator">|</span>
+                <span class="meta-text number">#{{ driver.number or '00' }}</span>
+            </div>
+            
+            <div class="hero-lines bottom">
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <!-- Rechte Seite: Bild & Nummer -->
+        <div class="driver-hero-visual">
+            <!-- Riesige Nummer im Hintergrund -->
+            <div class="big-number">{{ driver.number or '00' }}</div>
+            
+            <!-- Fahrerbild -->
+            <div class="driver-cutout">
+                {% if driver.image_url %}
+                <img src="{{ driver.image_url }}" alt="{{ driver.name }}">
+                {% else %}
+                <i class="fas fa-user" style="font-size: 300px; color: rgba(255,255,255,0.05);"></i>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Raster Overlay -->
+    <div class="hero-grid-overlay"></div>
+</div>
+
+<div class="container" style="padding: 60px 0;">
+    
+    <!-- Upcoming Events (Geplante Rennen) -->
+    {% if upcoming_events %}
+    <h2 style="margin-bottom: 30px; color: var(--rdf-teal);"><i class="fas fa-calendar-alt"></i> Geplante Events</h2>
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-bottom: 60px;">
+        {% for event in upcoming_events %}
+        <a href="/event/{{ event.id }}" class="card" style="display: block; text-decoration: none; transition: transform 0.3s ease; border-left: 4px solid var(--rdf-teal);">
+            <div style="background: var(--rdf-teal); color: var(--rdf-navy); font-weight: bold; padding: 5px 10px; display: inline-block; border-radius: 2px; margin-bottom: 15px;">
+                {{ event.series }}
+            </div>
+            <h3 style="color: white; margin-bottom: 10px;">{{ event.title }}</h3>
+            <div style="color: var(--rdf-silver); margin-bottom: 15px;">
+                <i class="fas fa-map-marker-alt" style="color: var(--rdf-teal); width: 20px;"></i> {{ event.track }}
+            </div>
+            <div style="color: var(--rdf-silver);">
+                <i class="far fa-calendar-alt" style="color: var(--rdf-teal); width: 20px;"></i> {{ event.date.replace('T', ' ') }}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Twitch Stream (nur wenn hinterlegt) -->
+    {% if driver.twitch %}
+    <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 60px; border: 1px solid var(--rdf-border); background: #000;">
+        <!-- Header (Immer sichtbar) -->
+        <div style="background: var(--rdf-navy-light); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rdf-border);">
+            
+            <!-- Links: Logo & Name (Link zum Kanal) -->
+            <a href="https://twitch.tv/{{ driver.twitch }}" target="_blank" style="text-decoration: none; display: flex; align-items: center; gap: 10px; color: white; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                <i class="fab fa-twitch" style="color: #9146FF; font-size: 1.5rem;"></i>
+                <span style="font-family: var(--font-heading); font-size: 1.2rem; letter-spacing: 1px; font-weight: bold;">{{ driver.twitch|upper }}</span>
+            </a>
+
+            <!-- Rechts: Status & Link -->
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <!-- Status Badge -->
+                <span id="broadcast-status" style="font-size: 0.8rem; background: rgba(255, 255, 255, 0.05); color: var(--rdf-silver); padding: 6px 12px; border-radius: 4px; border: 1px solid var(--rdf-border); letter-spacing: 1px; font-weight: bold;">
+                    <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 5px;"></i> OFF AIR
+                </span>
+                
+                <!-- Link zum Kanal -->
+                <a href="https://twitch.tv/{{ driver.twitch }}" target="_blank" style="text-decoration: none; color: var(--rdf-silver); font-size: 0.8rem; display: flex; align-items: center; gap: 5px; transition: color 0.2s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--rdf-silver)'">
+                    Zum Kanal <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Twitch Container (Initial ausgeblendet, nur sichtbar wenn LIVE) -->
+        <div id="twitch-container" style="position: relative; height: 0; padding-bottom: 0; background-color: #000; transition: all 0.5s ease; overflow: hidden;">
+            <!-- Hier wird der Player reingeladen -->
+            <div id="twitch-embed" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+        </div>
+        
+        <script src="https://embed.twitch.tv/embed/v1.js"></script>
+        <script type="text/javascript">
+          const embed = new Twitch.Embed("twitch-embed", {
+            width: "100%",
+            height: "100%", // Füllt Container
+            channel: "{{ driver.twitch }}",
+            layout: "video",
+            autoplay: true, 
+            muted: false, // Ton an wenn sichtbar
+            parent: ["localhost", "127.0.0.1"] 
+          });
+
+          const container = document.getElementById('twitch-container');
+          const badge = document.getElementById('broadcast-status');
+
+          embed.addEventListener(Twitch.Embed.ONLINE, () => {
+              // Video Container aufklappen (16:9 Verhältnis)
+              container.style.paddingBottom = "56.25%"; 
+              
+              badge.innerHTML = '<i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 5px;"></i> ON AIR';
+              badge.style.color = '#fff';
+              badge.style.background = '#ef4444';
+              badge.style.borderColor = '#ef4444';
+              badge.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
+          });
+
+          embed.addEventListener(Twitch.Embed.OFFLINE, () => {
+              // Video Container zuklappen
+              container.style.paddingBottom = "0";
+              
+              badge.innerHTML = '<i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 5px;"></i> OFF AIR';
+              badge.style.color = 'var(--rdf-silver)';
+              badge.style.background = 'rgba(255, 255, 255, 0.05)';
+              badge.style.borderColor = 'var(--rdf-border)';
+              badge.style.boxShadow = 'none';
+          });
+        </script>
+    </div>
+    {% endif %}
+
+    <!-- Past Events (Absolvierte Rennen aus Archiv) -->
+    <h2 style="margin-bottom: 30px; color: white;">Absolvierte Rennen</h2>
+    {% if past_events %}
+    <div class="card" style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+            <thead>
+                <tr style="text-align: left; border-bottom: 1px solid var(--rdf-border); color: var(--rdf-silver);">
+                    <th style="padding: 15px;">Datum</th>
+                    <th style="padding: 15px;">Event</th>
+                    <th style="padding: 15px;">Serie</th>
+                    <th style="padding: 15px;">Fahrzeug</th>
+                    <th style="padding: 15px;">Ergebnis</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in past_events %}
+                <tr onclick="window.location='/event/{{ event.id }}';" style="border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
+                    <td style="padding: 15px; color: var(--rdf-silver);">{{ event.date.replace('T', ' ') }}</td>
+                    <td style="padding: 15px;">
+                        <span style="color: white; font-weight: bold;">{{ event.title }}</span>
+                    </td>
+                    <td style="padding: 15px;">{{ event.series }}</td>
+                    <td style="padding: 15px;">{{ event.car_model or '-' }}</td>
+                    <td style="padding: 15px;">
+                        {% if event.result %}
+                        <span style="color: var(--rdf-teal); font-weight: bold;">{{ event.result }}</span>
+                        {% else %}
+                        <span style="color: var(--rdf-silver); font-size: 0.8rem;">Teilgenommen</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: var(--rdf-silver);">Noch keine Rennen für dieses Team absolviert.</p>
+    {% endif %}
+
+</div>
+
+<style>
+    /* Driver Navigation */
+    .driver-nav-bar {
+        height: 110px; /* Insgesamt etwas höher */
+        background: var(--rdf-navy-light);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        position: fixed; 
+        top: 80px; 
+        left: 0;
+        right: 0;
+        z-index: 80; 
+        display: flex;
+        align-items: center; /* Vertikal mittig */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        padding-top: 20px; /* Buttons nach unten drücken */
+        padding-bottom: 10px;
+    }
+
+    .driver-nav-item {
+        display: flex;
+        flex-direction: row; 
+        align-items: center;
+        margin-right: 15px;
+        text-decoration: none;
+        opacity: 0.7;
+        transition: all 0.3s ease;
+        padding: 6px 15px 6px 8px; /* Rechts mehr Platz, Links weniger (wg Bild) */
+        border-radius: 40px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        min-width: auto; /* Keine feste Breite mehr */
+        flex-shrink: 0; 
+    }
+
+    /* Hover & Active Styles - Verstärkter Effekt */
+    .driver-nav-item:hover, .driver-nav-item.active {
+        opacity: 1;
+        background: rgba(255,255,255,0.1);
+        border-color: var(--rdf-teal);
+        transform: translateY(-2px); /* Leicht anheben */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    /* Hover: Texte einfärben */
+    .driver-nav-item:hover .driver-nav-name,
+    .driver-nav-item.active .driver-nav-name {
+        color: var(--rdf-teal);
+    }
+
+    .driver-nav-img {
+        width: 45px; 
+        height: 45px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid transparent; /* Standard transparent */
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+        transition: border-color 0.3s;
+    }
+
+    /* Hover: Bildrand */
+    .driver-nav-item:hover .driver-nav-img,
+    .driver-nav-item.active .driver-nav-img {
+        border-color: var(--rdf-teal);
+    }
+
+    .driver-nav-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center; 
+    }
+
+    .driver-nav-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        line-height: 1.2;
+    }
+
+    .driver-nav-number {
+        color: var(--rdf-teal); /* Immer Teal */
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    .driver-nav-name {
+        color: white; /* Standard Weiß */
+        font-weight: bold;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        transition: color 0.3s;
+    }
+
+    /* Hero Section Styles */
+    .driver-hero {
+        background-color: #0B1829;
+        background: linear-gradient(to right, #0B1829 0%, #11233a 50%, #0d4b6e 100%); 
+        height: 70vh; 
+        min-height: 500px; 
+        max-height: 900px; 
+        margin-top: 110px; 
+        position: relative;
+        overflow: hidden;
+        padding-bottom: 0 !important; 
+    }
+
+    .driver-hero .container {
+        display: flex; /* WICHTIG: Flexbox für 2 Spalten */
+        height: 100%; 
+        padding-bottom: 0 !important;
+        align-items: stretch; 
+        justify-content: space-between; /* Links Text, Rechts Bild */
+    }
+
+    /* Linke Seite (Info) */
+    .driver-hero-info {
+        flex: 1; /* Nimmt Platz ein */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        z-index: 10; /* Über dem Hintergrund */
+        padding-right: 20px;
+    }
+
+    .hero-lines {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 20px;
+    }
+    .hero-lines.bottom {
+        margin-top: 20px;
+        margin-bottom: 0;
+    }
+
+    .hero-lines span {
+        display: block;
+        width: 4px;
+        height: 40px;
+        background: white;
+        transform: skewX(-20deg);
+    }
+    
+    .hero-lines span:nth-child(2) {
+        height: 60px;
+        background: var(--rdf-teal);
+    }
+
+    .driver-hero-name {
+        display: flex;
+        flex-direction: column;
+        line-height: 0.8;
+        margin-bottom: 20px;
+    }
+
+    .first-name-script {
+        font-family: 'Dancing Script', cursive;
+        font-size: 4rem;
+        color: white;
+        margin-left: 0;
+        transform: rotate(-2deg); /* Weniger Rotation */
+        display: block; /* Block statt inline-block für klare Trennung */
+        margin-bottom: 5px; /* Mehr Abstand zum Nachnamen */
+        line-height: 1.2;
+    }
+
+    .last-name-block {
+        font-family: var(--font-heading);
+        font-size: 5rem;
+        color: var(--rdf-teal); /* Wieder Mint */
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        line-height: 1;
+        margin-top: 5px;
+    }
+
+    .driver-hero-meta {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: var(--rdf-silver);
+        font-family: var(--font-body);
+        font-size: 1.1rem;
+    }
+
+    .separator {
+        color: rgba(255,255,255,0.2);
+    }
+    
+    .meta-text.number {
+        color: var(--rdf-teal);
+        font-weight: bold;
+    }
+
+    /* Rechte Seite (Visual) */
+    .driver-hero-visual {
+        flex: 1; /* Nimmt auch Platz ein */
+        height: 100%;
+        position: relative; 
+        overflow: hidden; 
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        display: flex;
+        align-items: flex-end; 
+    }
+
+    .big-number {
+        position: absolute;
+        top: 70%; /* Noch tiefer */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--font-heading);
+        font-size: 30rem; 
+        font-weight: 900;
+        color: rgba(0,0,0,0.2);
+        z-index: 1;
+        line-height: 1;
+        white-space: nowrap;
+        pointer-events: none; 
+    }
+
+    .driver-cutout {
+        position: absolute; 
+        bottom: 0; /* Unten bündig */
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        display: flex;
+        align-items: flex-end; /* WICHTIG */
+        justify-content: center;
+        pointer-events: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .driver-cutout img {
+        height: 100%; /* Volle Höhe nutzen */
+        width: auto;
+        max-width: none; /* Darf breit werden */
+        object-fit: contain;
+        object-position: bottom center; /* WICHTIG: Von unten skalieren */
+        filter: drop-shadow(-20px 0 30px rgba(0,0,0,0.5));
+        display: block;
+    }
+
+    /* Raster Overlay */
+    .hero-grid-overlay {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 20%;
+        height: 100%;
+        background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 10px 10px;
+        mask-image: linear-gradient(to right, transparent, black, transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black, transparent);
+        z-index: 0;
+    }
+    
+    /* Responsive Mobile Design */
+    @media (max-width: 768px) {
+        .driver-hero {
+            height: 80vh; /* Fast ganzer Screen auf Mobile */
+            margin-top: 110px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Alles vertikal zentrieren */
+        }
+
+        .container {
+            width: 100%;
+            padding: 0;
+            position: relative; /* Wichtig für absolute Positionierung */
+        }
+
+        /* 1. Bild & Nummer als Hintergrund-Ebene */
+        .driver-hero-visual {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            align-items: center; /* Bild vertikal mittig/unten */
+            padding-bottom: 20%; /* Platz unten für Text lassen */
+        }
+
+        .big-number {
+            font-size: 20rem; /* Etwas kleiner für Mobile */
+            opacity: 0.15;
+        }
+
+        .driver-cutout {
+            align-items: flex-end; /* Bild unten im Visual-Bereich */
+            height: 90%; /* Nicht ganz voll, damit Text Platz hat */
+            bottom: 15%; /* Etwas hochschieben */
+        }
+        
+        .driver-cutout img {
+            height: 100%;
+            max-width: 90%; /* Nicht breiter als Screen */
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+
+        /* 2. Text über dem Bild */
+        .driver-hero-info {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            z-index: 10; /* Über dem Bild */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            /* Leichter Gradient damit Text lesbar ist */
+            background: linear-gradient(to top, #0B1829 20%, transparent 100%);
+            padding-bottom: 40px;
+        }
+
+        .hero-lines { 
+            display: flex; 
+            flex-direction: column; /* Übereinander */
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        } 
+        
+        .hero-lines span {
+            width: 4px;
+            height: 30px; /* Kürzer */
+            transform: skewX(-20deg);
+        }
+
+        .first-name-script {
+            font-size: 3rem;
+            margin-bottom: 0;
+        }
+
+        .last-name-block {
+            font-size: 4rem;
+            margin-top: -10px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.8); /* Schatten für Lesbarkeit */
+        }
+
+        .driver-hero-meta {
+            justify-content: center;
+            background: rgba(0,0,0,0.3); /* Dunkler Hintergrund für Meta */
+            padding: 5px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            margin-top: 10px;
+        }
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+</style>
+{% endblock %}

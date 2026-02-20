@@ -1,0 +1,172 @@
+/* --- Hero Grid Layout (Split Screen) --- */
+.hero-wrapper {
+    /* Kein Hintergrundbild mehr auf dem Wrapper, sondern im linken Teil */
+    height: 100vh; /* Exakt Bildschirmhöhe */
+    min-height: 700px; /* Mindesthöhe damit nichts abgeschnitten wird */
+    padding-top: 80px; /* Header space */
+    background-color: var(--rdf-navy); /* Dunkler Hintergrund für den Widget-Bereich */
+    display: flex;
+    align-items: stretch; /* Volle Höhe */
+    overflow: hidden; /* Wichtig für clip-path Überlappung */
+}
+
+.hero-grid {
+    display: flex; /* Flexbox statt Grid für einfachere Überlappung */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Left Side: Image & Text */
+.hero-image-section {
+    flex: 2; /* Nimmt 2/3 ein */
+    position: relative;
+    background: linear-gradient(rgba(11, 24, 41, 0.3), rgba(11, 24, 41, 0.8)), url('https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center; /* Text vertikal zentriert */
+    padding: 80px;
+    padding-left: 10%; /* Etwas mehr Abstand links */
+    /* Schräge Kante rechts (Mercedes Style) */
+    clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
+    margin-right: -4%; /* Überlappung kompensieren */
+    z-index: 1;
+}
+
+.hero-text {
+    max-width: 800px;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+    position: relative;
+    z-index: 2;
+}
+
+.hero-text h1 {
+    font-family: var(--font-heading);
+    font-size: 7rem; /* Teko kann man riesig machen! */
+    font-weight: 600;
+    line-height: 0.85;
+    margin-bottom: 20px;
+    font-style: normal; /* Teko ist von Haus aus "schnell" genug */
+    text-transform: uppercase;
+}
+
+/* Right Side: Next Race Widget (Sidebar) */
+.next-race-section {
+    flex: 1; /* Nimmt 1/3 ein */
+    background-color: var(--rdf-navy);
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Vertikal zentriert */
+    padding: 60px;
+    padding-left: 80px; /* Platz wegen schräger Kante */
+    position: relative;
+    z-index: 0;
+    height: 100%; /* Sicherstellen dass es voll hoch ist */
+}
+
+/* Deko-Linien im Hintergrund rechts */
+.next-race-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.03) 10px,
+        rgba(255, 255, 255, 0.03) 20px
+    );
+    pointer-events: none;
+}
+
+.next-race-card {
+    background: transparent; /* Kein eigener Hintergrund mehr nötig */
+    backdrop-filter: none;
+    box-shadow: none;
+    border: none;
+    border-left: 4px solid var(--rdf-teal); /* Linie links statt oben */
+    padding: 0;
+    padding-left: 40px;
+    transform: none;
+    color: white;
+}
+
+/* Anpassungen für die Inhalte im Widget */
+.race-series {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--rdf-teal);
+    margin-bottom: 10px;
+    font-weight: 800;
+}
+
+.race-title { 
+    font-family: var(--font-heading);
+    font-size: 5rem; /* Riesig in Teko */
+    margin-bottom: 5px; 
+    letter-spacing: 0px; 
+    line-height: 0.9;
+}
+
+.race-track {
+    color: var(--rdf-silver);
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.countdown-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 40px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 30px 0;
+}
+
+.countdown-number { 
+    font-family: var(--font-heading);
+    font-size: 4.5rem; 
+    color: var(--rdf-teal); 
+    margin-bottom: 0px; 
+    line-height: 0.8;
+}
+.countdown-label { 
+    font-family: var(--font-tech);
+    color: var(--rdf-silver); 
+    font-size: 0.9rem; 
+    letter-spacing: 2px;
+}
+
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .hero-wrapper {
+        flex-direction: column;
+        height: auto;
+    }
+    .hero-grid {
+        flex-direction: column;
+    }
+    .hero-image-section {
+        width: 100%;
+        height: 60vh;
+        clip-path: none;
+        margin-right: 0;
+        padding: 40px;
+        align-items: flex-end;
+    }
+    .next-race-section {
+        width: 100%;
+        padding: 60px 40px;
+    }
+    .hero-text h1 { font-size: 3.5rem; }
+}
