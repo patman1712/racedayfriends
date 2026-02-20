@@ -25,6 +25,9 @@
 
             <!-- Content -->
             <div class="driver-content">
+                <!-- Watermark Logo -->
+                <div class="watermark-logo"></div>
+                
                 <div class="driver-name">
                     {% set names = driver.name.split(' ') %}
                     <span class="first-name">{{ names[0] }}</span>
@@ -130,11 +133,28 @@
         flex-direction: column;
     }
 
+    /* Logo Wasserzeichen */
+    .watermark-logo {
+        position: absolute;
+        top: -20px;
+        left: -20px;
+        width: 200px;
+        height: 150px;
+        background-image: url('/static/img/logo.png'); /* Pfad zum Logo */
+        background-size: contain;
+        background-repeat: no-repeat;
+        opacity: 0.05; /* Sehr subtil */
+        z-index: -1; /* Hinter dem Text */
+        pointer-events: none;
+    }
+
     .driver-name {
         display: flex;
         flex-direction: column;
         line-height: 1.1;
         margin-bottom: 10px;
+        position: relative; /* Damit z-index greift */
+        z-index: 2;
     }
 
     .first-name {
