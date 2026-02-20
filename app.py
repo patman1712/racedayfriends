@@ -47,43 +47,63 @@ LOCAL_STATIC_UPLOADS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 
 # Initialisierung der Daten
 def init_persistence():
+    print("Starte init_persistence...")
     # 1. Ordner erstellen
     if not os.path.exists(BASE_DATA_DIR):
         try:
             os.makedirs(BASE_DATA_DIR)
-        except OSError:
-            pass 
+            print(f"Ordner erstellt: {BASE_DATA_DIR}")
+        except OSError as e:
+            print(f"Fehler beim Erstellen von {BASE_DATA_DIR}: {e}")
 
     # 2. Upload Ordner im Persistenten Bereich erstellen
     if not os.path.exists(UPLOAD_FOLDER):
-        os.makedirs(UPLOAD_FOLDER)
+        try:
+            os.makedirs(UPLOAD_FOLDER)
+            print(f"Upload Ordner erstellt: {UPLOAD_FOLDER}")
+        except Exception as e:
+            print(f"Fehler beim Erstellen von {UPLOAD_FOLDER}: {e}")
 
     # 3. Symlink für Uploads
-    if os.path.abspath(LOCAL_STATIC_UPLOADS) != os.path.abspath(UPLOAD_FOLDER):
-        if os.path.exists(LOCAL_STATIC_UPLOADS) and not os.path.islink(LOCAL_STATIC_UPLOADS):
-            print("Kopiere bestehende Uploads ins Volume...")
-            for item in os.listdir(LOCAL_STATIC_UPLOADS):
-                s = os.path.join(LOCAL_STATIC_UPLOADS, item)
-                d = os.path.join(UPLOAD_FOLDER, item)
-                if os.path.isfile(s):
-                    shutil.copy2(s, d)
-            shutil.rmtree(LOCAL_STATIC_UPLOADS)
-        
-        if not os.path.exists(LOCAL_STATIC_UPLOADS):
-            try:
+    try:
+        if os.path.abspath(LOCAL_STATIC_UPLOADS) != os.path.abspath(UPLOAD_FOLDER):
+            # Check ob Symlink schon existiert
+            if os.path.islink(LOCAL_STATIC_UPLOADS):
+                print("Symlink existiert bereits.")
+            elif os.path.exists(LOCAL_STATIC_UPLOADS):
+                print("Kopiere bestehende Uploads ins Volume...")
+                for item in os.listdir(LOCAL_STATIC_UPLOADS):
+                    s = os.path.join(LOCAL_STATIC_UPLOADS, item)
+                    d = os.path.join(UPLOAD_FOLDER, item)
+                    if os.path.isfile(s):
+                        shutil.copy2(s, d)
+                shutil.rmtree(LOCAL_STATIC_UPLOADS)
+                print("Lokaler Upload Ordner bereinigt.")
+            
+            if not os.path.exists(LOCAL_STATIC_UPLOADS) and not os.path.islink(LOCAL_STATIC_UPLOADS):
                 os.symlink(UPLOAD_FOLDER, LOCAL_STATIC_UPLOADS)
                 print(f"Symlink erstellt: {LOCAL_STATIC_UPLOADS} -> {UPLOAD_FOLDER}")
-            except Exception as e:
-                print(f"Konnte Symlink nicht erstellen: {e}")
+    except Exception as e:
+        print(f"Fehler beim Symlink Handling: {e}")
 
-    # 4. JSON Dateien initialisieren (Kopieren falls nicht im Volume)
+    # 4. JSON Dateien initialisieren
     for filename in ['drivers.json', 'site_config.json', 'cars.json', 'events.json']:
         target_file = os.path.join(BASE_DATA_DIR, filename)
         source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
         
-        if not os.path.exists(target_file) and os.path.exists(source_file) and os.path.abspath(target_file) != os.path.abspath(source_file):
-            print(f"Kopiere {filename} ins Volume...")
-            shutil.copy2(source_file, target_file)
+        try:
+            if not os.path.exists(target_file):
+                if os.path.exists(source_file):
+                    print(f"Kopiere {filename} ins Volume...")
+                    shutil.copy2(source_file, target_file)
+                else:
+                    print(f"Erstelle leere {filename}...")
+                    with open(target_file, 'w') as f:
+                        json.dump([], f) # Leeres Array als Standard
+        except Exception as e:
+            print(f"Fehler bei Datei {filename}: {e}")
+
+    print("init_persistence abgeschlossen.")
 
 init_persistence()
 
