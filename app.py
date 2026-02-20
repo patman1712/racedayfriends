@@ -12,9 +12,9 @@ from werkzeug.utils import secure_filename
 try:
     from iracingdataapi.client import irDataClient
     IRACING_AVAILABLE = True
-except ImportError:
+except Exception as e: # Fange ALLE Fehler, nicht nur ImportError!
     IRACING_AVAILABLE = False
-    print("Warnung: iracingdataapi nicht installiert. iRacing Features deaktiviert.")
+    print(f"Warnung: iracingdataapi konnte nicht geladen werden: {e}")
 
 # Lade Umgebungsvariablen
 try:
@@ -786,6 +786,9 @@ def debug_iracing():
 
     return "<br>".join(debug_info)
 
+@app.route('/admin/update_iracing_stats')
+@login_required
+def update_iracing_stats():
     if not IRACING_AVAILABLE:
         flash("iRacing API Bibliothek ist nicht installiert.", "error")
         return redirect(url_for('admin_dashboard'))
@@ -795,6 +798,7 @@ def debug_iracing():
         flash(f"Keine iRacing Zugangsdaten konfiguriert. User: {'Gesetzt' if IRACING_USER else 'Fehlt'}", "error")
         return redirect(url_for('admin_dashboard'))
 
+    drivers = load_drivers()
     updated_count = 0
     
     try:
