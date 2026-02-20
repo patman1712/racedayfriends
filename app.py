@@ -807,7 +807,7 @@ def debug_iracing():
     return "<br>".join(debug_info)
 
 @app.route('/admin/update_iracing_stats')
-@login_required # Benutze den Decorator, der macht alles richtig!
+@login_required
 def update_iracing_stats():
     if not IRACING_AVAILABLE:
         flash("iRacing API Bibliothek ist nicht installiert.", "error")
@@ -831,9 +831,16 @@ def update_iracing_stats():
             return redirect(url_for('admin_dashboard'))
             
         for driver in drivers:
-            cust_id = driver.get('id')
-            # Prüfen ob ID gültig ist
+            # Prio 1: Explizite iRacing ID
+            cust_id = driver.get('iracing_id')
+            
+            # Prio 2: Fallback auf ID (falls es früher die iRacing ID war)
+            if not cust_id:
+                cust_id = driver.get('id')
+            
+            # Prüfen ob ID gültig ist (muss eine Zahl sein)
             if not cust_id or not str(cust_id).isdigit(): 
+                print(f"Skipping driver {driver.get('name')} - Invalid ID: {cust_id}")
                 continue
 
             try:
