@@ -162,35 +162,7 @@
     {% endif %}
 </script>
 
-<!-- Rest of the content (Top Drivers) -->
-<div class="container" style="margin-top: -50px; position: relative; z-index: 10;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
-        <h3 style="margin: 0; color: white;">Top Performers</h3>
-        <a href="/team" style="color: var(--rdf-teal); font-size: 0.9rem;">View All <i class="fas fa-chevron-right"></i></a>
-    </div>
-    
-    <div class="grid">
-        {% for d in drivers[:3] %}
-        <div class="card">
-            <div class="card-header">
-                <h3 style="margin:0; font-size: 1.2rem;">{{ d.name }}</h3>
-                <span style="color: var(--rdf-teal); font-weight:bold;">#{{ d.id }}</span>
-            </div>
-            <div class="card-body">
-                <div class="stat-row">
-                    <span class="stat-label">Sports Car iRating</span>
-                    <span class="stat-value">{{ d.ir_sports }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Formula iRating</span>
-                    <span class="stat-value">{{ d.ir_formula }}</span>
-                </div>
-                <a href="/driver/{{ d.id }}" class="btn-primary" style="width:100%; text-align:center; margin-top:15px; padding: 10px;">Stats</a>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
+
 
 <!-- NEWS SECTION -->
 {% if news %}
@@ -225,7 +197,7 @@
         display: grid;
         grid-template-columns: 1fr; /* Mobile: 1 Spalte */
         gap: 20px;
-        grid-auto-rows: 350px; /* Standard Höhe */
+        grid-auto-rows: 450px; /* MEHR HÖHE (vorher 350px) */
     }
 
     /* Desktop Layout (ab 1024px) */
@@ -329,9 +301,13 @@
     .news-card:hover .news-arrow {
         transform: translateX(5px);
     }
-</style>
 
     @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); opacity: 1; }
+    }
+</style>
         0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); opacity: 1; }
         50% { opacity: 0.5; }
         100% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); opacity: 1; }
