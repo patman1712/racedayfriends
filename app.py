@@ -187,8 +187,9 @@ def load_news():
     with open(NEWS_FILE, 'r') as f:
         try:
             news = json.load(f)
-            # Sortieren nach Datum (absteigend, neueste zuerst)
-            news.sort(key=lambda x: x.get('date', ''), reverse=True)
+            # Sortieren: Erst nach Datum (neu -> alt), dann nach ID (Timestamp, neu -> alt)
+            # Damit landen die neuesten Artikel wirklich oben
+            news.sort(key=lambda x: (x.get('date', ''), x.get('id', '')), reverse=True)
             return news
         except json.JSONDecodeError:
             return []
