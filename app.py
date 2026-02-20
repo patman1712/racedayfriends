@@ -807,7 +807,7 @@ def debug_iracing():
     return "<br>".join(debug_info)
 
 @app.route('/admin/update_iracing_stats')
-@login_required
+@login_required # Benutze den Decorator, der macht alles richtig!
 def update_iracing_stats():
     if not IRACING_AVAILABLE:
         flash("iRacing API Bibliothek ist nicht installiert.", "error")
