@@ -50,7 +50,7 @@
             <ul class="nav-links" id="nav-menu">
                 {% if site_config.navigation %}
                     {% for item in site_config.navigation %}
-                    <li><a href="{{ item.url }}" onclick="toggleMenu()">{{ item.label }}</a></li>
+                    <li><a href="{{ item.link }}" onclick="toggleMenu()">{{ item.text }}</a></li>
                     {% endfor %}
                 {% else %}
                     <!-- Fallback Navigation, falls Config leer ist -->
