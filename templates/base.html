@@ -48,11 +48,18 @@
             </div>
 
             <ul class="nav-links" id="nav-menu">
-                <li><a href="/" onclick="toggleMenu()">Home</a></li>
-                <li><a href="/team" onclick="toggleMenu()">Das Team</a></li>
-                <li><a href="/#news" onclick="toggleMenu()">News</a></li>
-                <li><a href="/gallery" onclick="toggleMenu()">Galerie</a></li>
-                <li><a href="/calendar" onclick="toggleMenu()">Rennkalender</a></li>
+                {% if site_config.navigation %}
+                    {% for item in site_config.navigation %}
+                    <li><a href="{{ item.url }}" onclick="toggleMenu()">{{ item.label }}</a></li>
+                    {% endfor %}
+                {% else %}
+                    <!-- Fallback Navigation, falls Config leer ist -->
+                    <li><a href="/" onclick="toggleMenu()">Home</a></li>
+                    <li><a href="/team" onclick="toggleMenu()">Das Team</a></li>
+                    <li><a href="/#news" onclick="toggleMenu()">News</a></li>
+                    <li><a href="/gallery" onclick="toggleMenu()">Galerie</a></li>
+                    <li><a href="/calendar" onclick="toggleMenu()">Rennkalender</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>
