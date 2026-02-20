@@ -49,6 +49,28 @@
                 <a href="/event/{{ event.id }}" class="btn-primary" style="font-size: 0.9rem;">Event Details <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
+        
+        <!-- Fahrer Lineup & Ergebnisse -->
+        {% if event_drivers %}
+        <div style="margin-top: 30px;">
+            <h4 style="color: white; margin-bottom: 15px;">Driver Lineup</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;">
+                {% for driver in event_drivers %}
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; text-align: center;">
+                    {% if driver.image_url %}
+                    <img src="{{ driver.image_url }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; margin-bottom: 10px; border: 2px solid var(--rdf-teal);">
+                    {% else %}
+                    <div style="width: 60px; height: 60px; background: #333; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--rdf-teal);">
+                        <i class="fas fa-user" style="color: #666;"></i>
+                    </div>
+                    {% endif %}
+                    <div style="font-weight: 700; color: white; font-size: 0.9rem;">{{ driver.name }}</div>
+                    <div style="color: var(--rdf-teal); font-size: 0.8rem;">#{{ driver.number if driver.number else '?' }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
     

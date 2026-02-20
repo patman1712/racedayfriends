@@ -842,12 +842,20 @@ def news_detail(news_id):
         return redirect(url_for('index'))
     
     linked_event = None
+    event_drivers = []
+    
     event_id = news_item.get('event_id')
     if event_id:
         events = load_events()
         linked_event = next((e for e in events if str(e['id']) == str(event_id)), None)
         
-    return render_template('news_detail.html', news=news_item, event=linked_event)
+        if linked_event:
+            # Fahrer für das Event laden
+            selected_driver_ids = linked_event.get('drivers', [])
+            all_drivers = get_drivers_data()
+            event_drivers = [d for d in all_drivers if str(d['id']) in selected_driver_ids or d['id'] in selected_driver_ids]
+
+    return render_template('news_detail.html', news=news_item, event=linked_event, event_drivers=event_drivers)
 
 @app.route('/admin/save_drivers_list', methods=['POST'])
 @login_required
