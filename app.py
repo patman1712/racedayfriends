@@ -758,25 +758,30 @@ def update_iracing_stats():
         flash("iRacing API Bibliothek ist nicht installiert.", "error")
         return redirect(url_for('admin_dashboard'))
 
+    # Debugging Info (nur für uns, damit wir sehen ob Vars da sind)
     if not IRACING_USER or not IRACING_PASSWORD:
-        flash("Keine iRacing Zugangsdaten konfiguriert.", "error")
-        # Trotzdem weiterleiten, vielleicht klappt es ja lokal
-        # return redirect(url_for('admin_dashboard')) 
+        flash(f"Keine iRacing Zugangsdaten konfiguriert. User: {'Gesetzt' if IRACING_USER else 'Fehlt'}", "error")
+        return redirect(url_for('admin_dashboard'))
 
     updated_count = 0
     
     try:
-        # Versuche Login
-        if IRACING_USER and IRACING_PASSWORD:
+        # Versuche Login explizit
+        try:
             idc = irDataClient(username=IRACING_USER, password=IRACING_PASSWORD)
-        else:
-            raise Exception("Credentials missing")
+        except Exception as e:
+            # Login Fehler detailliert ausgeben
+            flash(f"Login bei iRacing fehlgeschlagen: {str(e)}", "error")
+            return redirect(url_for('admin_dashboard'))
             
         for driver in drivers:
             cust_id = driver.get('id')
-            if not str(cust_id).isdigit(): continue
+            # Prüfen ob ID gültig ist
+            if not cust_id or not str(cust_id).isdigit(): 
+                continue
 
             try:
+                # API Call
                 stats = idc.stats_member_career(cust_id=int(cust_id))
                 if not stats: continue
 
@@ -788,17 +793,21 @@ def update_iracing_stats():
                     driver['ir_sports'] = target_stats['irating']
                     driver['sr_sports'] = f"{target_stats['license_class']} {target_stats['safety_rating']}"
                     updated_count += 1
-            except:
+            except Exception as inner_e:
+                print(f"Fehler bei Fahrer {cust_id}: {inner_e}")
+                # Wir machen weiter mit dem nächsten Fahrer
                 continue
                 
         if updated_count > 0:
             save_data()
-            flash(f"{updated_count} Fahrer aktualisiert!", "success")
+            flash(f"{updated_count} Fahrer erfolgreich aktualisiert!", "success")
         else:
-            flash("Keine Fahrer aktualisiert.", "warning")
+            flash("Keine Fahrer aktualisiert. Sind die IDs korrekt?", "warning")
             
     except Exception as e:
-        flash(f"iRacing Update Fehler: {e}", "error")
+        # Globaler Catch-All für alles andere
+        flash(f"Kritischer Fehler beim Update: {str(e)}", "error")
+        print(f"CRITICAL ERROR: {e}")
 
     return redirect(url_for('admin_dashboard'))
 
