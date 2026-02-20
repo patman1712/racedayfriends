@@ -749,10 +749,42 @@ def admin_save_drivers_list():
     # Route für Drag&Drop Sortierung oder ähnliches
     return redirect(url_for('admin_team'))
 
-@app.route('/admin/update_iracing_stats')
-def update_iracing_stats():
+@app.route('/admin/debug_iracing')
+def debug_iracing():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+        
+    debug_info = []
+    
+    # 1. Check Import
+    try:
+        import iracingdataapi
+        debug_info.append(f"Import iracingdataapi: OK (Version: {getattr(iracingdataapi, '__version__', 'unknown')})")
+    except Exception as e:
+        debug_info.append(f"Import iracingdataapi: FAILED ({e})")
+        
+    # 2. Check Pydantic
+    try:
+        import pydantic
+        debug_info.append(f"Import pydantic: OK (Version: {getattr(pydantic, '__version__', 'unknown')})")
+    except Exception as e:
+        debug_info.append(f"Import pydantic: FAILED ({e})")
+
+    # 3. Check Credentials (maskiert)
+    u = IRACING_USER
+    p = IRACING_PASSWORD
+    debug_info.append(f"Username set: {'YES' if u else 'NO'} ({len(u)} chars)")
+    debug_info.append(f"Password set: {'YES' if p else 'NO'} ({len(p)} chars)")
+    
+    # 4. Check Client Init (ohne Login)
+    try:
+        # Nur Import prüfen
+        from iracingdataapi.client import irDataClient
+        debug_info.append("irDataClient Class: Found")
+    except Exception as e:
+        debug_info.append(f"irDataClient Import: FAILED ({e})")
+
+    return "<br>".join(debug_info)
 
     if not IRACING_AVAILABLE:
         flash("iRacing API Bibliothek ist nicht installiert.", "error")
