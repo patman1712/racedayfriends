@@ -281,6 +281,10 @@ def save_drivers(drivers):
     with open(DRIVERS_FILE, 'w') as f:
         json.dump(drivers, f, indent=4)
 
+@app.context_processor
+def inject_config():
+    return dict(site_config=load_config())
+
 # --- Mock Client für Demo-Zwecke ---
 class MockDataClient:
     def __init__(self, username=None, password=None):
@@ -454,6 +458,37 @@ def admin_logout():
 def admin_dashboard():
     # Zeigt jetzt die Übersichtskacheln
     return render_template('admin_dashboard.html')
+
+@app.route('/admin/settings')
+@login_required
+def admin_settings():
+    config = load_config()
+    return render_template('admin_settings.html', config=config)
+
+@app.route('/admin/settings/save', methods=['POST'])
+@login_required
+def admin_settings_save():
+    config = load_config()
+    
+    # Nav Logo Upload
+    if 'nav_logo' in request.files:
+        file = request.files['nav_logo']
+        if file and file.filename != '' and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            ts = int(datetime.now().timestamp())
+            filename = f"nav_logo_{ts}_{filename}"
+            
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+                
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            config['nav_logo_url'] = url_for('static', filename=f'uploads/{filename}')
+            flash("Nav Logo aktualisiert!", "success")
+            
+    save_config(config)
+    return redirect(url_for('admin_settings'))
 
 @app.route('/admin/hero')
 @login_required

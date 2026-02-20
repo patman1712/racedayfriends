@@ -33,7 +33,11 @@
     <header>
         <nav>
             <a href="/" class="nav-logo">
+                {% if site_config.nav_logo_url %}
+                <img src="{{ site_config.nav_logo_url }}" alt="RaceDayFriends" style="height: 40px; width: auto;">
+                {% else %}
                 <img src="{{ url_for('static', filename='img/logo.png') }}" alt="RaceDayFriends" style="height: 40px; width: auto;">
+                {% endif %}
             </a>
             
             <!-- Mobile Menu Toggle -->
