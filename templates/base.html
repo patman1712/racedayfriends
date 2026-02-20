@@ -107,9 +107,11 @@
             
             // 0. Wo sind wir?
             const isHome = window.location.pathname === '/';
+            const hasHash = window.location.hash.length > 0;
             
-            if (!isHome) {
-                // Auf Unterseiten KEIN Intro
+            // Wenn wir auf einer Unterseite sind ODER einen Anker-Link haben (z.B. /#news) -> KEIN Intro
+            if (!isHome || hasHash) {
+                // Sofort ausblenden
                 preloader.style.display = 'none';
                 document.body.classList.add('loaded');
                 return;
