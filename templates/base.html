@@ -104,6 +104,17 @@
         // Intro Animation Logic
         window.addEventListener('load', function() {
             const preloader = document.getElementById('preloader');
+            
+            // 0. Wo sind wir?
+            const isHome = window.location.pathname === '/';
+            
+            if (!isHome) {
+                // Auf Unterseiten KEIN Intro
+                preloader.style.display = 'none';
+                document.body.classList.add('loaded');
+                return;
+            }
+
             let showIntro = true;
             
             // 1. Haben wir das Intro in diesem Tab schon gesehen?
