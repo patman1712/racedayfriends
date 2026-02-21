@@ -533,7 +533,7 @@ def save_rig():
 
     save_drivers(drivers)
     flash("Rig-Daten gespeichert!", "success")
-    return render_template('boxengasse.html', driver=current_driver)
+    return redirect(url_for('boxengasse'))
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
