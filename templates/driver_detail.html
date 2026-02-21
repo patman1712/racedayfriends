@@ -461,40 +461,29 @@
         </div>
     </div>
     
-    <!-- Twitch Player Container (Hidden by default) -->
-    <div id="twitch-embed" style="display: none; margin-top: 20px; background: black; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9;"></div>
+    <!-- Twitch Player Container (Visible) -->
+    <div id="twitch-embed" style="margin-top: 20px; background: black; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; width: 100%; height: 500px;"></div>
 
     <script src="https://embed.twitch.tv/embed/v1.js"></script>
     <script>
       window.onload = function() {
         var channel = "{{ twitch_name }}";
         if(channel) {
-            // Wir binden den Player ein. Der Player selbst zeigt an ob Live oder Offline.
-            // Leider können wir den Status "ON AIR" Badge nicht ohne API Key ändern,
-            // ABER wir können den Player anzeigen.
-            
-            // Neuer Ansatz: Wir zeigen IMMER den Player an, wenn der User drauf klickt?
-            // Oder wir binden ihn ein und Twitch handhabt den "Offline" Screen.
-            
-            // Da der User explizit "Status anzeigen" will, brauche ich eigentlich ein Backend.
-            // Workaround: Ich baue den Embed ein und höre auf Events.
-            
             var embed = new Twitch.Embed("twitch-embed", {
                 width: "100%",
                 height: "100%",
                 channel: channel,
                 layout: "video",
-                autoplay: false,
-                parent: ["racedayfriends.up.railway.app", "localhost"] // Wichtig für Embed!
-            });
-
-            embed.addEventListener(Twitch.Embed.VIDEO_READY, function() {
-                var player = embed.getPlayer();
-                // Player ist bereit. Prüfen ob live?
-                // Die API gibt das nicht direkt preis ohne Auth.
+                autoplay: true, // Autoplay an
+                muted: true,    // Muted starten (Browser Policy)
+                parent: ["racedayfriends.up.railway.app", "localhost", "127.0.0.1"] 
             });
             
-            // Workaround: Wir zeigen den Player Button an?
+            // Wenn der Player bereit ist, können wir Events hören
+            embed.addEventListener(Twitch.Embed.VIDEO_READY, function() {
+                var player = embed.getPlayer();
+                player.play();
+            });
         }
       };
     </script>
