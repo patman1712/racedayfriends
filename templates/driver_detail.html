@@ -429,16 +429,35 @@
 
     <!-- TWITCH BAR (Nur wenn Twitch hinterlegt ist) -->
     {% if driver.twitch %}
+    
+    {# Twitch URL und Username Logik #}
+    {% set twitch_input = driver.twitch %}
+    {% set twitch_url = twitch_input %}
+    {% set twitch_name = twitch_input %}
+    
+    {% if 'twitch.tv' in twitch_input %}
+        {# Es ist eine URL #}
+        {% if not twitch_input.startswith('http') %}
+            {% set twitch_url = 'https://' + twitch_input %}
+        {% endif %}
+        {# Name extrahieren (letzter Teil nach /) #}
+        {% set twitch_name = twitch_url.rstrip('/').split('/')[-1] %}
+    {% else %}
+        {# Es ist nur der Username #}
+        {% set twitch_url = 'https://twitch.tv/' + twitch_input %}
+        {% set twitch_name = twitch_input %}
+    {% endif %}
+
     <div class="dd-twitch-bar">
         <div class="dd-twitch-user">
             <i class="fab fa-twitch dd-twitch-icon"></i>
-            {{ driver.twitch.split('/')[-1] }}
+            {{ twitch_name }}
         </div>
         <div class="dd-twitch-right"> <!-- Korrekter Klassenname -->
             <div class="status-badge">
                 <div class="status-dot"></div> Off Air
             </div>
-            <a href="{{ driver.twitch }}" target="_blank" class="twitch-link-btn">
+            <a href="{{ twitch_url }}" target="_blank" class="twitch-link-btn">
                 Zum Kanal <i class="fas fa-external-link-alt"></i>
             </a>
         </div>
