@@ -562,6 +562,42 @@ def delete_rig_image():
             
     return redirect(url_for('boxengasse'))
 
+@app.route('/boxengasse/profil/save', methods=['POST'])
+@driver_login_required
+def save_profil():
+    driver_id = session.get('driver_id')
+    drivers = load_drivers()
+    driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    
+    if not driver:
+        flash("Fahrer nicht gefunden", "error")
+        return redirect(url_for('boxengasse'))
+        
+    # Daten aktualisieren
+    driver['username'] = request.form.get('username')
+    driver['number'] = request.form.get('number')
+    driver['twitch'] = request.form.get('twitch')
+    
+    # Bild Upload
+    if 'driver_image' in request.files:
+        file = request.files['driver_image']
+        if file and file.filename != '' and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            ts = int(datetime.now().timestamp())
+            filename = f"driver_{driver_id}_{ts}_{filename}"
+            
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+                
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            driver['image_url'] = url_for('static', filename=f'uploads/{filename}')
+    
+    save_drivers(drivers)
+    flash("Profil gespeichert!", "success")
+    return redirect(url_for('boxengasse'))
+
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':

@@ -11,19 +11,38 @@
         <!-- Kachel: Mein Profil -->
         <div class="card">
             <div class="card-header">
-                <h3><i class="fas fa-id-card"></i> Mein Profil</h3>
+                <h3><i class="fas fa-user-edit"></i> Mein Profil</h3>
             </div>
             <div class="card-body">
-                {% if driver %}
-                <div class="profile-info">
-                    <img src="{{ driver.image_url }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--rdf-teal); margin-bottom: 15px;">
-                    <p><strong>Name:</strong> {{ driver.name }}</p>
-                    <p><strong>iRacing ID:</strong> {{ driver.id }}</p>
-                    <p><strong>Username:</strong> {{ driver.username }}</p>
-                </div>
-                {% else %}
-                <p>Keine Fahrerdaten gefunden.</p>
-                {% endif %}
+                <form action="/boxengasse/profil/save" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Spitzname / Username</label>
+                        <input type="text" name="username" class="form-control" value="{{ driver.username or '' }}" placeholder="z.B. Patman1712">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Startnummer</label>
+                        <input type="text" name="number" class="form-control" value="{{ driver.number or '' }}" placeholder="#21">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Twitch Kanal (URL)</label>
+                        <input type="text" name="twitch" class="form-control" value="{{ driver.twitch or '' }}" placeholder="https://twitch.tv/...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Fahrerbild (Freisteller)</label>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                            {% if driver.image_url %}
+                            <img src="{{ driver.image_url }}" style="height: 60px; width: 60px; object-fit: cover; border-radius: 50%; border: 1px solid var(--rdf-teal);">
+                            {% endif %}
+                            <input type="file" name="driver_image" class="form-control" accept="image/*">
+                        </div>
+                        <small style="color: var(--rdf-silver);">Am besten ein PNG mit transparentem Hintergrund.</small>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Profil Speichern</button>
+                </form>
             </div>
         </div>
 
