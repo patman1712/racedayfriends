@@ -24,17 +24,19 @@
         background: linear-gradient(135deg, #0B1829 0%, #15273d 100%);
     }
 
-    /* Dotted Pattern Overlay (Stärker sichtbar) */
+    /* Dotted Pattern Overlay (Nur rechts bei Bild/Nummer) */
     .dd-header::before {
         content: "";
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px);
+        position: absolute; top: 0; right: 0; width: 60%; height: 100%; /* Nur rechte 60% */
+        background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1.5px, transparent 1.5px);
         background-size: 20px 20px;
-        opacity: 0.5;
+        opacity: 0.6;
         pointer-events: none;
         z-index: 1;
+        mask-image: linear-gradient(to right, transparent, black 20%); /* Weicher Übergang links */
+        -webkit-mask-image: linear-gradient(to right, transparent, black 20%);
     }
-    
+
     /* Background Number (21) */
     .dd-bg-number {
         position: absolute;
@@ -49,48 +51,58 @@
         pointer-events: none;
     }
 
-    /* Left Info */
+    /* Left Info (Zentriert für Alonso Style) */
     .dd-info {
         position: relative; z-index: 2;
-        padding-left: 10%;
-        width: 40%;
-        display: flex; flex-direction: column; justify-content: center;
+        padding-left: 0; /* Kein Padding mehr nötig bei Center */
+        width: 45%; /* Etwas breiter */
+        margin-left: 5%; /* Abstand vom Rand */
+        display: flex; flex-direction: column; 
+        justify-content: center; align-items: center; /* Alles zentrieren */
+        text-align: center;
     }
     
-    /* Racing Stripes (Alonso Style) */
+    /* Racing Stripes (Alonso Style) - Zentriert */
     .dd-stripes-top {
-        display: flex; gap: 10px; margin-bottom: 20px;
-        transform: skewY(-20deg); /* Leicht schräg */
+        display: flex; gap: 10px; margin-bottom: 30px;
+        transform: skewY(-20deg);
+        height: 100px; /* Fixe Höhe */
+        align-items: flex-end; /* Unten bündig */
     }
     .stripe {
-        width: 15px; height: 80px; background: white;
-        clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%); /* Schräge Kante unten */
+        width: 18px; height: 100%; background: white;
+        clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
     }
-    .stripe.short { height: 50px; background: var(--rdf-teal); }
+    .stripe.short { height: 60%; background: var(--rdf-teal); }
     
     .dd-stripes-bottom {
-        display: flex; gap: 10px; margin-top: 20px;
+        display: flex; gap: 10px; margin-top: 30px;
         transform: skewY(-20deg);
+        height: 100px;
+        align-items: flex-start; /* Oben bündig */
     }
     .stripe-b {
-        width: 15px; height: 80px; background: white;
-        clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 100%); /* Schräge Kante oben */
+        width: 18px; height: 100%; background: white;
+        clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 100%);
     }
-    .stripe-b.short { height: 50px; background: var(--rdf-teal); clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 100%); }
+    .stripe-b.short { height: 60%; background: var(--rdf-teal); clip-path: polygon(0 25%, 100% 0, 100% 100%, 0 100%); }
 
     /* Name Styles */
     .dd-name { line-height: 0.8; margin-bottom: 20px; }
     .dd-firstname-style {
-        font-family: 'Great Vibes', cursive; font-size: 5rem; color: white; display: block; margin-left: 10px; margin-bottom: 10px;
+        font-family: 'Great Vibes', cursive; font-size: 6rem; color: white; display: block; margin-bottom: 15px;
+        margin-left: 0; /* Reset */
     }
     .dd-lastname {
-        font-family: 'Teko', sans-serif; font-size: 7rem; color: white; /* Weiss wie im Alonso Bild */
+        font-family: 'Teko', sans-serif; font-size: 8rem; color: white;
         font-weight: 800; text-transform: uppercase; display: block; letter-spacing: 2px;
+        line-height: 0.8;
     }
     
     /* Meta Line */
     .dd-meta {
-        display: flex; align-items: center; gap: 25px; margin-top: 10px;
+        display: flex; align-items: center; justify-content: center; /* Zentriert */
+        gap: 25px; margin-top: 15px;
         font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; color: white; font-weight: 600;
         position: relative; z-index: 3;
     }
