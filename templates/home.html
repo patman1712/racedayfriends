@@ -166,8 +166,8 @@
 
 <!-- NEWS SECTION -->
 {% if news %}
-<div id="news" class="container" style="margin-top: 40px; margin-bottom: 60px; scroll-margin-top: 100px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+<div id="news" style="margin-top: 40px; margin-bottom: 60px; scroll-margin-top: 100px; width: 100%; padding: 0 40px; box-sizing: border-box;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; max-width: 1600px; margin-left: auto; margin-right: auto;">
         <h2 style="color: white; font-size: 2rem; margin: 0; text-transform: uppercase; font-weight: 800; letter-spacing: -1px;">Latest News</h2>
         <a href="#" style="color: var(--rdf-teal); font-weight: 600; text-decoration: none; font-size: 0.9rem;">ALL NEWS <i class="fas fa-arrow-right"></i></a>
     </div>
@@ -197,7 +197,9 @@
         display: grid;
         grid-template-columns: 1fr; /* Mobile: 1 Spalte */
         gap: 20px;
-        grid-auto-rows: 450px; /* MEHR HÖHE */
+        grid-auto-rows: 450px;
+        max-width: 1600px; /* Optional: Maximale Breite für Grid Inhalte */
+        margin: 0 auto; /* Zentrieren */
     }
 
     /* Desktop Layout (ab 1024px) */
