@@ -461,8 +461,10 @@
         </div>
     </div>
     
-    <!-- Twitch Player Container (Visible) -->
-    <div id="twitch-embed" style="margin-top: 20px; background: black; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; width: 100%; height: 500px;"></div>
+    <!-- Twitch Player Container (Hidden initially) -->
+    <div id="twitch-embed-wrapper" style="height: 0; overflow: hidden; transition: height 0.5s ease; margin-top: 0;">
+        <div id="twitch-embed" style="width: 100%; height: 500px; background: black; border-radius: 8px;"></div>
+    </div>
 
     <script src="https://embed.twitch.tv/embed/v1.js"></script>
     <script>
@@ -474,16 +476,50 @@
                 height: "100%",
                 channel: channel,
                 layout: "video",
-                autoplay: true, // Autoplay an
-                muted: true,    // Muted starten (Browser Policy)
+                autoplay: true,
+                muted: true,
                 parent: ["racedayfriends.up.railway.app", "localhost", "127.0.0.1"] 
             });
             
-            // Wenn der Player bereit ist, können wir Events hören
+            // Status Elemente
+            var badge = document.getElementById('twitch-status-badge');
+            var statusText = document.getElementById('twitch-status-text');
+            var wrapper = document.getElementById('twitch-embed-wrapper');
+            
+            // Event Listener
             embed.addEventListener(Twitch.Embed.VIDEO_READY, function() {
                 var player = embed.getPlayer();
-                player.play();
+                player.play(); // Versuch zu starten
+                
+                // Wir prüfen periodisch ob wir live sind (Workaround)
+                // Da Events unzuverlässig sein können bei Autoplay Muted
+                setTimeout(checkLiveStatus, 2000);
             });
+            
+            embed.addEventListener(Twitch.Embed.VIDEO_PLAY, function() {
+                // Wenn Video spielt, gehen wir von LIVE aus
+                setLive();
+            });
+
+            function setLive() {
+                console.log("Twitch is LIVE!");
+                badge.classList.add('live'); // CSS Klasse für Rot
+                statusText.innerText = "ON AIR";
+                wrapper.style.height = "500px"; // Player aufklappen
+                wrapper.style.marginTop = "20px";
+            }
+            
+            function checkLiveStatus() {
+                var player = embed.getPlayer();
+                // Leider gibt getEnded() true zurück wenn Offline? 
+                // Oder isPaused()?
+                // Dieser Check ist experimentell.
+                
+                // Wenn der Player spielt (nicht pausiert), sind wir wahrscheinlich live.
+                if (!player.isPaused()) {
+                    setLive();
+                }
+            }
         }
       };
     </script>
