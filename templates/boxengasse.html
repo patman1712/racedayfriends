@@ -86,9 +86,16 @@
                     </div>
 
                     {% if driver.rig and driver.rig.images %}
-                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
                         {% for img in driver.rig.images %}
-                        <img src="{{ img }}" style="height: 60px; border-radius: 4px; border: 1px solid var(--rdf-border);">
+                        <div style="position: relative; display: inline-block; margin-right: 10px;">
+                            <img src="{{ img }}" style="height: 80px; border-radius: 4px; border: 1px solid var(--rdf-border); display: block;">
+                            <a href="/boxengasse/rig/delete_image?index={{ loop.index0 }}" 
+                               onclick="return confirm('Bild wirklich löschen?')"
+                               style="position: absolute; top: -10px; right: -10px; background: #ff4d4d; color: white; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 24px; font-weight: bold; text-decoration: none; border: 2px solid #15273d; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10;">
+                                &times;
+                            </a>
+                        </div>
                         {% endfor %}
                     </div>
                     {% endif %}
