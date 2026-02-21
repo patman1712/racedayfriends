@@ -533,18 +533,7 @@ def save_rig():
 
     save_drivers(drivers)
     flash("Rig-Daten gespeichert!", "success")
-    return redirect(url_for('boxengasse'))
-
-@app.route('/driver/<driver_id>')
-def driver_detail(driver_id):
-    all_drivers = get_drivers_data()
-    driver = next((d for d in all_drivers if str(d['id']) == str(driver_id)), None)
-    
-    if not driver:
-        flash("Fahrer nicht gefunden", "error")
-        return redirect(url_for('team'))
-        
-    return render_template('driver_detail.html', driver=driver)
+    return render_template('boxengasse.html', driver=current_driver)
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
