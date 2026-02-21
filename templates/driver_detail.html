@@ -3,8 +3,8 @@
 {% block content %}
 <!-- Custom Driver Detail CSS -->
 <style>
-    /* Global Page Override for this view */
-    body { background-color: #050b14; }
+    /* Global Page Override removed to match Home */
+    /* body { background-color: #050b14; } */
     
     .dd-container {
         max-width: 1400px; margin: 0 auto; padding: 0 40px;
@@ -64,10 +64,10 @@
     
     /* Racing Stripes (Alonso Style) - Zentriert */
     .dd-stripes-top {
-        display: flex; gap: 10px; margin-bottom: 30px;
+        display: flex; gap: 10px; margin-bottom: 40px; /* Mehr Abstand */
         transform: skewY(-20deg);
-        height: 100px; /* Fixe Höhe */
-        align-items: flex-end; /* Unten bündig */
+        height: 100px;
+        align-items: flex-end;
     }
     .stripe {
         width: 18px; height: 100%; background: white;
@@ -76,10 +76,10 @@
     .stripe.short { height: 60%; background: var(--rdf-teal); }
     
     .dd-stripes-bottom {
-        display: flex; gap: 10px; margin-top: 30px;
+        display: flex; gap: 10px; margin-top: 40px; /* Mehr Abstand */
         transform: skewY(-20deg);
         height: 100px;
-        align-items: flex-start; /* Oben bündig */
+        align-items: flex-start;
     }
     .stripe-b {
         width: 18px; height: 100%; background: white;
@@ -259,15 +259,42 @@
         .dd-firstname-style { font-size: 3.5rem; margin-bottom: 5px; }
         .dd-lastname { font-size: 4rem; letter-spacing: 1px; line-height: 0.9; }
         
-        /* Streifen kleiner */
-        .dd-stripes-top, .dd-stripes-bottom { height: 60px; margin-bottom: 15px; margin-top: 15px; }
+        /* Streifen kleiner und mehr Abstand */
+        .dd-stripes-top { height: 60px; margin-bottom: 30px; }
+        .dd-stripes-bottom { height: 60px; margin-top: 30px; }
         .stripe, .stripe-b { width: 12px; }
         
         /* Meta Infos */
         .dd-meta { flex-wrap: wrap; gap: 15px; margin-top: 20px; font-size: 1rem; }
         .dd-meta .fi { width: 28px; height: 28px; }
         
-        /* Bild nach unten schieben und skalieren */
+        /* Tabelle Responsive (Card View) */
+        .dd-table thead { display: none; } /* Header ausblenden */
+        .dd-table, .dd-table tbody, .dd-table tr, .dd-table td {
+            display: block; width: 100%;
+        }
+        .dd-table tr {
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #1a2a40;
+        }
+        .dd-table td {
+            padding: 5px 0;
+            border-bottom: none;
+            display: flex; justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        /* Label vor jedem Wert einfügen via CSS Content */
+        .dd-table td::before {
+            content: attr(data-label);
+            font-weight: bold; color: var(--rdf-silver); text-transform: uppercase; font-size: 0.8rem;
+        }
+        
+        /* Rig Grid */
+        .dd-rig-grid { grid-template-columns: 1fr; }
+    }
         .dd-image {
             position: relative; /* Nicht mehr absolut, damit es Platz einnimmt */
             right: auto; bottom: auto;
@@ -392,11 +419,11 @@
                 {% if past_events %}
                     {% for event in past_events %}
                     <tr>
-                        <td>{{ event.date.split('T')[0] }} {{ event.date.split('T')[1][:5] }}</td>
-                        <td>{{ event.title }}</td>
-                        <td>{{ event.series or '-' }}</td>
-                        <td>{{ event.car_model or '-' }}</td>
-                        <td class="res-badge">{{ event.result or '-' }}</td>
+                        <td data-label="Datum">{{ event.date.split('T')[0] }} {{ event.date.split('T')[1][:5] }}</td>
+                        <td data-label="Event">{{ event.title }}</td>
+                        <td data-label="Serie">{{ event.series or '-' }}</td>
+                        <td data-label="Fahrzeug">{{ event.car_model or '-' }}</td>
+                        <td data-label="Ergebnis" class="res-badge">{{ event.result or '-' }}</td>
                     </tr>
                     {% endfor %}
                 {% else %}
