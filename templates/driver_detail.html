@@ -51,23 +51,24 @@
         pointer-events: none;
     }
 
-    /* Left Info (Zentriert für Alonso Style) */
+    /* Left Info (Hamilton Style: Block links, aber Inhalt zentriert) */
     .dd-info {
         position: relative; z-index: 2;
-        padding-left: 0; /* Kein Padding mehr nötig bei Center */
-        width: 45%; /* Etwas breiter */
-        margin-left: 5%; /* Abstand vom Rand */
+        padding-left: 0;
+        width: 45%;
+        margin-left: 5%;
         display: flex; flex-direction: column; 
-        justify-content: center; align-items: center; /* Alles zentrieren */
+        justify-content: center; align-items: center; /* Inhalt zentriert */
         text-align: center;
     }
     
-    /* Racing Stripes (Alonso Style) - Zentriert */
+    /* Racing Stripes (Alonso Style) - Zentriert im Block */
     .dd-stripes-top {
-        display: flex; gap: 10px; margin-bottom: 40px; /* Mehr Abstand */
+        display: flex; gap: 10px; margin-bottom: 30px;
         transform: skewY(-20deg);
         height: 100px;
         align-items: flex-end;
+        margin-left: 0; /* Reset */
     }
     .stripe {
         width: 18px; height: 100%; background: white;
@@ -76,10 +77,11 @@
     .stripe.short { height: 60%; background: var(--rdf-teal); }
     
     .dd-stripes-bottom {
-        display: flex; gap: 10px; margin-top: 40px; /* Mehr Abstand */
+        display: flex; gap: 10px; margin-top: 30px;
         transform: skewY(-20deg);
         height: 100px;
         align-items: flex-start;
+        margin-left: 0; /* Reset */
     }
     .stripe-b {
         width: 18px; height: 100%; background: white;
@@ -120,17 +122,19 @@
     .dd-meta .highlight { color: var(--rdf-teal); font-weight: bold; font-size: 1.3rem; letter-spacing: 1px; }
     .separator { color: #4a5568; font-weight: 300; opacity: 0.5; }
 
-    /* Right Image */
+    /* Right Image (Absolut Unten Bündig) */
     .dd-image {
         position: absolute;
-        right: 10%; bottom: 0;
-        height: 85%; width: 40%;
+        right: 5%; bottom: -5px; /* Kleiner negativer Wert um Lücken zu vermeiden */
+        height: 95%; width: 45%; /* Mehr Höhe */
         z-index: 2;
         display: flex; align-items: flex-end; justify-content: center;
+        padding-bottom: 0; margin-bottom: 0;
     }
     .dd-image img {
         max-height: 100%; width: auto; object-fit: contain;
         filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
+        display: block; /* Verhindert Inline-Block Abstände unten */
     }
 
     /* Sim Rig Box */
