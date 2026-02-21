@@ -216,14 +216,16 @@
     }
 </style>
 
-<div class="dd-container">
+<div style="width: 100%; overflow-x: hidden;"> <!-- Wrapper für Full Width -->
     
-    <!-- HEADER -->
+    <!-- HEADER (Full Width) -->
     <div class="dd-header">
         <div class="dd-bg-number">{{ driver.number or '00' }}</div>
         
         <div class="dd-info">
-            <div class="dd-decor-lines">//</div>
+            <div class="dd-decor-lines">
+                <span class="line-mint">/</span><span class="line-white">/</span>
+            </div>
             <div class="dd-name">
                 <span class="dd-firstname-style">{{ driver.name.split(' ')[0] }}</span>
                 <span class="dd-lastname">{{ driver.name.split(' ')[1:] | join(' ') }}</span>
@@ -243,7 +245,9 @@
                 <span class="highlight">#{{ driver.number or '00' }}</span>
             </div>
             
-            <div class="dd-decor-lines" style="margin-top: 20px;">//</div>
+            <div class="dd-decor-lines" style="margin-top: 20px;">
+                <span class="line-mint">/</span><span class="line-white">/</span>
+            </div>
         </div>
 
         <div class="dd-image">
@@ -256,27 +260,30 @@
         </div>
     </div>
 
-    <!-- TWITCH BAR -->
+</div> <!-- End Full Width Wrapper -->
+
+<div class="dd-container">
+
+    <!-- TWITCH BAR (Nur wenn Twitch hinterlegt ist) -->
+    {% if driver.twitch %}
     <div class="dd-twitch-bar">
         <div class="dd-twitch-user">
             <i class="fab fa-twitch dd-twitch-icon"></i>
-            {% if driver.twitch %}
             {{ driver.twitch.split('/')[-1] }}
-            {% else %}
-            OFFLINE
-            {% endif %}
         </div>
         <div class="dd-twitch-status">
             <div class="status-badge">
                 <div class="status-dot"></div> Off Air
             </div>
-            {% if driver.twitch %}
             <a href="{{ driver.twitch }}" target="_blank" class="twitch-link-btn">
                 Zum Kanal <i class="fas fa-external-link-alt"></i>
             </a>
-            {% endif %}
         </div>
     </div>
+    {% else %}
+    <!-- Abstandshalter wenn kein Twitch, damit Content nicht am Hero klebt -->
+    <div style="margin-top: 60px;"></div>
+    {% endif %}
 
     <!-- RACES TABLE -->
     <h2 class="dd-section-title">Absolvierte Rennen</h2>
