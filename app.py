@@ -535,6 +535,33 @@ def save_rig():
     flash("Rig-Daten gespeichert!", "success")
     return redirect(url_for('boxengasse'))
 
+@app.route('/boxengasse/rig/delete_image', methods=['GET'])
+@driver_login_required
+def delete_rig_image():
+    driver_id = session.get('driver_id')
+    try:
+        index = int(request.args.get('index'))
+    except (ValueError, TypeError):
+        flash("Ungültiger Bild-Index", "error")
+        return redirect(url_for('boxengasse'))
+
+    drivers = load_drivers()
+    driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    
+    if driver and 'rig' in driver and 'images' in driver['rig']:
+        if 0 <= index < len(driver['rig']['images']):
+            # Optional: Datei vom Server löschen (wenn man ganz sauber sein will)
+            # image_path = ...
+            # os.remove(image_path)
+            
+            del driver['rig']['images'][index]
+            save_drivers(drivers)
+            flash("Bild gelöscht!", "success")
+        else:
+            flash("Bild nicht gefunden", "error")
+            
+    return redirect(url_for('boxengasse'))
+
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
