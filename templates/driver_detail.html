@@ -1,233 +1,342 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="driver-profile-container">
+<!-- Custom Driver Detail CSS -->
+<style>
+    /* Global Page Override for this view */
+    body { background-color: #050b14; }
     
-    <!-- Header Section -->
-    <div class="driver-header">
-        <div class="driver-bg"></div>
-        <div class="container" style="position: relative; z-index: 2; height: 100%; display: flex; align-items: flex-end; padding-bottom: 40px;">
-            <div class="driver-intro">
-                <h1 class="driver-name-lg">{{ driver.name }}</h1>
-                <div class="driver-meta">
-                    <span class="team-role">{{ driver.role or 'Driver' }}</span>
-                    {% if driver.nationality %}
-                    <span class="fi fi-{{ driver.nationality.lower() }}"></span>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="driver-number-lg">{{ driver.number or '00' }}</div>
-        </div>
-    </div>
+    .dd-container {
+        max-width: 1400px; margin: 0 auto; padding: 0 40px;
+    }
 
-    <div class="container" style="margin-top: 40px; margin-bottom: 80px;">
-        <div class="profile-grid">
+    /* HEADER SECTION */
+    .dd-header {
+        position: relative;
+        height: 85vh; /* Full Height fast */
+        min-height: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 80px; /* Navbar space */
+        overflow: hidden;
+        background: radial-gradient(circle at 30% 50%, #1a2a40 0%, #050b14 70%);
+    }
+    
+    /* Background Number (21) */
+    .dd-bg-number {
+        position: absolute;
+        top: 50%; right: 5%;
+        transform: translateY(-50%);
+        font-family: 'Teko', sans-serif;
+        font-size: 800px; /* Noch größer */
+        font-weight: 700;
+        color: rgba(255,255,255,0.03);
+        line-height: 1;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Left Info */
+    .dd-info {
+        position: relative; z-index: 2;
+        padding-left: 5%;
+        width: 45%;
+    }
+    
+    /* Right Image */
+    .dd-image {
+        position: absolute; /* Absolut positioniert für präzise Kontrolle */
+        right: 5%; bottom: 0;
+        height: 90%; width: 45%;
+        z-index: 2;
+        display: flex; align-items: flex-end; justify-content: center;
+    }
+    .dd-image img {
+        max-height: 100%; width: auto; object-fit: contain;
+        filter: drop-shadow(-20px 0 40px rgba(0,0,0,0.6));
+    }
+
+    /* Sim Rig Box */
+    .dd-rig-section {
+        margin-top: 60px;
+        background: #0B1829;
+        border: 1px solid var(--rdf-teal); /* Teal Border wie gewünscht */
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .dd-rig-header {
+        background: rgba(79, 209, 197, 0.1);
+        padding: 20px 30px;
+        border-bottom: 1px solid var(--rdf-teal);
+        display: flex; align-items: center; gap: 15px;
+    }
+    .dd-rig-header h2 {
+        margin: 0; color: white; font-family: 'Teko', sans-serif; font-size: 2.5rem; text-transform: uppercase;
+    }
+    .dd-rig-content { padding: 30px; }
+
+    /* TWITCH BAR */
+    .dd-twitch-bar {
+        background: #0B1829;
+        border: 1px solid #1a2a40;
+        border-radius: 8px;
+        padding: 15px 30px;
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 60px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .dd-twitch-user {
+        display: flex; align-items: center; gap: 15px;
+        font-family: 'Teko', sans-serif; font-size: 1.5rem; color: white; text-transform: uppercase;
+    }
+    .dd-twitch-icon {
+        color: #9146FF; font-size: 1.8rem;
+    }
+    .dd-twitch-status {
+        display: flex; align-items: center; gap: 20px;
+    }
+    .status-badge {
+        background: rgba(255,255,255,0.1); color: var(--rdf-silver);
+        padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;
+        display: flex; align-items: center; gap: 8px; text-transform: uppercase;
+    }
+    .status-dot { width: 8px; height: 8px; background: var(--rdf-silver); border-radius: 50%; }
+    .status-badge.live { background: rgba(255, 0, 0, 0.2); color: #ff4d4d; }
+    .status-badge.live .status-dot { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
+    
+    .twitch-link-btn {
+        color: var(--rdf-silver); text-decoration: none; font-size: 0.9rem;
+        display: flex; align-items: center; gap: 8px; transition: color 0.2s;
+    }
+    .twitch-link-btn:hover { color: white; }
+
+    /* SECTIONS */
+    .dd-section-title {
+        font-family: 'Teko', sans-serif; font-size: 3rem; color: white; text-transform: uppercase;
+        margin-bottom: 30px; padding-left: 20px; border-left: 5px solid var(--rdf-teal); line-height: 1;
+    }
+
+    /* TABLE */
+    .dd-table-container {
+        background: #0B1829; border: 1px solid #1a2a40; border-radius: 8px; overflow: hidden;
+        margin-bottom: 60px;
+    }
+    .dd-table { width: 100%; border-collapse: collapse; }
+    .dd-table th {
+        text-align: left; padding: 20px; background: #0f1c2e; color: white; font-weight: 700;
+        text-transform: uppercase; font-size: 0.9rem; border-bottom: 1px solid #1a2a40;
+    }
+    .dd-table td {
+        padding: 20px; border-bottom: 1px solid #1a2a40; color: var(--rdf-silver); font-size: 0.95rem;
+    }
+    .dd-table tr:last-child td { border-bottom: none; }
+    .dd-table tr:hover td { background: rgba(255,255,255,0.02); color: white; }
+    
+    .res-badge { color: var(--rdf-teal); font-weight: bold; }
+    
+    /* RIG SECTION (New) */
+    .dd-rig-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 80px;
+    }
+    .dd-rig-specs {
+        background: #0B1829; padding: 30px; border-radius: 8px; border: 1px solid #1a2a40;
+    }
+    .spec-row {
+        display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-key { color: var(--rdf-silver); text-transform: uppercase; font-size: 0.9rem; }
+    .spec-val { color: white; font-weight: 600; text-align: right; }
+    
+    .dd-rig-gallery {
+        display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+    }
+    .rig-img-lg {
+        grid-column: span 2; height: 300px; border-radius: 8px; overflow: hidden; border: 1px solid #1a2a40;
+    }
+    .rig-img-lg img { width: 100%; height: 100%; object-fit: cover; }
+    .rig-img-sm {
+        height: 150px; border-radius: 8px; overflow: hidden; border: 1px solid #1a2a40;
+    }
+    .rig-img-sm img { width: 100%; height: 100%; object-fit: cover; }
+    
+    /* Mobile */
+    @media(max-width: 900px) {
+        .dd-header { height: auto; flex-direction: column; text-align: center; padding-top: 120px; }
+        .dd-image { margin: 40px 0 0 0; height: 400px; justify-content: center; }
+        .dd-bg-number { font-size: 300px; top: 60%; right: 50%; transform: translate(50%, -50%); }
+        .dd-info { padding: 0; }
+        .dd-meta { justify-content: center; }
+        .dd-rig-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="dd-container">
+    
+    <!-- HEADER -->
+    <div class="dd-header">
+        <div class="dd-bg-number">{{ driver.number or '00' }}</div>
+        
+        <div class="dd-info">
+            <div class="dd-decor-lines">//</div>
+            <div class="dd-name">
+                <span class="dd-firstname-style">{{ driver.name.split(' ')[0] }}</span>
+                <span class="dd-lastname">{{ driver.name.split(' ')[1:] | join(' ') }}</span>
+            </div>
             
-            <!-- Left Column: Stats & Info -->
-            <div class="profile-left">
-                <!-- Driver Image Card -->
-                <div class="driver-card-pro" style="height: 350px; margin-bottom: 30px;">
-                    <div class="card-bg"></div>
-                    <div class="driver-image">
-                        {% if driver.image_url %}
-                        <img src="{{ driver.image_url }}" alt="{{ driver.name }}">
-                        {% else %}
-                        <i class="fas fa-user" style="font-size: 150px; color: rgba(255,255,255,0.05);"></i>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <h3>iRating</h3>
-                    <div class="stat-value">{{ driver.ir_sports or '-' }}</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Safety Rating</h3>
-                    <div class="stat-value">{{ driver.sr_sports or '-' }}</div>
-                </div>
-                
-                {% if driver.twitch %}
-                <a href="{{ driver.twitch }}" target="_blank" class="twitch-btn">
-                    <i class="fab fa-twitch"></i> Watch on Twitch
-                </a>
+            <div class="dd-meta">
+                {% if driver.nationality %}
+                <span><span class="fi fi-{{ driver.nationality.lower() }}"></span> {{ driver.nationality.upper() }}</span>
                 {% endif %}
+                <span class="separator">|</span>
+                {% if driver.twitch %}
+                <span class="highlight">{{ driver.twitch.split('/')[-1] }}</span>
+                {% else %}
+                <span>{{ driver.name }}</span>
+                {% endif %}
+                <span class="separator">|</span>
+                <span class="highlight">#{{ driver.number or '00' }}</span>
             </div>
+            
+            <div class="dd-decor-lines" style="margin-top: 20px;">//</div>
+        </div>
 
-            <!-- Right Column: Content -->
-            <div class="profile-right">
-                
-                <!-- 1. Sim Rig Showcase -->
-                {% if driver.rig %}
-                <div class="rig-showcase" style="margin-bottom: 40px;">
-                    <h2 class="section-title"><i class="fas fa-gamepad"></i> My Sim Rig</h2>
-                    <!-- ... (Rig Specs & Gallery bleiben gleich) ... -->
-                    <div class="rig-specs">
-                        {% if driver.rig.type %}
-                        <div class="spec-item">
-                            <span class="spec-label">Cockpit</span>
-                            <span class="spec-value">{{ driver.rig.type }}</span>
-                        </div>
-                        {% endif %}
-                        <!-- ... restliche Specs ... -->
-                        {% if driver.rig.monitors %}
-                        <div class="spec-item">
-                            <span class="spec-label">Monitors</span>
-                            <span class="spec-value">{{ driver.rig.monitors }}</span>
-                        </div>
-                        {% endif %}
-                        {% if driver.rig.base %}
-                        <div class="spec-item">
-                            <span class="spec-label">Wheelbase</span>
-                            <span class="spec-value">{{ driver.rig.base }}</span>
-                        </div>
-                        {% endif %}
-                        {% if driver.rig.wheel %}
-                        <div class="spec-item">
-                            <span class="spec-label">Steering Wheel</span>
-                            <span class="spec-value">{{ driver.rig.wheel }}</span>
-                        </div>
-                        {% endif %}
-                        {% if driver.rig.pedals %}
-                        <div class="spec-item">
-                            <span class="spec-label">Pedals</span>
-                            <span class="spec-value">{{ driver.rig.pedals }}</span>
-                        </div>
-                        {% endif %}
-                        {% if driver.rig.extras %}
-                        <div class="spec-item">
-                            <span class="spec-label">Extras</span>
-                            <span class="spec-value">{{ driver.rig.extras }}</span>
-                        </div>
-                        {% endif %}
-                    </div>
+        <div class="dd-image">
+            {% if driver.image_url %}
+            <img src="{{ driver.image_url }}" alt="{{ driver.name }}">
+            {% else %}
+            <!-- Fallback Driver Image (Silhouette) -->
+            <img src="{{ url_for('static', filename='img/driver_silhouette.png') }}" style="opacity: 0.1;" alt="Driver">
+            {% endif %}
+        </div>
+    </div>
 
-                    <!-- Rig Photos -->
-                    {% if driver.rig.images %}
-                    <div class="rig-gallery">
-                        {% for img in driver.rig.images %}
-                        <a href="#img-{{ loop.index }}" class="rig-thumb">
-                            <img src="{{ img }}" alt="Sim Rig Setup">
-                        </a>
-                        <div id="img-{{ loop.index }}" class="lightbox">
-                            <a href="#!" class="close-lightbox"></a>
-                            <div class="lightbox-content">
-                                <img src="{{ img }}" alt="Sim Rig Setup">
-                                <a href="#!" class="close-btn">&times;</a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+    <!-- TWITCH BAR -->
+    <div class="dd-twitch-bar">
+        <div class="dd-twitch-user">
+            <i class="fab fa-twitch dd-twitch-icon"></i>
+            {% if driver.twitch %}
+            {{ driver.twitch.split('/')[-1] }}
+            {% else %}
+            OFFLINE
+            {% endif %}
+        </div>
+        <div class="dd-twitch-status">
+            <div class="status-badge">
+                <div class="status-dot"></div> Off Air
+            </div>
+            {% if driver.twitch %}
+            <a href="{{ driver.twitch }}" target="_blank" class="twitch-link-btn">
+                Zum Kanal <i class="fas fa-external-link-alt"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- RACES TABLE -->
+    <h2 class="dd-section-title">Absolvierte Rennen</h2>
+    <div class="dd-table-container">
+        <table class="dd-table">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Event</th>
+                    <th>Serie</th>
+                    <th>Fahrzeug</th>
+                    <th>Ergebnis</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if past_events %}
+                    {% for event in past_events %}
+                    <tr>
+                        <td>{{ event.date.split('T')[0] }} {{ event.date.split('T')[1][:5] }}</td>
+                        <td>{{ event.title }}</td>
+                        <td>{{ event.series or '-' }}</td>
+                        <td>{{ event.car_model or '-' }}</td>
+                        <td class="res-badge">{{ event.result or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="5" style="text-align: center;">Keine Rennen gefunden.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- RIG SHOWCASE (New Style Box) -->
+    {% if driver.rig %}
+    <div class="dd-rig-section">
+        <div class="dd-rig-header">
+            <i class="fas fa-microchip" style="font-size: 2rem; color: var(--rdf-teal);"></i>
+            <h2>Sim Rig Setup</h2>
+        </div>
+        <div class="dd-rig-content">
+            <div class="dd-rig-grid" style="margin-bottom: 0;">
+                <!-- Specs List -->
+                <div class="dd-rig-specs" style="border: none; background: transparent; padding: 0;">
+                    {% if driver.rig.type %}
+                    <div class="spec-row"><span class="spec-key">Cockpit</span><span class="spec-val">{{ driver.rig.type }}</span></div>
+                    {% endif %}
+                    {% if driver.rig.monitors %}
+                    <div class="spec-row"><span class="spec-key">Monitore</span><span class="spec-val">{{ driver.rig.monitors }}</span></div>
+                    {% endif %}
+                    {% if driver.rig.base %}
+                    <div class="spec-row"><span class="spec-key">Wheelbase</span><span class="spec-val">{{ driver.rig.base }}</span></div>
+                    {% endif %}
+                    {% if driver.rig.wheel %}
+                    <div class="spec-row"><span class="spec-key">Lenkrad</span><span class="spec-val">{{ driver.rig.wheel }}</span></div>
+                    {% endif %}
+                    {% if driver.rig.pedals %}
+                    <div class="spec-row"><span class="spec-key">Pedale</span><span class="spec-val">{{ driver.rig.pedals }}</span></div>
+                    {% endif %}
+                    {% if driver.rig.extras %}
+                    <div class="spec-row"><span class="spec-key">Extras</span><span class="spec-val">{{ driver.rig.extras }}</span></div>
                     {% endif %}
                 </div>
-                {% endif %}
 
-                <!-- 2. Upcoming Events -->
-                {% if upcoming_events %}
-                <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Next Races</h2>
-                <div class="events-list">
-                    {% for event in upcoming_events %}
-                    <a href="/news/{{ event.id }}" class="event-item">
-                        <div class="event-date">
-                            <span class="day">{{ event.date.split('T')[0].split('-')[2] }}</span>
-                            <span class="month">{{ event.date.split('T')[0].split('-')[1] }}</span>
-                        </div>
-                        <div class="event-info">
-                            <h4>{{ event.title }}</h4>
-                            <p>{{ event.track }} | {{ event.car_class }}</p>
-                        </div>
-                        <div class="event-arrow"><i class="fas fa-chevron-right"></i></div>
-                    </a>
-                    {% endfor %}
+                <!-- Gallery -->
+                <div class="dd-rig-gallery">
+                    {% if driver.rig.images %}
+                        {% for img in driver.rig.images %}
+                            {% if loop.index == 1 %}
+                            <div class="rig-img-lg"><a href="#img-{{ loop.index }}"><img src="{{ img }}"></a></div>
+                            {% else %}
+                            <div class="rig-img-sm"><a href="#img-{{ loop.index }}"><img src="{{ img }}"></a></div>
+                            {% endif %}
+                            
+                            <!-- Lightbox -->
+                            <div id="img-{{ loop.index }}" class="lightbox">
+                                <a href="#!" class="close-lightbox"></a>
+                                <div class="lightbox-content">
+                                    <img src="{{ img }}" style="border: none; box-shadow: 0 0 50px rgba(0,0,0,0.8);">
+                                    <a href="#!" class="close-btn">&times;</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
-                {% endif %}
-
-                <!-- 3. Past Races (Results) -->
-                {% if past_events %}
-                <h2 class="section-title" style="margin-top: 40px;"><i class="fas fa-flag-checkered"></i> Recent Results</h2>
-                <div class="results-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Event</th>
-                                <th>Track</th>
-                                <th>Car</th>
-                                <th>Result</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for event in past_events %}
-                            <tr>
-                                <td>{{ event.date.split('T')[0] }}</td>
-                                <td><a href="/news/{{ event.id }}" style="color: white;">{{ event.title }}</a></td>
-                                <td>{{ event.track }}</td>
-                                <td>{{ event.car_model }}</td>
-                                <td>
-                                    {% if event.result %}
-                                    <span class="result-badge">{{ event.result }}</span>
-                                    {% else %}
-                                    <span style="color: var(--rdf-silver);">-</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
-
             </div>
         </div>
     </div>
+    {% endif %}
+
 </div>
 
+<!-- CSS for Lightbox reuse -->
 <style>
-    /* ... (CSS für Header und Grid bleibt) ... */
-    
-    /* Driver Image Card (from Team Page) */
-    .driver-card-pro {
-        position: relative; background: #0B1829; border-radius: 16px; overflow: hidden;
-        border: 1px solid rgba(79, 209, 197, 0.1);
+    .lightbox {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 11, 20, 0.95);
+        z-index: 9999; display: none; align-items: center; justify-content: center;
     }
-    .card-bg {
-        position: absolute; top: 0; right: 0; width: 60%; height: 100%;
-        background-image: radial-gradient(var(--rdf-teal) 1px, transparent 1px);
-        background-size: 8px 8px; opacity: 0.1;
-        mask-image: linear-gradient(to left, black, transparent); -webkit-mask-image: linear-gradient(to left, black, transparent);
-    }
-    .driver-image {
-        position: absolute; bottom: 0; right: -10px; height: 95%; width: 100%;
-        display: flex; align-items: flex-end; justify-content: center; z-index: 1;
-    }
-    .driver-image img {
-        max-height: 100%; max-width: 100%; object-fit: contain;
-        filter: drop-shadow(-5px 0 10px rgba(0,0,0,0.5));
-    }
-
-    /* Events List */
-    .events-list { display: flex; flex-direction: column; gap: 15px; }
-    .event-item {
-        display: flex; align-items: center; background: #15273d; padding: 15px; border-radius: 8px;
-        text-decoration: none; border-left: 4px solid var(--rdf-teal); transition: transform 0.2s;
-    }
-    .event-item:hover { transform: translateX(5px); background: #1a3a5a; }
-    .event-date {
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        background: #0B1829; padding: 10px; border-radius: 4px; min-width: 60px; margin-right: 20px;
-    }
-    .event-date .day { font-size: 1.2rem; font-weight: bold; color: white; line-height: 1; }
-    .event-date .month { font-size: 0.8rem; color: var(--rdf-teal); text-transform: uppercase; }
-    .event-info h4 { margin: 0; color: white; font-size: 1.1rem; }
-    .event-info p { margin: 5px 0 0; color: var(--rdf-silver); font-size: 0.9rem; }
-    .event-arrow { margin-left: auto; color: var(--rdf-teal); }
-
-    /* Results Table */
-    .results-table { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 15px; color: var(--rdf-silver); font-size: 0.8rem; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); color: white; }
-    .result-badge {
-        background: rgba(79, 209, 197, 0.2); color: var(--rdf-teal); padding: 5px 10px; border-radius: 4px; font-weight: bold;
-    }
+    .lightbox:target { display: flex; animation: fadeIn 0.3s; }
+    .lightbox-content { position: relative; max-width: 90%; max-height: 90%; }
+    .lightbox-content img { max-width: 100%; max-height: 85vh; border-radius: 4px; }
+    .close-lightbox { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: default; }
+    .close-btn { position: absolute; top: -50px; right: 0; color: white; font-size: 2.5rem; text-decoration: none; opacity: 0.7; }
+    .close-btn:hover { opacity: 1; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
 {% endblock %}
