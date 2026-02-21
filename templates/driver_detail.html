@@ -52,51 +52,61 @@
     /* Left Info */
     .dd-info {
         position: relative; z-index: 2;
-        padding-left: 8%;
+        padding-left: 10%;
         width: 40%;
+        display: flex; flex-direction: column; justify-content: center;
     }
     
-    .dd-decor-lines {
-        color: var(--rdf-teal); font-size: 4rem; line-height: 1; margin-bottom: 10px;
-        font-family: 'Rajdhani', sans-serif; font-weight: 300; font-style: italic;
+    /* Racing Stripes (Alonso Style) */
+    .dd-stripes-top {
+        display: flex; gap: 10px; margin-bottom: 20px;
+        transform: skewY(-20deg); /* Leicht schräg */
     }
+    .stripe {
+        width: 15px; height: 80px; background: white;
+        clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%); /* Schräge Kante unten */
+    }
+    .stripe.short { height: 50px; background: var(--rdf-teal); }
     
-    .dd-name {
-        line-height: 0.8;
-        margin-bottom: 20px;
+    .dd-stripes-bottom {
+        display: flex; gap: 10px; margin-top: 20px;
+        transform: skewY(-20deg);
     }
-    /* "Patrick" Style */
-    .dd-firstname-style {
-        font-family: 'Great Vibes', cursive; 
-        font-size: 5rem;
-        color: white; 
-        display: block; 
-        margin-left: 10px;
-        margin-bottom: 10px;
-        text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    .stripe-b {
+        width: 15px; height: 80px; background: white;
+        clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 100%); /* Schräge Kante oben */
     }
+    .stripe-b.short { height: 50px; background: var(--rdf-teal); clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 100%); }
 
-    /* "SCHEIBER" Style */
+    /* Name Styles */
+    .dd-name { line-height: 0.8; margin-bottom: 20px; }
+    .dd-firstname-style {
+        font-family: 'Great Vibes', cursive; font-size: 5rem; color: white; display: block; margin-left: 10px; margin-bottom: 10px;
+    }
     .dd-lastname {
-        font-family: 'Teko', sans-serif;
-        font-size: 7rem; 
-        color: var(--rdf-teal); 
-        font-weight: 700; 
-        text-transform: uppercase;
-        display: block;
-        letter-spacing: 2px;
+        font-family: 'Teko', sans-serif; font-size: 7rem; color: white; /* Weiss wie im Alonso Bild */
+        font-weight: 800; text-transform: uppercase; display: block; letter-spacing: 2px;
     }
     
-    /* Meta Line (DE | patman | #21) */
+    /* Meta Line */
     .dd-meta {
-        display: flex; align-items: center; gap: 15px; margin-top: 30px;
-        font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; color: #a0aec0;
-        font-weight: 500;
+        display: flex; align-items: center; gap: 25px; margin-top: 10px;
+        font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; color: white; font-weight: 600;
+        position: relative; z-index: 3;
     }
-    .dd-meta span { display: flex; align-items: center; gap: 8px; }
-    .dd-meta .fi { font-size: 1.2rem; border-radius: 2px; }
-    .dd-meta .highlight { color: var(--rdf-teal); font-weight: bold; }
-    .separator { color: #4a5568; font-weight: 300; }
+    .dd-meta span { display: flex; align-items: center; gap: 10px; }
+    
+    /* FIX: Runde Flagge */
+    .dd-meta .fi {
+        display: inline-block;
+        width: 32px !important; height: 32px !important;
+        border-radius: 50% !important;
+        background-size: cover; background-position: center;
+        box-shadow: 0 0 0 2px white; /* Weißer Ring */
+        flex-shrink: 0;
+    }
+    .dd-meta .highlight { color: var(--rdf-teal); font-weight: bold; font-size: 1.3rem; letter-spacing: 1px; }
+    .separator { color: #4a5568; font-weight: 300; opacity: 0.5; }
 
     /* Right Image */
     .dd-image {
@@ -234,12 +244,10 @@
         <div class="dd-bg-number">{{ driver.number or '00' }}</div>
         
         <div class="dd-info">
-            <!-- Top Stripes -->
             <div class="dd-stripes-top">
-                <div class="stripe"></div>
                 <div class="stripe short"></div>
+                <div class="stripe"></div>
             </div>
-
             <div class="dd-name">
                 <span class="dd-firstname-style">{{ driver.name.split(' ')[0] }}</span>
                 <span class="dd-lastname">{{ driver.name.split(' ')[1:] | join(' ') }}</span>
@@ -247,25 +255,21 @@
             
             <div class="dd-meta">
                 {% if driver.nationality %}
-                <span class="fi fi-{{ driver.nationality.lower() }}"></span>
+                <span><span class="fi fi-{{ driver.nationality.lower() }}"></span> {{ driver.nationality.upper() }}</span>
                 {% endif %}
-                
                 <span class="separator">|</span>
-                
-                {% if driver.username %}
-                <span>{{ driver.username }}</span>
+                {% if driver.twitch %}
+                <span class="highlight">{{ driver.twitch.split('/')[-1] }}</span>
                 {% else %}
                 <span>{{ driver.name }}</span>
                 {% endif %}
-                
                 <span class="separator">|</span>
-                <span class="highlight">{{ driver.number or '00' }}</span>
+                <span class="highlight">#{{ driver.number or '00' }}</span>
             </div>
             
-            <!-- Bottom Stripes -->
             <div class="dd-stripes-bottom">
-                <div class="stripe-b"></div>
                 <div class="stripe-b short"></div>
+                <div class="stripe-b"></div>
             </div>
         </div>
 
