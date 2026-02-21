@@ -174,15 +174,14 @@
 
     <div class="news-grid">
         {% for item in news %}
-        <a href="{{ '/news/' + item.id if item.content else (item.link if item.link else '#') }}" class="news-card">
-            <div class="news-image-wrapper">
-                <img src="{{ item.image_url }}" alt="{{ item.title }}">
-                <div class="news-overlay"></div>
-            </div>
-            <div class="news-content">
+        <a href="{{ '/news/' + item.id if item.content else (item.link if item.link else '#') }}" class="news-card" style="background-image: url('{{ item.image_url }}');">
+            <div class="news-overlay"></div>
+            <div class="news-badge">
                 <span class="news-cat">{{ item.category }}</span>
-                <h3 class="news-title">{{ item.title }}</h3>
-                <span class="read-more">READ MORE <i class="fas fa-arrow-right"></i></span>
+                <div class="news-title-row">
+                    <span class="news-title">{{ item.title }}</span>
+                    <i class="fas fa-arrow-right news-arrow"></i>
+                </div>
             </div>
         </a>
         {% endfor %}
@@ -193,98 +192,110 @@
 <div style="height: 50px;"></div>
 
 <style>
-    /* News Grid Layout (Modern Grid) */
+    /* News Grid Layout (Mercedes Bento Style) */
     .news-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 30px;
+        grid-template-columns: 1fr; /* Mobile: 1 Spalte */
+        gap: 20px;
+        grid-auto-rows: 450px; /* MEHR HÖHE */
     }
 
-    /* Kachel Design (Bild Oben, Text Unten) */
+    /* Desktop Layout (ab 1024px) */
+    @media (min-width: 1024px) {
+        .news-grid {
+            grid-template-columns: repeat(3, 1fr); /* 3 Spalten Grid */
+        }
+
+        /* 1. Item: Groß (2/3 Breite) */
+        .news-card:nth-child(1) {
+            grid-column: span 2;
+        }
+
+        /* 4. Item: Groß (2/3 Breite) */
+        .news-card:nth-child(4) {
+            grid-column: span 2;
+        }
+        
+        /* Optional: Item 5 wieder groß */
+        .news-card:nth-child(5) {
+            grid-column: span 2;
+        }
+    }
+
+    /* Kachel Design */
     .news-card {
-        display: flex;
-        flex-direction: column;
-        background: #0f1c2e;
-        border: 1px solid #1a2a40;
-        border-radius: 12px;
+        position: relative;
+        display: block;
+        background-size: cover;
+        background-position: center;
+        border-radius: 20px;
         overflow: hidden;
         text-decoration: none;
-        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s;
-        height: 100%; /* Gleich hoch */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
+    /* Hover Effekt für Kachel */
     .news-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        border-color: var(--rdf-teal);
+        transform: scale(1.01);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        z-index: 2;
     }
 
-    /* Bild Container */
-    .news-image-wrapper {
-        position: relative;
-        width: 100%;
-        padding-top: 56.25%; /* 16:9 Aspect Ratio */
-        overflow: hidden;
-    }
-
-    .news-image-wrapper img {
+    /* Dunkles Overlay */
+    .news-overlay {
         position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s ease;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.4) 100%);
+        transition: opacity 0.3s;
     }
 
-    .news-card:hover .news-image-wrapper img {
-        transform: scale(1.05);
-    }
-
-    /* Inhalt */
-    .news-content {
-        padding: 25px;
-        flex-grow: 1;
+    /* Der Türkise Badge (unten links angedockt) */
+    .news-badge {
+        position: absolute;
+        bottom: 25px;
+        left: 25px;
+        max-width: 80%;
+        background-color: #00d2be; /* Mercedes Petronas Türkis */
+        color: #000;
+        padding: 15px 20px;
+        border-radius: 8px;
         display: flex;
         flex-direction: column;
+        gap: 5px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
-
+    
+    /* Kategorie */
     .news-cat {
-        color: var(--rdf-teal);
-        font-size: 0.75rem;
-        font-weight: 700;
+        font-size: 0.65rem;
+        font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin-bottom: 10px;
+        opacity: 0.8;
+    }
+
+    /* Titel Zeile */
+    .news-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 15px;
     }
 
     .news-title {
-        color: white;
-        font-family: 'Teko', sans-serif;
-        font-size: 1.5rem;
-        font-weight: 500;
-        line-height: 1.2;
-        margin: 0 0 20px 0;
-        flex-grow: 1;
+        font-weight: 700;
+        font-size: 0.95rem;
+        line-height: 1.3;
+        font-family: 'Space Grotesk', sans-serif;
     }
 
-    .read-more {
-        color: var(--rdf-silver);
-        font-size: 0.8rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: color 0.3s;
+    .news-arrow {
+        font-size: 1rem;
+        transform: translateX(0);
+        transition: transform 0.3s ease;
     }
 
-    .news-card:hover .read-more {
-        color: white;
-    }
-    
-    .read-more i {
-        transition: transform 0.3s;
-    }
-    
-    .news-card:hover .read-more i {
+    .news-card:hover .news-arrow {
         transform: translateX(5px);
     }
 
