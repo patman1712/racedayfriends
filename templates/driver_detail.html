@@ -126,18 +126,20 @@
     .dd-image {
         position: absolute;
         right: 5%; bottom: 0;
-        height: 90%; /* Etwas weniger als 100% um Header nicht zu sprengen */
+        height: 90%;
         width: 45%;
         z-index: 2;
         display: flex; align-items: flex-end; justify-content: center;
         padding: 0; margin: 0;
+        line-height: 0; /* Verhindert Zeilenabstand */
     }
     .dd-image img {
         max-height: 100%; width: auto; 
         object-fit: contain;
-        object-position: bottom center; /* WICHTIG: Bild unten verankern! */
+        object-position: bottom center;
         filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
         display: block;
+        margin-bottom: -1px; /* Hack um Lücke zu schließen */
     }
 
     /* Sim Rig Box */
