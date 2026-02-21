@@ -551,7 +551,40 @@
         });
     </script>
 
-    <!-- RACES TABLE -->
+    <!-- UPCOMING RACES TABLE (Neu) -->
+    {% if upcoming_events %}
+    <h2 class="dd-section-title"><i class="fas fa-calendar-alt" style="color: var(--rdf-teal); font-size: 0.8em;"></i> Geplante Rennen</h2>
+    <div class="dd-content-box">
+        <table class="dd-table">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Event</th>
+                    <th>Serie</th>
+                    <th>Fahrzeug</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in upcoming_events %}
+                <tr>
+                    <td data-label="Datum">{{ event.date.split('T')[0] }} {{ event.date.split('T')[1][:5] }}</td>
+                    <td data-label="Event">{{ event.title }}</td>
+                    <td data-label="Serie">{{ event.series or '-' }}</td>
+                    <td data-label="Fahrzeug">{{ event.car_model or '-' }}</td>
+                    <td data-label="Status">
+                        <span class="status-badge" style="background: rgba(79, 209, 197, 0.1); color: var(--rdf-teal); border: 1px solid var(--rdf-teal);">
+                            GEPLANT
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- RACES TABLE (Past) -->
     <h2 class="dd-section-title">Absolvierte Rennen</h2>
     <div class="dd-content-box"> <!-- Unified Class -->
         <table class="dd-table">
