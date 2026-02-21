@@ -240,11 +240,66 @@
     
     /* Mobile */
     @media(max-width: 900px) {
-        .dd-header { height: auto; flex-direction: column; text-align: center; padding-top: 120px; }
-        .dd-image { margin: 40px 0 0 0; height: 400px; justify-content: center; }
-        .dd-bg-number { font-size: 300px; top: 60%; right: 50%; transform: translate(50%, -50%); }
-        .dd-info { padding: 0; }
-        .dd-meta { justify-content: center; }
+        .dd-header { 
+            height: auto; 
+            min-height: 100vh; /* Volle Höhe auf Handy */
+            flex-direction: column; 
+            justify-content: flex-start; /* Oben anfangen */
+            padding-top: 100px;
+            padding-bottom: 0;
+            position: relative;
+        }
+        
+        .dd-info {
+            width: 100%; margin: 0; padding: 0 20px;
+            z-index: 5; /* Über dem Bild */
+        }
+        
+        /* Schriftgrößen anpassen */
+        .dd-firstname-style { font-size: 3.5rem; margin-bottom: 5px; }
+        .dd-lastname { font-size: 4rem; letter-spacing: 1px; line-height: 0.9; }
+        
+        /* Streifen kleiner */
+        .dd-stripes-top, .dd-stripes-bottom { height: 60px; margin-bottom: 15px; margin-top: 15px; }
+        .stripe, .stripe-b { width: 12px; }
+        
+        /* Meta Infos */
+        .dd-meta { flex-wrap: wrap; gap: 15px; margin-top: 20px; font-size: 1rem; }
+        .dd-meta .fi { width: 28px; height: 28px; }
+        
+        /* Bild nach unten schieben und skalieren */
+        .dd-image {
+            position: relative; /* Nicht mehr absolut, damit es Platz einnimmt */
+            right: auto; bottom: auto;
+            width: 100%; height: 50vh; /* Halbe Bildschirmhöhe */
+            margin-top: 20px;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 1;
+        }
+        .dd-image img {
+            max-height: 100%; width: auto; 
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%); /* Unten weich auslaufen */
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+        
+        /* Hintergrund Nummer anpassen */
+        .dd-bg-number {
+            font-size: 300px; top: 20%; right: 50%; transform: translateX(50%);
+            opacity: 0.5;
+        }
+        
+        /* Twitch Bar auf Handy */
+        .dd-twitch-bar {
+            flex-direction: column; gap: 15px; text-align: center;
+            padding: 20px;
+        }
+        .dd-twitch-user { font-size: 1.2rem; }
+        
+        /* Tabelle scrollbar machen */
+        .dd-table-container { overflow-x: auto; }
+        
+        /* Rig Grid */
         .dd-rig-grid { grid-template-columns: 1fr; }
     }
 </style>
