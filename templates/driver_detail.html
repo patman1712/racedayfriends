@@ -13,25 +13,26 @@
     /* HEADER SECTION */
     .dd-header {
         position: relative;
-        height: 85vh; /* Full Height fast */
+        height: 85vh;
         min-height: 600px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-top: 80px; /* Navbar space */
+        padding-top: 80px;
         overflow: hidden;
-        background: radial-gradient(circle at 30% 50%, #1a2a40 0%, #050b14 70%);
+        /* Hellerer, blauerer Verlauf wie im Screenshot */
+        background: linear-gradient(135deg, #0B1829 0%, #15273d 100%);
     }
     
     /* Background Number (21) */
     .dd-bg-number {
         position: absolute;
-        top: 50%; right: 5%;
+        top: 50%; right: 15%;
         transform: translateY(-50%);
         font-family: 'Teko', sans-serif;
-        font-size: 800px; /* Noch größer */
+        font-size: 700px;
         font-weight: 700;
-        color: rgba(255,255,255,0.03);
+        color: rgba(0, 0, 0, 0.2); /* Dunkler als Background */
         line-height: 1;
         z-index: 0;
         pointer-events: none;
@@ -40,21 +41,63 @@
     /* Left Info */
     .dd-info {
         position: relative; z-index: 2;
-        padding-left: 5%;
-        width: 45%;
+        padding-left: 8%;
+        width: 40%;
     }
     
+    .dd-decor-lines {
+        color: var(--rdf-teal); font-size: 4rem; line-height: 1; margin-bottom: 10px;
+        font-family: 'Rajdhani', sans-serif; font-weight: 300; font-style: italic;
+    }
+    
+    .dd-name {
+        line-height: 0.8;
+        margin-bottom: 20px;
+    }
+    /* "Patrick" Style */
+    .dd-firstname-style {
+        font-family: 'Great Vibes', cursive; 
+        font-size: 5rem;
+        color: white; 
+        display: block; 
+        margin-left: 10px;
+        margin-bottom: 10px;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    /* "SCHEIBER" Style */
+    .dd-lastname {
+        font-family: 'Teko', sans-serif;
+        font-size: 7rem; 
+        color: var(--rdf-teal); 
+        font-weight: 700; 
+        text-transform: uppercase;
+        display: block;
+        letter-spacing: 2px;
+    }
+    
+    /* Meta Line (DE | patman | #21) */
+    .dd-meta {
+        display: flex; align-items: center; gap: 15px; margin-top: 30px;
+        font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; color: #a0aec0;
+        font-weight: 500;
+    }
+    .dd-meta span { display: flex; align-items: center; gap: 8px; }
+    .dd-meta .fi { font-size: 1.2rem; border-radius: 2px; }
+    .dd-meta .highlight { color: var(--rdf-teal); font-weight: bold; }
+    .separator { color: #4a5568; font-weight: 300; }
+
     /* Right Image */
     .dd-image {
-        position: absolute; /* Absolut positioniert für präzise Kontrolle */
-        right: 5%; bottom: 0;
-        height: 90%; width: 45%;
+        position: absolute;
+        right: 10%; bottom: 0;
+        height: 85%; width: 40%;
         z-index: 2;
         display: flex; align-items: flex-end; justify-content: center;
     }
     .dd-image img {
         max-height: 100%; width: auto; object-fit: contain;
-        filter: drop-shadow(-20px 0 40px rgba(0,0,0,0.6));
+        filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
     }
 
     /* Sim Rig Box */
