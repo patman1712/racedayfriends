@@ -123,22 +123,27 @@
     .dd-meta .highlight { color: var(--rdf-teal); font-weight: bold; font-size: 1.3rem; letter-spacing: 1px; }
     .separator { color: #4a5568; font-weight: 300; opacity: 0.5; }
 
-    /* Right Image (Absolut Unten Bündig - Desktop Fix) */
+    /* Right Image (Hard Reset: Absolute Positionierung) */
     .dd-image {
         position: absolute;
-        right: 5%; bottom: 0;
-        height: 90%; /* Etwas weniger als 100% um Header nicht zu sprengen */
+        right: 5%; 
+        bottom: 0;
+        top: 100px; /* Startet unter der Navbar */
         width: 45%;
         z-index: 2;
-        display: flex; align-items: flex-end; justify-content: center;
-        padding: 0; margin: 0;
+        pointer-events: none;
     }
     .dd-image img {
-        max-height: 100%; width: auto; 
-        object-fit: contain;
-        object-position: bottom center; /* WICHTIG: Bild unten verankern! */
-        filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        max-height: 100%; 
+        max-width: 100%;
+        width: auto;
+        height: auto;
         display: block;
+        filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
     }
 
     /* Sim Rig Box */
