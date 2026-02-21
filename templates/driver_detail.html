@@ -233,14 +233,19 @@
             
             <div class="dd-meta">
                 {% if driver.nationality %}
-                <span><span class="fi fi-{{ driver.nationality.lower() }}"></span> {{ driver.nationality.upper() }}</span>
+                <!-- Flagge ohne Text -->
+                <span class="fi fi-{{ driver.nationality.lower() }}"></span>
                 {% endif %}
+                
                 <span class="separator">|</span>
-                {% if driver.twitch %}
-                <span class="highlight">{{ driver.twitch.split('/')[-1] }}</span>
+                
+                <!-- Spitzname (Username) statt Twitch-Name -->
+                {% if driver.username %}
+                <span>{{ driver.username }}</span>
                 {% else %}
                 <span>{{ driver.name }}</span>
                 {% endif %}
+                
                 <span class="separator">|</span>
                 <span class="highlight">#{{ driver.number or '00' }}</span>
             </div>
