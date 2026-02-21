@@ -27,6 +27,77 @@
             </div>
         </div>
 
+        <!-- Kachel: Mein Sim-Rig -->
+        <div class="card" style="grid-column: span 2;">
+            <div class="card-header">
+                <h3><i class="fas fa-gamepad"></i> Mein Sim-Rig</h3>
+            </div>
+            <div class="card-body">
+                <form action="/boxengasse/rig/save" method="POST" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Rig-Art</label>
+                            <select name="rig_type" class="form-control">
+                                <option value="">-- Bitte wählen --</option>
+                                <option value="Alu-Rig" {% if driver.rig and driver.rig.type == 'Alu-Rig' %}selected{% endif %}>Alu-Rig (8020)</option>
+                                <option value="Holz-Rig" {% if driver.rig and driver.rig.type == 'Holz-Rig' %}selected{% endif %}>Holz-Rig (DIY)</option>
+                                <option value="Playseat" {% if driver.rig and driver.rig.type == 'Playseat' %}selected{% endif %}>Playseat / Kauf-Cockpit</option>
+                                <option value="Schreibtisch" {% if driver.rig and driver.rig.type == 'Schreibtisch' %}selected{% endif %}>Schreibtisch</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Monitore</label>
+                            <select name="rig_monitors" class="form-control">
+                                <option value="">-- Bitte wählen --</option>
+                                <option value="Single Monitor" {% if driver.rig and driver.rig.monitors == 'Single Monitor' %}selected{% endif %}>Single Monitor</option>
+                                <option value="Triple Screen" {% if driver.rig and driver.rig.monitors == 'Triple Screen' %}selected{% endif %}>Triple Screen</option>
+                                <option value="Ultrawide (32:9)" {% if driver.rig and driver.rig.monitors == 'Ultrawide (32:9)' %}selected{% endif %}>Ultrawide (32:9)</option>
+                                <option value="VR" {% if driver.rig and driver.rig.monitors == 'VR' %}selected{% endif %}>VR Headset</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Wheelbase</label>
+                            <input type="text" name="rig_base" value="{{ driver.rig.base if driver.rig else '' }}" class="form-control" placeholder="z.B. Fanatec DD1, Simucube 2...">
+                        </div>
+                        <div class="form-group">
+                            <label>Lenkrad</label>
+                            <input type="text" name="rig_wheel" value="{{ driver.rig.wheel if driver.rig else '' }}" class="form-control" placeholder="z.B. Cube Controls, Fanatec Formula...">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Pedale</label>
+                            <input type="text" name="rig_pedals" value="{{ driver.rig.pedals if driver.rig else '' }}" class="form-control" placeholder="z.B. Heusinkveld Sprint...">
+                        </div>
+                        <div class="form-group">
+                            <label>Extras</label>
+                            <input type="text" name="rig_extras" value="{{ driver.rig.extras if driver.rig else '' }}" class="form-control" placeholder="z.B. Button Box, Shifter, Handbrake...">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Fotos hochladen (Max. 3)</label>
+                        <input type="file" name="rig_images" class="form-control" multiple accept="image/*">
+                        <small style="color: var(--rdf-silver);">Zeig uns dein Setup! (Ersetzt bestehende Bilder)</small>
+                    </div>
+
+                    {% if driver.rig and driver.rig.images %}
+                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                        {% for img in driver.rig.images %}
+                        <img src="{{ img }}" style="height: 60px; border-radius: 4px; border: 1px solid var(--rdf-border);">
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn-primary" style="margin-top: 20px;">Speichern</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Kachel: Team Infos (Platzhalter) -->
         <div class="card">
             <div class="card-header">
@@ -60,6 +131,12 @@
         border-radius: 8px;
         overflow: hidden;
     }
+    .form-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px; }
+    .form-group { flex: 1; min-width: 200px; margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; color: var(--rdf-silver); font-size: 0.9rem; }
+    .form-control { width: 100%; padding: 10px; background: #15273d; border: 1px solid var(--rdf-border); color: white; border-radius: 4px; }
+    .btn-primary { background: var(--rdf-teal); color: #0B1829; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    
     .card-header {
         background: #0f1c2e;
         padding: 20px;

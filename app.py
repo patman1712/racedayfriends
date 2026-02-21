@@ -487,6 +487,65 @@ def boxengasse():
     current_driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
     return render_template('boxengasse.html', driver=current_driver)
 
+@app.route('/boxengasse/rig/save', methods=['POST'])
+@driver_login_required
+def save_rig():
+    driver_id = session.get('driver_id')
+    drivers = load_drivers()
+    driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    
+    if not driver:
+        flash("Fahrer nicht gefunden.", "error")
+        return redirect(url_for('boxengasse'))
+        
+    # Rig Daten initialisieren falls nicht vorhanden
+    if 'rig' not in driver:
+        driver['rig'] = {}
+        
+    driver['rig']['type'] = request.form.get('rig_type')
+    driver['rig']['monitors'] = request.form.get('rig_monitors')
+    driver['rig']['base'] = request.form.get('rig_base')
+    driver['rig']['wheel'] = request.form.get('rig_wheel')
+    driver['rig']['pedals'] = request.form.get('rig_pedals')
+    driver['rig']['extras'] = request.form.get('rig_extras')
+    
+    # Bilder Upload (Max 3)
+    if 'rig_images' in request.files:
+        files = request.files.getlist('rig_images')
+        new_images = []
+        
+        for file in files:
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                ts = int(datetime.now().timestamp())
+                filename = f"rig_{driver_id}_{ts}_{filename}"
+                
+                if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                    os.makedirs(app.config['UPLOAD_FOLDER'])
+                    
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                new_images.append(url_for('static', filename=f'uploads/{filename}'))
+        
+        # Nur ersetzen, wenn neue Bilder hochgeladen wurden
+        if new_images:
+            driver['rig']['images'] = new_images
+
+    save_drivers(drivers)
+    flash("Rig-Daten gespeichert!", "success")
+    return redirect(url_for('boxengasse'))
+
+@app.route('/driver/<driver_id>')
+def driver_detail(driver_id):
+    all_drivers = get_drivers_data()
+    driver = next((d for d in all_drivers if str(d['id']) == str(driver_id)), None)
+    
+    if not driver:
+        flash("Fahrer nicht gefunden", "error")
+        return redirect(url_for('team'))
+        
+    return render_template('driver_detail.html', driver=driver)
+
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
