@@ -19,6 +19,7 @@
         align-items: center;
         justify-content: space-between;
         padding-top: 80px;
+        padding-bottom: 0 !important; /* WICHTIG: Kein Padding unten! */
         overflow: hidden;
         /* Hellerer, blauerer Verlauf wie im Screenshot */
         background: linear-gradient(135deg, #0B1829 0%, #15273d 100%);
@@ -126,20 +127,18 @@
     .dd-image {
         position: absolute;
         right: 5%; bottom: 0;
-        height: 90%;
+        height: 90%; /* Etwas weniger als 100% um Header nicht zu sprengen */
         width: 45%;
         z-index: 2;
         display: flex; align-items: flex-end; justify-content: center;
         padding: 0; margin: 0;
-        line-height: 0; /* Verhindert Zeilenabstand */
     }
     .dd-image img {
         max-height: 100%; width: auto; 
         object-fit: contain;
-        object-position: bottom center;
+        object-position: bottom center; /* WICHTIG: Bild unten verankern! */
         filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
         display: block;
-        margin-bottom: -1px; /* Hack um Lücke zu schließen */
     }
 
     /* Sim Rig Box */
