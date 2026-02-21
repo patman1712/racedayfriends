@@ -8,124 +8,126 @@
     </div>
 
     <div class="grid">
-        <!-- Kachel: Mein Profil -->
-        <div class="card">
-            <div class="card-header">
-                <h3><i class="fas fa-user-edit"></i> Mein Profil</h3>
+        <!-- Kombinierte Kachel: Profil & Sim-Rig -->
+        <div class="card" style="grid-column: 1 / -1;"> <!-- Volle Breite -->
+            <div class="card-header-tabs">
+                <button class="tab-btn active" onclick="openTab(event, 'tab-profil')"><i class="fas fa-user-edit"></i> Mein Profil</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-rig')"><i class="fas fa-gamepad"></i> Sim Rig</button>
             </div>
+            
             <div class="card-body">
-                <form action="/boxengasse/profil/save" method="POST" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label>Spitzname / Username</label>
-                        <input type="text" name="username" class="form-control" value="{{ driver.username or '' }}" placeholder="z.B. Patman1712">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Startnummer</label>
-                        <input type="text" name="number" class="form-control" value="{{ driver.number or '' }}" placeholder="#21">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Twitch Kanal (URL)</label>
-                        <input type="text" name="twitch" class="form-control" value="{{ driver.twitch or '' }}" placeholder="https://twitch.tv/...">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Fahrerbild (Freisteller)</label>
-                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-                            {% if driver.image_url %}
-                            <img src="{{ driver.image_url }}" style="height: 60px; width: 60px; object-fit: cover; border-radius: 50%; border: 1px solid var(--rdf-teal);">
-                            {% endif %}
-                            <input type="file" name="driver_image" class="form-control" accept="image/*">
+                <!-- TAB: PROFIL -->
+                <div id="tab-profil" class="tab-content" style="display: block;">
+                    <form action="/boxengasse/profil/save" method="POST" enctype="multipart/form-data">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Spitzname / Username</label>
+                                <input type="text" name="username" class="form-control" value="{{ driver.username or '' }}" placeholder="z.B. Patman1712">
+                            </div>
+                            <div class="form-group">
+                                <label>Startnummer</label>
+                                <input type="text" name="number" class="form-control" value="{{ driver.number or '' }}" placeholder="#21">
+                            </div>
                         </div>
-                        <small style="color: var(--rdf-silver);">Am besten ein PNG mit transparentem Hintergrund.</small>
-                    </div>
 
-                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Profil Speichern</button>
-                </form>
-            </div>
-        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Twitch Kanal (URL)</label>
+                                <input type="text" name="twitch" class="form-control" value="{{ driver.twitch or '' }}" placeholder="https://twitch.tv/...">
+                            </div>
+                            <div class="form-group">
+                                <label>Fahrerbild (Freisteller)</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    {% if driver.image_url %}
+                                    <img src="{{ driver.image_url }}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 50%; border: 1px solid var(--rdf-teal);">
+                                    {% endif %}
+                                    <input type="file" name="driver_image" class="form-control" accept="image/*" style="padding: 6px;">
+                                </div>
+                                <small style="color: var(--rdf-silver); display: block; margin-top: 5px;">PNG mit transparentem Hintergrund empfohlen.</small>
+                            </div>
+                        </div>
 
-        <!-- Kachel: Mein Sim-Rig -->
-        <div class="card" style="grid-column: span 2;">
-            <div class="card-header">
-                <h3><i class="fas fa-gamepad"></i> Mein Sim-Rig</h3>
-            </div>
-            <div class="card-body">
-                <form action="/boxengasse/rig/save" method="POST" enctype="multipart/form-data">
-                    <div class="form-row">
+                        <button type="submit" class="btn-primary">Profil Speichern</button>
+                    </form>
+                </div>
+
+                <!-- TAB: RIG -->
+                <div id="tab-rig" class="tab-content" style="display: none;">
+                    <form action="/boxengasse/rig/save" method="POST" enctype="multipart/form-data">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Rig-Art</label>
+                                <select name="rig_type" class="form-control">
+                                    <option value="">-- Bitte wählen --</option>
+                                    <option value="Alu-Rig" {% if driver.rig and driver.rig.type == 'Alu-Rig' %}selected{% endif %}>Alu-Rig (8020)</option>
+                                    <option value="Holz-Rig" {% if driver.rig and driver.rig.type == 'Holz-Rig' %}selected{% endif %}>Holz-Rig (DIY)</option>
+                                    <option value="Playseat" {% if driver.rig and driver.rig.type == 'Playseat' %}selected{% endif %}>Playseat / Kauf-Cockpit</option>
+                                    <option value="Schreibtisch" {% if driver.rig and driver.rig.type == 'Schreibtisch' %}selected{% endif %}>Schreibtisch</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Monitore</label>
+                                <select name="rig_monitors" class="form-control">
+                                    <option value="">-- Bitte wählen --</option>
+                                    <option value="Single Monitor" {% if driver.rig and driver.rig.monitors == 'Single Monitor' %}selected{% endif %}>Single Monitor</option>
+                                    <option value="Triple Screen" {% if driver.rig and driver.rig.monitors == 'Triple Screen' %}selected{% endif %}>Triple Screen</option>
+                                    <option value="Ultrawide (32:9)" {% if driver.rig and driver.rig.monitors == 'Ultrawide (32:9)' %}selected{% endif %}>Ultrawide (32:9)</option>
+                                    <option value="VR" {% if driver.rig and driver.rig.monitors == 'VR' %}selected{% endif %}>VR Headset</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Wheelbase</label>
+                                <input type="text" name="rig_base" value="{{ driver.rig.base if driver.rig else '' }}" class="form-control" placeholder="z.B. Fanatec DD1">
+                            </div>
+                            <div class="form-group">
+                                <label>Lenkrad</label>
+                                <input type="text" name="rig_wheel" value="{{ driver.rig.wheel if driver.rig else '' }}" class="form-control" placeholder="z.B. Cube Controls">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Pedale</label>
+                                <input type="text" name="rig_pedals" value="{{ driver.rig.pedals if driver.rig else '' }}" class="form-control" placeholder="z.B. Heusinkveld Sprint">
+                            </div>
+                            <div class="form-group">
+                                <label>Extras</label>
+                                <input type="text" name="rig_extras" value="{{ driver.rig.extras if driver.rig else '' }}" class="form-control" placeholder="z.B. Button Box, Shifter">
+                            </div>
+                        </div>
+                        
                         <div class="form-group">
-                            <label>Rig-Art</label>
-                            <select name="rig_type" class="form-control">
-                                <option value="">-- Bitte wählen --</option>
-                                <option value="Alu-Rig" {% if driver.rig and driver.rig.type == 'Alu-Rig' %}selected{% endif %}>Alu-Rig (8020)</option>
-                                <option value="Holz-Rig" {% if driver.rig and driver.rig.type == 'Holz-Rig' %}selected{% endif %}>Holz-Rig (DIY)</option>
-                                <option value="Playseat" {% if driver.rig and driver.rig.type == 'Playseat' %}selected{% endif %}>Playseat / Kauf-Cockpit</option>
-                                <option value="Schreibtisch" {% if driver.rig and driver.rig.type == 'Schreibtisch' %}selected{% endif %}>Schreibtisch</option>
-                            </select>
+                            <label>Fotos hochladen (Max. 3)</label>
+                            <input type="file" name="rig_images" class="form-control" multiple accept="image/*" style="padding: 6px;">
+                            <small style="color: var(--rdf-silver);">Zeig uns dein Setup! (Ersetzt bestehende Bilder)</small>
                         </div>
-                        <div class="form-group">
-                            <label>Monitore</label>
-                            <select name="rig_monitors" class="form-control">
-                                <option value="">-- Bitte wählen --</option>
-                                <option value="Single Monitor" {% if driver.rig and driver.rig.monitors == 'Single Monitor' %}selected{% endif %}>Single Monitor</option>
-                                <option value="Triple Screen" {% if driver.rig and driver.rig.monitors == 'Triple Screen' %}selected{% endif %}>Triple Screen</option>
-                                <option value="Ultrawide (32:9)" {% if driver.rig and driver.rig.monitors == 'Ultrawide (32:9)' %}selected{% endif %}>Ultrawide (32:9)</option>
-                                <option value="VR" {% if driver.rig and driver.rig.monitors == 'VR' %}selected{% endif %}>VR Headset</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Wheelbase</label>
-                            <input type="text" name="rig_base" value="{{ driver.rig.base if driver.rig else '' }}" class="form-control" placeholder="z.B. Fanatec DD1, Simucube 2...">
+                        {% if driver.rig and driver.rig.images %}
+                        <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                            {% for img in driver.rig.images %}
+                            <div style="position: relative; display: inline-block; margin-right: 10px;">
+                                <img src="{{ img }}" style="height: 80px; border-radius: 4px; border: 1px solid var(--rdf-border); display: block;">
+                                <a href="/boxengasse/rig/delete_image?index={{ loop.index0 }}" 
+                                   onclick="return confirm('Bild wirklich löschen?')"
+                                   style="position: absolute; top: -10px; right: -10px; background: #ff4d4d; color: white; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 24px; font-weight: bold; text-decoration: none; border: 2px solid #15273d; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10;">
+                                    &times;
+                                </a>
+                            </div>
+                            {% endfor %}
                         </div>
-                        <div class="form-group">
-                            <label>Lenkrad</label>
-                            <input type="text" name="rig_wheel" value="{{ driver.rig.wheel if driver.rig else '' }}" class="form-control" placeholder="z.B. Cube Controls, Fanatec Formula...">
-                        </div>
-                    </div>
+                        {% endif %}
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Pedale</label>
-                            <input type="text" name="rig_pedals" value="{{ driver.rig.pedals if driver.rig else '' }}" class="form-control" placeholder="z.B. Heusinkveld Sprint...">
-                        </div>
-                        <div class="form-group">
-                            <label>Extras</label>
-                            <input type="text" name="rig_extras" value="{{ driver.rig.extras if driver.rig else '' }}" class="form-control" placeholder="z.B. Button Box, Shifter, Handbrake...">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Fotos hochladen (Max. 3)</label>
-                        <input type="file" name="rig_images" class="form-control" multiple accept="image/*">
-                        <small style="color: var(--rdf-silver);">Zeig uns dein Setup! (Ersetzt bestehende Bilder)</small>
-                    </div>
-
-                    {% if driver.rig and driver.rig.images %}
-                    <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
-                        {% for img in driver.rig.images %}
-                        <div style="position: relative; display: inline-block; margin-right: 10px;">
-                            <img src="{{ img }}" style="height: 80px; border-radius: 4px; border: 1px solid var(--rdf-border); display: block;">
-                            <a href="/boxengasse/rig/delete_image?index={{ loop.index0 }}" 
-                               onclick="return confirm('Bild wirklich löschen?')"
-                               style="position: absolute; top: -10px; right: -10px; background: #ff4d4d; color: white; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 24px; font-weight: bold; text-decoration: none; border: 2px solid #15273d; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10;">
-                                &times;
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    <button type="submit" class="btn-primary" style="margin-top: 20px;">Speichern</button>
-                </form>
+                        <button type="submit" class="btn-primary" style="margin-top: 20px;">Rig Speichern</button>
+                    </form>
+                </div>
             </div>
         </div>
 
         <!-- Kachel: Team Infos (Platzhalter) -->
-        <div class="card">
+        <div class="card" style="grid-column: 1 / -1;">
             <div class="card-header">
                 <h3><i class="fas fa-bullhorn"></i> Team Infos</h3>
             </div>
@@ -185,5 +187,63 @@
         background: rgba(255,255,255,0.1);
         border-color: white;
     }
+    
+    /* TAB STYLES */
+    .card-header-tabs {
+        display: flex;
+        background: #0f1c2e;
+        border-bottom: 1px solid var(--rdf-border);
+    }
+    .tab-btn {
+        background: transparent;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 20px 30px;
+        font-size: 1.1rem;
+        color: var(--rdf-silver);
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 600;
+        transition: 0.3s;
+        border-bottom: 3px solid transparent;
+    }
+    .tab-btn:hover {
+        color: white;
+        background: rgba(255,255,255,0.05);
+    }
+    .tab-btn.active {
+        color: var(--rdf-teal);
+        border-bottom: 3px solid var(--rdf-teal);
+        background: rgba(79, 209, 197, 0.05);
+    }
+    .tab-content {
+        animation: fadeEffect 0.5s;
+    }
+    @keyframes fadeEffect {
+        from {opacity: 0;}
+        to {opacity: 1;}
+    }
 </style>
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        
+        // Hide all tab content
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        
+        // Remove active class from all buttons
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        
+        // Show current tab and add active class to button
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+</script>
 {% endblock %}
