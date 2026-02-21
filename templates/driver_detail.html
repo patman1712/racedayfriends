@@ -44,12 +44,14 @@
         top: 50%; right: 15%;
         transform: translateY(-50%);
         font-family: 'Teko', sans-serif;
-        font-size: 700px;
+        font-size: 900px; /* Extrem Groß (vorher 700px) */
         font-weight: 700;
-        color: rgba(0, 0, 0, 0.2); /* Dunkler als Background */
+        color: rgba(0, 0, 0, 0.2);
         line-height: 1;
         z-index: 0;
         pointer-events: none;
+        text-align: center;
+        width: 40%;
     }
 
     /* Left Info (Hamilton Style: Block links, aber Inhalt zentriert) */
@@ -147,23 +149,19 @@
         filter: drop-shadow(0 10px 40px rgba(0,0,0,0.6));
     }
 
-    /* Sim Rig Box */
+    /* Sim Rig Box (Angepasst an Table Style) */
     .dd-rig-section {
-        margin-top: 60px;
+        /* Nutzt .dd-content-box Style */
+        margin-top: 0; /* Abstand wird durch margin-bottom des vorherigen Elements geregelt */
         background: #0B1829;
-        border: 1px solid var(--rdf-teal); /* Teal Border wie gewünscht */
+        border: 1px solid #1a2a40; /* Gleicher Border wie Table */
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
     .dd-rig-header {
-        background: rgba(79, 209, 197, 0.1);
-        padding: 20px 30px;
-        border-bottom: 1px solid var(--rdf-teal);
-        display: flex; align-items: center; gap: 15px;
-    }
-    .dd-rig-header h2 {
-        margin: 0; color: white; font-family: 'Teko', sans-serif; font-size: 2.5rem; text-transform: uppercase;
+        /* Header entfernen oder anpassen, wir nutzen jetzt .dd-section-title davor */
+        display: none; 
     }
     .dd-rig-content { padding: 30px; }
 
@@ -221,14 +219,26 @@
         .dd-twitch-status { flex-direction: column; gap: 15px; }
     }
 
-    /* SECTIONS */
+    /* SECTIONS & BOXES (Unified Design) */
     .dd-section-title {
         font-family: 'Teko', sans-serif; font-size: 3rem; color: white; text-transform: uppercase;
-        margin-bottom: 30px; padding-left: 20px; border-left: 5px solid var(--rdf-teal); line-height: 1;
+        margin-bottom: 20px; padding-left: 20px; border-left: 5px solid var(--rdf-teal); line-height: 1;
+        display: flex; align-items: center; gap: 15px;
+    }
+    
+    /* Unified Box Style for Table & Rig */
+    .dd-content-box {
+        background: #0B1829; 
+        border: 1px solid #1a2a40; 
+        border-radius: 8px; 
+        overflow: hidden;
+        margin-bottom: 60px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
     /* TABLE */
     .dd-table-container {
+        /* Erbt jetzt von .dd-content-box, aber wir behalten spezifische Styles */
         background: #0B1829; border: 1px solid #1a2a40; border-radius: 8px; overflow: hidden;
         margin-bottom: 60px;
     }
@@ -437,7 +447,7 @@
 
     <!-- RACES TABLE -->
     <h2 class="dd-section-title">Absolvierte Rennen</h2>
-    <div class="dd-table-container">
+    <div class="dd-content-box"> <!-- Unified Class -->
         <table class="dd-table">
             <thead>
                 <tr>
@@ -468,11 +478,8 @@
 
     <!-- RIG SHOWCASE (New Style Box) -->
     {% if driver.rig %}
-    <div class="dd-rig-section">
-        <div class="dd-rig-header">
-            <i class="fas fa-microchip" style="font-size: 2rem; color: var(--rdf-teal);"></i>
-            <h2>Sim Rig Setup</h2>
-        </div>
+    <h2 class="dd-section-title"><i class="fas fa-microchip" style="color: var(--rdf-teal); font-size: 0.8em;"></i> Sim Rig Setup</h2>
+    <div class="dd-content-box"> <!-- Unified Class -->
         <div class="dd-rig-content">
             <div class="dd-rig-grid" style="margin-bottom: 0;">
                 <!-- Specs List -->
