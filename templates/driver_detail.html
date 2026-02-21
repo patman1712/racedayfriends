@@ -23,6 +23,17 @@
         /* Hellerer, blauerer Verlauf wie im Screenshot */
         background: linear-gradient(135deg, #0B1829 0%, #15273d 100%);
     }
+
+    /* Dotted Pattern Overlay (Stärker sichtbar) */
+    .dd-header::before {
+        content: "";
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px);
+        background-size: 20px 20px;
+        opacity: 0.5;
+        pointer-events: none;
+        z-index: 1;
+    }
     
     /* Background Number (21) */
     .dd-bg-number {
@@ -223,9 +234,12 @@
         <div class="dd-bg-number">{{ driver.number or '00' }}</div>
         
         <div class="dd-info">
-            <div class="dd-decor-lines">
-                <span class="line-mint">/</span><span class="line-white">/</span>
+            <!-- Top Stripes -->
+            <div class="dd-stripes-top">
+                <div class="stripe"></div>
+                <div class="stripe short"></div>
             </div>
+
             <div class="dd-name">
                 <span class="dd-firstname-style">{{ driver.name.split(' ')[0] }}</span>
                 <span class="dd-lastname">{{ driver.name.split(' ')[1:] | join(' ') }}</span>
@@ -233,13 +247,11 @@
             
             <div class="dd-meta">
                 {% if driver.nationality %}
-                <!-- Flagge ohne Text -->
                 <span class="fi fi-{{ driver.nationality.lower() }}"></span>
                 {% endif %}
                 
                 <span class="separator">|</span>
                 
-                <!-- Spitzname (Username) statt Twitch-Name -->
                 {% if driver.username %}
                 <span>{{ driver.username }}</span>
                 {% else %}
@@ -247,11 +259,13 @@
                 {% endif %}
                 
                 <span class="separator">|</span>
-                <span class="highlight">#{{ driver.number or '00' }}</span>
+                <span class="highlight">{{ driver.number or '00' }}</span>
             </div>
             
-            <div class="dd-decor-lines" style="margin-top: 20px;">
-                <span class="line-mint">/</span><span class="line-white">/</span>
+            <!-- Bottom Stripes -->
+            <div class="dd-stripes-bottom">
+                <div class="stripe-b"></div>
+                <div class="stripe-b short"></div>
             </div>
         </div>
 
