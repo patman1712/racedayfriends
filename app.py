@@ -2,6 +2,7 @@ import os
 import json
 import sys
 import shutil
+import uuid
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, flash, session

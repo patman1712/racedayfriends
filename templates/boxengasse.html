@@ -8,6 +8,50 @@
     </div>
 
     <div class="grid">
+        
+        <!-- Team Infos / Schwarzes Brett (Jetzt oben) -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3><i class="fas fa-comments"></i> Team Infos & Chat</h3>
+            </div>
+            <div class="card-body">
+                <!-- Neue Nachricht -->
+                <form action="/boxengasse/message/new" method="POST" style="margin-bottom: 30px; display: flex; gap: 10px;">
+                    <input type="text" name="content" class="form-control" placeholder="Schreib etwas an das Team..." required style="flex-grow: 1;">
+                    <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Senden</button>
+                </form>
+
+                <!-- Nachrichten Liste -->
+                <div class="message-list" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                    {% if messages %}
+                        {% for msg in messages %}
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 3px solid var(--rdf-teal);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                {% if msg.driver_image %}
+                                <img src="{{ msg.driver_image }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.2);">
+                                {% else %}
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                                <strong style="color: var(--rdf-teal); font-size: 1rem;">{{ msg.driver_name }}</strong>
+                                <span style="font-size: 0.75rem; color: var(--rdf-silver); margin-left: auto;">
+                                    {{ msg.date.split('T')[0] }} <span style="opacity: 0.6;">{{ msg.date.split('T')[1][:5] }}</span>
+                                </span>
+                            </div>
+                            <p style="margin: 0; color: #e2e8f0; font-size: 0.95rem; line-height: 1.5; padding-left: 42px;">{{ msg.content }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align: center; padding: 40px; color: var(--rdf-silver);">
+                            <i class="fas fa-comment-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                            <p>Noch keine Nachrichten. Sei der Erste!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
         <!-- Kombinierte Kachel: Profil & Sim-Rig -->
         <div class="card" style="grid-column: 1 / -1;"> <!-- Volle Breite -->
             <div class="card-header-tabs">
@@ -146,19 +190,7 @@
             </div>
         </div>
 
-        <!-- Kachel: Team Infos (Platzhalter) -->
-        <div class="card" style="grid-column: 1 / -1;">
-            <div class="card-header">
-                <h3><i class="fas fa-bullhorn"></i> Team Infos</h3>
-            </div>
-            <div class="card-body">
-                <p style="color: var(--rdf-silver);">Hier stehen interne Ankündigungen und Team-Infos.</p>
-                <div style="margin-top: 20px; padding: 15px; background: rgba(79, 209, 197, 0.1); border-left: 3px solid var(--rdf-teal);">
-                    <strong>Nächstes Meeting:</strong><br>
-                    Mittwoch, 20:00 Uhr im Discord.
-                </div>
-            </div>
-        </div>
+        <!-- Kachel: Team Infos (Platzhalter) - ENTFERNT -->
     </div>
     
     <div style="margin-top: 40px; text-align: right;">
