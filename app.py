@@ -92,6 +92,7 @@ CARS_FILE = os.path.join(BASE_DATA_DIR, 'cars.json')
 EVENTS_FILE = os.path.join(BASE_DATA_DIR, 'events.json')
 NEWS_FILE = os.path.join(BASE_DATA_DIR, 'news.json')
 MESSAGES_FILE = os.path.join(BASE_DATA_DIR, 'messages.json')
+LIVERIES_FILE = os.path.join(BASE_DATA_DIR, 'liveries.json')
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
 
 UPLOAD_FOLDER = os.path.join(BASE_DATA_DIR, 'static/uploads')
@@ -179,6 +180,19 @@ def load_messages():
 
 def save_messages(data):
     with open(MESSAGES_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
+
+def load_liveries():
+    if not os.path.exists(LIVERIES_FILE):
+        return []
+    try:
+        with open(LIVERIES_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_liveries(data):
+    with open(LIVERIES_FILE, 'w') as f:
         json.dump(data, f, indent=4)
 
 def load_events():
@@ -504,7 +518,82 @@ def boxengasse():
     # Nachrichten laden
     messages = load_messages()
     
-    return render_template('boxengasse.html', driver=current_driver, messages=messages)
+    # Liveries und Autos laden
+    liveries = load_liveries()
+    cars = load_cars()
+    
+    return render_template('boxengasse.html', driver=current_driver, messages=messages, liveries=liveries, cars=cars)
+
+@app.route('/boxengasse/livery/upload', methods=['POST'])
+@driver_login_required
+def upload_livery():
+    driver_id = session.get('driver_id')
+    drivers = load_drivers()
+    driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    
+    car_model = request.form.get('car_model')
+    
+    if 'livery_file' in request.files:
+        file = request.files['livery_file']
+        if file and file.filename != '':
+            # Erlaube auch .tga, .mip, .psd etc.
+            filename = secure_filename(file.filename)
+            ts = int(datetime.now().timestamp())
+            filename = f"livery_{ts}_{filename}"
+            
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+                
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            liveries = load_liveries()
+            new_livery = {
+                "id": str(uuid.uuid4()),
+                "filename": file.filename, # Original Name für Anzeige
+                "url": url_for('static', filename=f'uploads/{filename}'),
+                "car_model": car_model,
+                "uploaded_by": driver['name'],
+                "uploader_id": str(driver_id),
+                "date": datetime.now().isoformat()
+            }
+            liveries.insert(0, new_livery)
+            save_liveries(liveries)
+            flash("Livery erfolgreich hochgeladen!", "success")
+            
+    return redirect(url_for('boxengasse'))
+
+@app.route('/boxengasse/livery/delete/<livery_id>')
+@driver_login_required
+def delete_livery(livery_id):
+    driver_id = str(session.get('driver_id'))
+    # Admin Check? Wir haben keine echte Admin Rolle in der Session ausser 'admin_logged_in'
+    # Wir erlauben es dem Uploader UND dem Admin.
+    
+    is_admin = session.get('admin_logged_in', False)
+    
+    liveries = load_liveries()
+    livery = next((l for l in liveries if l['id'] == livery_id), None)
+    
+    if livery:
+        if is_admin or str(livery.get('uploader_id')) == driver_id:
+            # Datei löschen
+            try:
+                # URL parsen um Dateinamen zu bekommen
+                filename = livery['url'].split('/')[-1]
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+            except Exception as e:
+                print(f"Fehler beim Löschen der Livery Datei: {e}")
+                
+            liveries.remove(livery)
+            save_liveries(liveries)
+            flash("Livery gelöscht.", "success")
+        else:
+            flash("Keine Berechtigung zum Löschen.", "error")
+            
+    return redirect(url_for('boxengasse'))
 
 @app.route('/boxengasse/message/new', methods=['POST'])
 @driver_login_required

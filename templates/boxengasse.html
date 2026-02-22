@@ -63,6 +63,7 @@
             <div class="card-header-tabs">
                 <button class="tab-btn active" onclick="openTab(event, 'tab-profil')"><i class="fas fa-user-edit"></i> Mein Profil</button>
                 <button class="tab-btn" onclick="openTab(event, 'tab-rig')"><i class="fas fa-gamepad"></i> Sim Rig</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-liveries')"><i class="fas fa-paint-brush"></i> Team Liveries</button>
             </div>
             
             <div class="card-body">
@@ -192,6 +193,58 @@
 
                         <button type="submit" class="btn-primary" style="margin-top: 20px;">Rig Speichern</button>
                     </form>
+                </div>
+
+                <!-- TAB: LIVERIES -->
+                <div id="tab-liveries" class="tab-content" style="display: none;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                        <h4 style="margin-bottom: 15px; color: var(--rdf-teal);">Neues Design hochladen</h4>
+                        <form action="/boxengasse/livery/upload" method="POST" enctype="multipart/form-data">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Fahrzeug</label>
+                                    <select name="car_model" class="form-control" required>
+                                        <option value="">-- Wähle Auto --</option>
+                                        {% for car in cars %}
+                                        <option value="{{ car.name }}">{{ car.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Datei (.tga, .mip, .psd, .zip)</label>
+                                    <input type="file" name="livery_file" class="form-control" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary"><i class="fas fa-cloud-upload-alt"></i> Hochladen</button>
+                        </form>
+                    </div>
+
+                    <h4 style="color: white; margin-bottom: 20px;">Verfügbare Liveries</h4>
+                    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); margin-top: 0; gap: 20px;">
+                        {% for livery in liveries %}
+                        <div style="background: #15273d; padding: 15px; border-radius: 8px; border: 1px solid var(--rdf-border); position: relative;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <span class="badge" style="background: var(--rdf-teal); color: black; font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 4px;">{{ livery.car_model }}</span>
+                                {% if session.get('admin_logged_in') or livery.uploader_id|string == driver.id|string %}
+                                <a href="/boxengasse/livery/delete/{{ livery.id }}" onclick="return confirm('Livery wirklich löschen?')" style="color: #ef4444;"><i class="fas fa-trash"></i></a>
+                                {% endif %}
+                            </div>
+                            <div style="font-weight: bold; color: white; margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ livery.filename }}">
+                                <i class="fas fa-file-image" style="color: var(--rdf-silver); margin-right: 5px;"></i> {{ livery.filename }}
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--rdf-silver); margin-bottom: 15px;">
+                                von <span style="color: var(--rdf-teal);">{{ livery.uploaded_by }}</span><br>
+                                {{ livery.date.split('T')[0] }}
+                            </div>
+                            <a href="{{ livery.url }}" download class="btn-primary" style="display: block; text-align: center; font-size: 0.9rem; background: transparent; border: 1px solid var(--rdf-teal); color: var(--rdf-teal);">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if not liveries %}
+                    <p style="text-align: center; color: var(--rdf-silver); margin-top: 30px; opacity: 0.5;">Noch keine Liveries vorhanden.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
