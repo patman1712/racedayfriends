@@ -49,5 +49,14 @@
             "1771591892",
             "1771594254"
         ]
+    },
+    {
+        "id": "test-pending",
+        "title": "Pending Test Race",
+        "track": "Nordschleife",
+        "date": "2026-04-01T20:00",
+        "status": "pending",
+        "created_by_name": "Test Driver",
+        "drivers": []
     }
 ]
