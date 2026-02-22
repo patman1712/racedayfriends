@@ -18,15 +18,15 @@
         <span class="badge" style="background: var(--rdf-teal); color: var(--rdf-navy); padding: 5px 15px; font-weight: bold; margin-bottom: 20px; display: inline-block;">
             {{ event.series }}
         </span>
-        <h1 style="font-size: 5rem; margin-bottom: 10px;">{{ event.title }}</h1>
-        <div style="font-size: 1.5rem; color: var(--rdf-silver); margin-bottom: 30px;">
+        <h1 class="event-title">{{ event.title }}</h1>
+        <div class="event-meta">
             <i class="fas fa-map-marker-alt" style="color: var(--rdf-teal);"></i> {{ event.track }}
             {% if event.league %}
-            <span style="margin: 0 15px;">|</span>
+            <span class="separator">|</span>
             <i class="fas fa-trophy" style="color: var(--rdf-teal);"></i> {{ event.league }}
             {% endif %}
             {% if event.car_model %}
-            <span style="margin: 0 15px;">|</span>
+            <span class="separator">|</span>
             <i class="fas fa-car" style="color: var(--rdf-teal);"></i> {{ event.car_model }}
             {% endif %}
         </div>
@@ -55,7 +55,7 @@
 </div>
 
 <div class="container" style="padding: 60px 0;">
-    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 60px;">
+    <div class="grid event-grid">
         
         <!-- Links: Info & Lineup -->
         <div>
@@ -363,5 +363,66 @@
     .driver-stats-mini .value { color: var(--rdf-teal); font-weight: bold; margin-left: 3px; }
     
     .card-link { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; }
+
+    /* Responsive & Layout Styles */
+    .event-title {
+        font-size: 5rem;
+        margin-bottom: 10px;
+        line-height: 1;
+    }
+    
+    .event-meta {
+        font-size: 1.5rem;
+        color: var(--rdf-silver);
+        margin-bottom: 30px;
+    }
+    
+    .separator {
+        margin: 0 15px;
+    }
+
+    .event-grid {
+        grid-template-columns: 2fr 1fr;
+        gap: 60px;
+    }
+
+    /* Mobile Optimierungen */
+    @media (max-width: 768px) {
+        .event-title {
+            font-size: 3rem; /* Kleinerer Titel auf Mobile */
+        }
+        
+        .event-meta {
+            font-size: 1.1rem; /* Kleinere Meta-Info */
+            display: flex;
+            flex-direction: column; /* Meta untereinander */
+            gap: 5px;
+        }
+        
+        .separator {
+            display: none; /* Trennzeichen ausblenden wenn gestapelt */
+        }
+
+        .event-grid {
+            grid-template-columns: 1fr; /* Spalten stapeln */
+            gap: 30px;
+        }
+        
+        .event-hero {
+            padding-top: 100px !important;
+            padding-bottom: 40px !important;
+        }
+        
+        /* Container Padding anpassen */
+        .container {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        
+        /* Race Control Liste */
+        .card li {
+            font-size: 0.9rem;
+        }
+    }
 </style>
 {% endblock %}
