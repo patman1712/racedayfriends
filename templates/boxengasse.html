@@ -209,11 +209,15 @@
                             <div class="form-group">
                                 <label>Fahrzeug</label>
                                 <select name="car_model" class="form-control" required>
-                                    <option value="">-- Wähle Auto --</option>
-                                    {% for car in cars %}
-                                    <option value="{{ car.name }}">{{ car.name }}</option>
-                                    {% endfor %}
-                                </select>
+                                        <option value="">-- Wähle Auto --</option>
+                                        {% for category, car_list in cars.items() %}
+                                        <optgroup label="{{ category }}">
+                                            {% for car_name in car_list %}
+                                            <option value="{{ car_name }}">{{ car_name }}</option>
+                                            {% endfor %}
+                                        </optgroup>
+                                        {% endfor %}
+                                    </select>
                             </div>
                             <div class="form-group">
                                 <label>Datei (.tga, .mip, .psd, .zip)</label>
