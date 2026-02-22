@@ -3,9 +3,11 @@ import json
 import sys
 import shutil
 import uuid
+import zipfile
+import io
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
 from functools import wraps
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -93,6 +95,7 @@ EVENTS_FILE = os.path.join(BASE_DATA_DIR, 'events.json')
 NEWS_FILE = os.path.join(BASE_DATA_DIR, 'news.json')
 MESSAGES_FILE = os.path.join(BASE_DATA_DIR, 'messages.json')
 LIVERIES_FILE = os.path.join(BASE_DATA_DIR, 'liveries.json')
+SETUPS_FILE = os.path.join(BASE_DATA_DIR, 'setups.json')
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
 
 UPLOAD_FOLDER = os.path.join(BASE_DATA_DIR, 'static/uploads')
@@ -193,6 +196,19 @@ def load_liveries():
 
 def save_liveries(data):
     with open(LIVERIES_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
+
+def load_setups():
+    if not os.path.exists(SETUPS_FILE):
+        return []
+    try:
+        with open(SETUPS_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_setups(data):
+    with open(SETUPS_FILE, 'w') as f:
         json.dump(data, f, indent=4)
 
 def load_events():
@@ -508,6 +524,121 @@ def driver_logout():
     flash("Du wurdest ausgeloggt.", "info")
     return redirect(url_for('index'))
 
+@app.route('/boxengasse/setup/upload', methods=['POST'])
+@driver_login_required
+def upload_setup():
+    driver_id = session.get('driver_id')
+    drivers = load_drivers()
+    driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    
+    car = request.form.get('car_model')
+    track = request.form.get('track')
+    
+    if 'setup_files' in request.files:
+        files = request.files.getlist('setup_files')
+        saved_files = []
+        
+        entry_id = str(uuid.uuid4())
+        
+        for file in files:
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                ts = int(datetime.now().timestamp())
+                stored_filename = f"setup_{ts}_{filename}"
+                
+                if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                    os.makedirs(app.config['UPLOAD_FOLDER'])
+                    
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], stored_filename)
+                file.save(filepath)
+                
+                saved_files.append({
+                    "filename": file.filename,
+                    "stored_filename": stored_filename
+                })
+        
+        if saved_files:
+            setups = load_setups()
+            new_setup = {
+                "id": entry_id,
+                "car": car,
+                "track": track,
+                "uploader": driver['name'],
+                "uploader_id": str(driver_id),
+                "date": datetime.now().isoformat(),
+                "files": saved_files
+            }
+            setups.insert(0, new_setup)
+            save_setups(setups)
+            flash(f"{len(saved_files)} Setup-Dateien hochgeladen!", "success")
+        else:
+            flash("Keine gültigen Dateien ausgewählt.", "warning")
+            
+    return redirect(url_for('boxengasse'))
+
+@app.route('/boxengasse/setup/download/<setup_id>')
+@driver_login_required
+def download_setup(setup_id):
+    setups = load_setups()
+    setup = next((s for s in setups if s['id'] == setup_id), None)
+    
+    if not setup:
+        flash("Setup nicht gefunden.", "error")
+        return redirect(url_for('boxengasse'))
+    
+    files = setup.get('files', [])
+    if not files:
+        flash("Keine Dateien in diesem Setup.", "error")
+        return redirect(url_for('boxengasse'))
+        
+    if len(files) == 1:
+        file_info = files[0]
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file_info['stored_filename'])
+        if os.path.exists(filepath):
+            return send_file(filepath, as_attachment=True, download_name=file_info['filename'])
+        else:
+             flash("Datei nicht gefunden.", "error")
+             return redirect(url_for('boxengasse'))
+    
+    else:
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w') as zf:
+            for file_info in files:
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], file_info['stored_filename'])
+                if os.path.exists(filepath):
+                    zf.write(filepath, arcname=file_info['filename'])
+        
+        memory_file.seek(0)
+        zip_filename = f"Setups_{setup['car']}_{setup['track']}.zip".replace(" ", "_")
+        return send_file(memory_file, mimetype='application/zip', as_attachment=True, download_name=zip_filename)
+
+@app.route('/boxengasse/setup/delete/<setup_id>')
+@driver_login_required
+def delete_setup(setup_id):
+    driver_id = str(session.get('driver_id'))
+    is_admin = session.get('admin_logged_in', False)
+    
+    setups = load_setups()
+    setup = next((s for s in setups if s['id'] == setup_id), None)
+    
+    if setup:
+        if is_admin or str(setup.get('uploader_id')) == driver_id:
+            for file_info in setup.get('files', []):
+                try:
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file_info['stored_filename'])
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+                except Exception as e:
+                    print(f"Error deleting file: {e}")
+            
+            setups.remove(setup)
+            save_setups(setups)
+            flash("Setup gelöscht.", "success")
+        else:
+            flash("Keine Berechtigung.", "error")
+            
+    return redirect(url_for('boxengasse'))
+
 @app.route('/boxengasse')
 @driver_login_required
 def boxengasse():
@@ -520,6 +651,7 @@ def boxengasse():
     
     # Liveries und Autos laden
     liveries = load_liveries()
+    setups = load_setups()
     cars = load_cars()
     
     # Events laden (eigene)
@@ -534,7 +666,7 @@ def boxengasse():
             if e.get('date') and e.get('date') > now_minus_12h:
                 my_events.append(e)
             
-    return render_template('boxengasse.html', driver=current_driver, messages=messages, liveries=liveries, cars=cars, events=my_events)
+    return render_template('boxengasse.html', driver=current_driver, messages=messages, liveries=liveries, cars=cars, events=my_events, setups=setups)
 
 @app.route('/boxengasse/event/new', methods=['POST'])
 @driver_login_required
