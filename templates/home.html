@@ -36,7 +36,7 @@
                         
                         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="display: inline-block; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; animation: pulse-red 1.5s infinite;"></span>
+                                <span id="live-dot-server" style="display: inline-block; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%;"></span>
                                 <span style="color: white; font-weight: bold; font-size: 1.5rem; letter-spacing: 1px;">LIVE ON TRACK</span>
                             </div>
                             
@@ -81,7 +81,7 @@
                         
                         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="display: inline-block; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; animation: pulse-red 1.5s infinite;"></span>
+                                <span id="live-dot-client" style="display: inline-block; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%;"></span>
                                 <span style="color: white; font-weight: bold; font-size: 1.5rem; letter-spacing: 1px;">LIVE ON TRACK</span>
                             </div>
                             
@@ -133,10 +133,13 @@
             const btn = document.getElementById('watch-stream-btn');
             if(btn) {
                 btn.style.display = 'inline-flex';
-                // Optional: Player wieder zerstören um Ressourcen zu sparen, 
-                // aber dann verlieren wir den Status bei Refresh. 
-                // Besser: Laufen lassen (muted, hidden)
             }
+            // Aktiviere Pulsieren (Server-Side Element und Client-Side Element)
+            const dotServer = document.getElementById('live-dot-server');
+            if(dotServer) dotServer.style.animation = "pulse-red 1.5s infinite";
+            
+            const dotClient = document.getElementById('live-dot-client');
+            if(dotClient) dotClient.style.animation = "pulse-red 1.5s infinite";
         });
     };
     document.body.appendChild(script);
