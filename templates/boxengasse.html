@@ -38,6 +38,12 @@
                                 <span style="font-size: 0.75rem; color: var(--rdf-silver); margin-left: auto;">
                                     {{ msg.date.split('T')[0] }} <span style="opacity: 0.6;">{{ msg.date.split('T')[1][:5] }}</span>
                                 </span>
+                                
+                                {% if msg.driver_id|string == driver.id|string %}
+                                <a href="/boxengasse/message/delete/{{ msg.id }}" onclick="return confirm('Nachricht löschen?')" style="color: #ef4444; margin-left: 10px; font-size: 0.8rem;">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
                             </div>
                             <p style="margin: 0; color: #e2e8f0; font-size: 0.95rem; line-height: 1.5; padding-left: 42px;">{{ msg.content }}</p>
                         </div>
