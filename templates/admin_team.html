@@ -12,7 +12,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card" style="margin-bottom: 40px;">
         <div class="card-header">
             <h3>Team Management</h3>
         </div>
@@ -54,5 +54,34 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- ARCHIVED APPLICATIONS -->
+    {% if archived_applications %}
+    <div style="margin-bottom: 40px; background: rgba(107, 114, 128, 0.1); border: 1px solid #6b7280; border-radius: 8px; padding: 20px;">
+        <h3 style="color: #9ca3af; margin-bottom: 20px; cursor: pointer;" onclick="document.getElementById('archive-list').style.display = document.getElementById('archive-list').style.display === 'none' ? 'grid' : 'none'">
+            <i class="fas fa-archive"></i> Archivierte Bewerbungen ({{ archived_applications|length }}) <span style="font-size: 0.8rem;">(Klicken zum Anzeigen)</span>
+        </h3>
+        <div id="archive-list" class="grid" style="grid-template-columns: 1fr; gap: 20px; margin-top: 0; display: none;">
+            {% for app in archived_applications %}
+            <div style="background: #0B1829; padding: 20px; border-radius: 8px; border: 1px solid rgba(107, 114, 128, 0.3); opacity: 0.8;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div>
+                        <h4 style="color: #9ca3af; margin: 0 0 5px 0;">{{ app.name }}</h4>
+                        <div style="color: var(--rdf-silver); font-size: 0.9rem;">
+                            <i class="fas fa-envelope"></i> {{ app.email }}
+                        </div>
+                    </div>
+                    <span style="color: #6b7280; font-size: 0.8rem;">{{ app.date.split('T')[0] }}</span>
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <a href="/admin/application/delete/{{ app.id }}" class="btn-primary" style="background: #ef4444; color: white; font-size: 0.8rem; padding: 5px 10px; text-decoration: none;" onclick="return confirm('Wirklich endgültig löschen?');"><i class="fas fa-trash"></i> Löschen</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

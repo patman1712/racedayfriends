@@ -1004,7 +1004,7 @@ def admin_dashboard():
     
     # Filter applications
     applications = [a for a in all_apps if a.get('status', 'new') == 'new']
-    archived_applications = [a for a in all_apps if a.get('status') == 'archived']
+    # Archived applications jetzt im Team Management
     
     pending_drivers = [d for d in drivers if d.get('pending_image_url')]
     pending_events = [e for e in events if e.get('status') == 'pending']
@@ -1012,8 +1012,7 @@ def admin_dashboard():
     return render_template('admin_dashboard.html', 
                          pending_drivers=pending_drivers, 
                          pending_events=pending_events, 
-                         applications=applications,
-                         archived_applications=archived_applications)
+                         applications=applications)
 
 @app.route('/admin/application/archive/<app_id>')
 @login_required
@@ -1042,6 +1041,12 @@ def delete_application(app_id):
         flash("Bewerbung endgültig gelöscht.", "info")
     else:
         flash("Bewerbung nicht gefunden.", "error")
+        
+    # Redirect checken: Woher kam der User?
+    # Einfacher: Wenn archiviert, dann Team. Wenn neu, dann Dashboard.
+    # Da wir hier aber keinen Status mehr haben (gelöscht), nehmen wir Referer oder Default.
+    if request.referrer and 'team' in request.referrer:
+        return redirect(url_for('admin_team'))
         
     return redirect(url_for('admin_dashboard'))
 
@@ -1418,7 +1423,12 @@ def update_nav():
 def admin_team():
     # Lädt die Fahrerliste für den Admin Bereich
     drivers = get_drivers_data()
-    return render_template('admin_team.html', drivers=drivers)
+    
+    # Archivierte Bewerbungen laden
+    all_apps = load_applications()
+    archived_applications = [a for a in all_apps if a.get('status') == 'archived']
+    
+    return render_template('admin_team.html', drivers=drivers, archived_applications=archived_applications)
 
 @app.route('/admin/driver/new')
 @login_required
