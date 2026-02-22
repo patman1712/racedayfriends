@@ -56,8 +56,11 @@
         </div>
     </div>
 
-    <!-- SECTION: PROFIL (Permanent sichtbar) -->
-    <div id="section-profil" style="margin-bottom: 40px;">
+    <!-- SECTION: PROFIL -->
+    <div id="section-profil" class="content-section" style="display: none;">
+        <div style="margin-bottom: 20px;">
+            <button onclick="showDashboard()" class="btn-secondary"><i class="fas fa-arrow-left"></i> Zurück zum Dashboard</button>
+        </div>
         <div class="card">
             <div class="card-header-tabs">
                 <button class="tab-btn active" onclick="openTab(event, 'tab-profil')"><i class="fas fa-user-edit"></i> Mein Profil</button>
@@ -198,7 +201,11 @@
 
     <!-- DASHBOARD NAVIGATION (Kacheln) -->
     <div id="dashboard-nav" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; margin-top: 0;">
-
+        <div onclick="showSection('section-profil')" class="dashboard-tile">
+            <div class="tile-icon"><i class="fas fa-user-edit"></i></div>
+            <h3>Mein Profil & Rig</h3>
+            <p>Daten, Bilder & Setup bearbeiten</p>
+        </div>
         <div onclick="showSection('section-liveries')" class="dashboard-tile">
             <div class="tile-icon"><i class="fas fa-paint-brush"></i></div>
             <h3>Team Liveries</h3>
