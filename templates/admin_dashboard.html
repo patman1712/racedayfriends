@@ -18,6 +18,52 @@
       {% endif %}
     {% endwith %}
 
+    <!-- PENDING APPLICATIONS -->
+    {% if applications %}
+    <div style="margin-bottom: 40px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 8px; padding: 20px;">
+        <h3 style="color: #10b981; margin-bottom: 20px;"><i class="fas fa-user-plus"></i> Neue Fahrer-Bewerbungen</h3>
+        <div class="grid" style="grid-template-columns: 1fr; gap: 20px; margin-top: 0;">
+            {% for app in applications %}
+            <div style="background: #0B1829; padding: 20px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div>
+                        <h4 style="color: white; margin: 0 0 5px 0;">{{ app.name }}</h4>
+                        <div style="color: var(--rdf-silver); font-size: 0.9rem;">
+                            <i class="fas fa-envelope"></i> {{ app.email }} | 
+                            <i class="fab fa-discord"></i> {{ app.discord }}
+                        </div>
+                    </div>
+                    <span style="color: #6b7280; font-size: 0.8rem;">{{ app.date.split('T')[0] }}</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                    <div>
+                        <strong style="color: #10b981; display: block; font-size: 0.8rem;">iRacing Klasse</strong>
+                        <span style="color: white;">{{ app.iracing_class }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: #10b981; display: block; font-size: 0.8rem;">iRating</strong>
+                        <span style="color: white;">{{ app.irating }}</span>
+                    </div>
+                </div>
+
+                {% if app.motivation %}
+                <div style="margin-bottom: 20px;">
+                    <strong style="color: #10b981; display: block; font-size: 0.8rem; margin-bottom: 5px;">Motivation</strong>
+                    <p style="color: var(--rdf-silver); font-style: italic; margin: 0; white-space: pre-wrap;">{{ app.motivation }}</p>
+                </div>
+                {% endif %}
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <a href="mailto:{{ app.email }}" class="btn-primary" style="background: var(--rdf-teal); color: black; font-size: 0.8rem; padding: 8px 15px; text-decoration: none;"><i class="fas fa-envelope"></i> Kontaktieren</a>
+                    <a href="/admin/application/delete/{{ app.id }}" class="btn-primary" style="background: #ef4444; color: white; font-size: 0.8rem; padding: 8px 15px; text-decoration: none;" onclick="return confirm('Bewerbung wirklich löschen/archivieren?');"><i class="fas fa-archive"></i> Archivieren</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- PENDING APPROVALS -->
     {% if pending_drivers %}
     <div style="margin-bottom: 40px; background: rgba(255, 165, 0, 0.1); border: 1px solid orange; border-radius: 8px; padding: 20px;">

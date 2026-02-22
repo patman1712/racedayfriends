@@ -96,6 +96,7 @@ NEWS_FILE = os.path.join(BASE_DATA_DIR, 'news.json')
 MESSAGES_FILE = os.path.join(BASE_DATA_DIR, 'messages.json')
 LIVERIES_FILE = os.path.join(BASE_DATA_DIR, 'liveries.json')
 SETUPS_FILE = os.path.join(BASE_DATA_DIR, 'setups.json')
+APPLICATIONS_FILE = os.path.join(BASE_DATA_DIR, 'applications.json')
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
 
 UPLOAD_FOLDER = os.path.join(BASE_DATA_DIR, 'static/uploads')
@@ -144,7 +145,7 @@ def init_persistence():
         print(f"Fehler beim Symlink Handling: {e}")
 
     # 4. JSON Dateien initialisieren
-    for filename in ['drivers.json', 'site_config.json', 'cars.json', 'events.json', 'news.json']:
+    for filename in ['drivers.json', 'site_config.json', 'cars.json', 'events.json', 'news.json', 'applications.json']:
         target_file = os.path.join(BASE_DATA_DIR, filename)
         source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
         
@@ -209,6 +210,19 @@ def load_setups():
 
 def save_setups(data):
     with open(SETUPS_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
+
+def load_applications():
+    if not os.path.exists(APPLICATIONS_FILE):
+        return []
+    try:
+        with open(APPLICATIONS_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_applications(data):
+    with open(APPLICATIONS_FILE, 'w') as f:
         json.dump(data, f, indent=4)
 
 def load_events():
@@ -986,11 +1000,27 @@ def admin_dashboard():
     # Zeigt jetzt die Übersichtskacheln
     drivers = load_drivers()
     events = load_events()
+    applications = load_applications()
     
     pending_drivers = [d for d in drivers if d.get('pending_image_url')]
     pending_events = [e for e in events if e.get('status') == 'pending']
     
-    return render_template('admin_dashboard.html', pending_drivers=pending_drivers, pending_events=pending_events)
+    return render_template('admin_dashboard.html', pending_drivers=pending_drivers, pending_events=pending_events, applications=applications)
+
+@app.route('/admin/application/delete/<app_id>')
+@login_required
+def delete_application(app_id):
+    apps = load_applications()
+    app_item = next((a for a in apps if a['id'] == app_id), None)
+    
+    if app_item:
+        apps.remove(app_item)
+        save_applications(apps)
+        flash("Bewerbung gelöscht/archiviert.", "success")
+    else:
+        flash("Bewerbung nicht gefunden.", "error")
+        
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/approve_event/<event_id>')
 @login_required
@@ -1862,6 +1892,40 @@ def api_get_drivers():
     return {"drivers": load_drivers()}
 
 # --- Public Routen ---
+
+@app.route('/adddriver', methods=['GET', 'POST'])
+def add_driver_application():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        discord = request.form.get('discord')
+        iracing_class = request.form.get('iracing_class')
+        irating = request.form.get('irating')
+        motivation = request.form.get('motivation')
+        
+        if not name or not email or not discord:
+            flash("Bitte fülle alle Pflichtfelder aus.", "error")
+            return redirect(url_for('add_driver_application'))
+            
+        apps = load_applications()
+        new_app = {
+            "id": str(uuid.uuid4()),
+            "name": name,
+            "email": email,
+            "discord": discord,
+            "iracing_class": iracing_class,
+            "irating": irating,
+            "motivation": motivation,
+            "date": datetime.now().isoformat()
+        }
+        
+        apps.insert(0, new_app)
+        save_applications(apps)
+        
+        flash("Deine Bewerbung wurde erfolgreich gesendet! Wir melden uns bei dir.", "success")
+        return redirect(url_for('index'))
+        
+    return render_template('add_driver.html')
 
 @app.route('/')
 def index():
