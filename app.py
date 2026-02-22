@@ -1760,7 +1760,7 @@ def index():
             else:
                 next_event['is_live'] = False
 
-        site_config = load_site_config()
+        site_config = load_config()
         return render_template('home.html', drivers=data, news=latest_news, next_event=next_event, site_config=site_config)
     except Exception as e:
         import traceback
