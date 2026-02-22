@@ -29,7 +29,7 @@
                 </div>
                 
                 {% if next_event.is_live %}
-                <!-- LIVE Anzeige -->
+                <!-- LIVE Anzeige (Server-Side gerendert wenn schon live beim Laden) -->
                 <div class="countdown-container" style="justify-content: center; border: none; background: transparent; padding: 20px 0;">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
                         <div style="font-size: 1.2rem; color: var(--rdf-silver); letter-spacing: 2px; font-weight: 300;">RACE IN PROGRESS</div>
@@ -40,12 +40,14 @@
                                 <span style="color: white; font-weight: bold; font-size: 1.5rem; letter-spacing: 1px;">LIVE ON TRACK</span>
                             </div>
                             
+                            <a href="/event/{{ next_event.id }}" class="btn-primary" style="background-color: var(--rdf-teal); color: var(--rdf-navy); border: none;">
+                                <i class="fas fa-flag-checkered"></i> ZUM RENNEN
+                            </a>
+
                             {% if next_event.twitch %}
-                            <!-- Watch Live Button (Initial versteckt, wird per JS eingeblendet wenn LIVE) -->
                             <a id="watch-stream-btn" href="/event/{{ next_event.id }}" class="btn-primary" style="display: none; background-color: transparent; border: 1px solid #ef4444; color: #ef4444; font-size: 0.8rem; padding: 5px 15px; align-items: center; gap: 5px;">
                                 <i class="fab fa-twitch"></i> WATCH STREAM
                             </a>
-                            <!-- Hidden Player for Status Check -->
                             <div id="twitch-checker" style="display: none;"></div>
                             {% endif %}
                         </div>
@@ -69,6 +71,24 @@
                     <div class="countdown-item">
                         <span class="countdown-number" id="seconds">00</span>
                         <span class="countdown-label">Secs</span>
+                    </div>
+                </div>
+
+                <!-- Versteckter LIVE Container (für Client-Side Switch wenn Timer abläuft) -->
+                <div id="race-live-status" class="countdown-container" style="display: none; justify-content: center; border: none; background: transparent; padding: 20px 0;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                        <div style="font-size: 1.2rem; color: var(--rdf-silver); letter-spacing: 2px; font-weight: 300;">RACE IN PROGRESS</div>
+                        
+                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="display: inline-block; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; animation: pulse-red 1.5s infinite;"></span>
+                                <span style="color: white; font-weight: bold; font-size: 1.5rem; letter-spacing: 1px;">LIVE ON TRACK</span>
+                            </div>
+                            
+                            <a href="/event/{{ next_event.id }}" class="btn-primary" style="background-color: var(--rdf-teal); color: var(--rdf-navy); border: none;">
+                                <i class="fas fa-flag-checkered"></i> ZUM RENNEN
+                            </a>
+                        </div>
                     </div>
                 </div>
                 {% endif %}
@@ -139,10 +159,17 @@
         const distance = raceDate - now;
 
         if (isNaN(distance) || distance < 0) {
-            document.getElementById("days").innerText = "00";
-            document.getElementById("hours").innerText = "00";
-            document.getElementById("minutes").innerText = "00";
-            document.getElementById("seconds").innerText = "00";
+            // Countdown ausblenden
+            const countdownEl = document.getElementById("countdown");
+            if(countdownEl) countdownEl.style.display = "none";
+            
+            // Live Status einblenden
+            const liveEl = document.getElementById("race-live-status");
+            if(liveEl) liveEl.style.display = "flex";
+            
+            // Dummy Werte setzen falls JS weiterläuft
+            const daysEl = document.getElementById("days");
+            if(daysEl) daysEl.innerText = "00";
             return;
         }
 
