@@ -486,7 +486,57 @@ def boxengasse():
     driver_id = session.get('driver_id')
     drivers = load_drivers()
     current_driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
-    return render_template('boxengasse.html', driver=current_driver)
+    
+    # Nachrichten laden
+    messages = load_messages()
+    
+    return render_template('boxengasse.html', driver=current_driver, messages=messages)
+
+@app.route('/boxengasse/message/new', methods=['POST'])
+@driver_login_required
+def new_team_message():
+    content = request.form.get('content')
+    if content:
+        driver_id = session.get('driver_id')
+        drivers = load_drivers()
+        driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+        
+        msgs = load_messages()
+        if not isinstance(msgs, list): msgs = []
+        
+        new_msg = {
+            "id": str(uuid.uuid4()),
+            "driver_id": str(driver_id),
+            "driver_name": driver['name'] if driver else "Unbekannt",
+            "driver_image": driver.get('image_url') if driver else None,
+            "content": content,
+            "date": datetime.now().isoformat()
+        }
+        
+        msgs.insert(0, new_msg)
+        msgs = msgs[:50]
+        save_messages(msgs)
+        flash("Nachricht gepostet!", "success")
+        
+    return redirect(url_for('boxengasse'))
+
+@app.route('/boxengasse/message/delete/<msg_id>')
+@driver_login_required
+def delete_team_message(msg_id):
+    driver_id = str(session.get('driver_id'))
+    msgs = load_messages()
+    
+    msg = next((m for m in msgs if m['id'] == msg_id), None)
+    
+    if msg:
+        if str(msg.get('driver_id')) == driver_id:
+            msgs.remove(msg)
+            save_messages(msgs)
+            flash("Nachricht gelöscht.", "success")
+        else:
+            flash("Du kannst nur deine eigenen Nachrichten löschen.", "error")
+    
+    return redirect(url_for('boxengasse'))
 
 @app.route('/boxengasse/rig/save', methods=['POST'])
 @driver_login_required
