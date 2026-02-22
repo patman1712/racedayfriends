@@ -50,6 +50,32 @@
     </div>
     {% endif %}
 
+    <!-- PENDING EVENTS -->
+    {% if pending_events %}
+    <div style="margin-bottom: 40px; background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 8px; padding: 20px;">
+        <h3 style="color: #3b82f6; margin-bottom: 20px;"><i class="fas fa-calendar-check"></i> Ausstehende Events</h3>
+        <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 0;">
+            {% for event in pending_events %}
+            <div style="background: #0B1829; padding: 15px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span class="badge" style="background: #3b82f6; color: white; font-size: 0.7rem;">PENDING</span>
+                    <span style="color: var(--rdf-silver); font-size: 0.8rem;">von {{ event.created_by_name }}</span>
+                </div>
+                <h4 style="color: white; margin-bottom: 5px;">{{ event.title }}</h4>
+                <div style="color: var(--rdf-silver); font-size: 0.9rem; margin-bottom: 15px;">
+                    <i class="fas fa-calendar"></i> {{ event.date.replace('T', ' ') }}<br>
+                    <i class="fas fa-map-marker-alt"></i> {{ event.track }}
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/admin/approve_event/{{ event.id }}" class="btn-primary" style="background: var(--rdf-teal); color: black; font-size: 0.8rem; flex: 1; text-align: center;"><i class="fas fa-check"></i> Approve</a>
+                    <a href="/admin/reject_event/{{ event.id }}" class="btn-primary" style="background: #ef4444; color: white; font-size: 0.8rem; flex: 1; text-align: center;"><i class="fas fa-times"></i> Reject</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <div class="grid">
         
         <!-- Kachel: Hero Section -->

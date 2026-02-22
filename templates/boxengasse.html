@@ -209,15 +209,15 @@
                             <div class="form-group">
                                 <label>Fahrzeug</label>
                                 <select name="car_model" class="form-control" required>
-                                        <option value="">-- Wähle Auto --</option>
-                                        {% for category, car_list in cars.items() %}
-                                        <optgroup label="{{ category }}">
-                                            {% for car_name in car_list %}
-                                            <option value="{{ car_name }}">{{ car_name }}</option>
-                                            {% endfor %}
-                                        </optgroup>
+                                    <option value="">-- Wähle Auto --</option>
+                                    {% for category, car_list in cars.items() %}
+                                    <optgroup label="{{ category }}">
+                                        {% for car_name in car_list %}
+                                        <option value="{{ car_name }}">{{ car_name }}</option>
                                         {% endfor %}
-                                    </select>
+                                    </optgroup>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>Datei (.tga, .mip, .psd, .zip)</label>
@@ -254,6 +254,91 @@
                 {% if not liveries %}
                 <p style="text-align: center; color: var(--rdf-silver); margin-top: 30px; opacity: 0.5;">Noch keine Liveries vorhanden.</p>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- Event Management Kachel (NEU) -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <div class="card-header">
+                <h3><i class="fas fa-calendar-plus"></i> Meine Events</h3>
+            </div>
+            <div class="card-body">
+                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                    <h4 style="margin-bottom: 15px;">Neues Event beantragen</h4>
+                    <form action="/boxengasse/event/new" method="POST">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Titel</label>
+                                <input type="text" name="title" class="form-control" placeholder="z.B. IMSA Watkins Glen" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Datum & Zeit</label>
+                                <input type="datetime-local" name="date" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Strecke</label>
+                                <input type="text" name="track" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Serie</label>
+                                <input type="text" name="series" class="form-control">
+                            </div>
+                        </div>
+                         <div class="form-group">
+                            <label>Fahrzeug</label>
+                            <select name="car" class="form-control">
+                                 <option value="">-- Wähle Auto --</option>
+                                 {% for category, car_list in cars.items() %}
+                                 <optgroup label="{{ category }}">
+                                     {% for car_name in car_list %}
+                                     <option value="{{ car_name }}">{{ car_name }}</option>
+                                     {% endfor %}
+                                 </optgroup>
+                                 {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary">Beantragen</button>
+                    </form>
+                </div>
+
+                <h4>Meine geplanten Events</h4>
+                <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); margin-top: 15px; gap: 20px;">
+                    {% if events %}
+                        {% for event in events %}
+                        <div style="background: #15273d; padding: 15px; border-radius: 8px; border: 1px solid var(--rdf-border);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                {% if event.status == 'approved' %}
+                                <span class="badge" style="background: var(--rdf-teal); color: black; font-size: 0.7rem;">APPROVED</span>
+                                {% else %}
+                                <span class="badge" style="background: orange; color: black; font-size: 0.7rem;">PENDING</span>
+                                {% endif %}
+                                
+                                <a href="/boxengasse/event/delete/{{ event.id }}" onclick="return confirm('Event löschen?')" style="color: #ef4444;"><i class="fas fa-trash"></i></a>
+                            </div>
+                            <h4 style="color: white; margin-bottom: 5px;">{{ event.title }}</h4>
+                            <div style="color: var(--rdf-silver); font-size: 0.9rem; margin-bottom: 15px;">
+                                <i class="fas fa-clock"></i> {{ event.date.replace('T', ' ') }}<br>
+                                <i class="fas fa-map-marker-alt"></i> {{ event.track }}
+                            </div>
+                            
+                            {% if event.status == 'approved' %}
+                            <!-- Hier könnte man zum Editor linken -->
+                            <div style="color: var(--rdf-teal); font-size: 0.8rem; margin-top: 10px;">
+                                <i class="fas fa-check-circle"></i> Event ist live im Kalender
+                            </div>
+                            {% else %}
+                            <div style="text-align: center; color: #888; font-size: 0.8rem; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                                Warte auf Freigabe...
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: var(--rdf-silver); grid-column: 1 / -1; text-align: center;">Du hast noch keine Events erstellt.</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
 

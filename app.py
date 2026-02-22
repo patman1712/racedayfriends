@@ -522,7 +522,66 @@ def boxengasse():
     liveries = load_liveries()
     cars = load_cars()
     
-    return render_template('boxengasse.html', driver=current_driver, messages=messages, liveries=liveries, cars=cars)
+    # Events laden (eigene)
+    all_events = load_events()
+    my_events = []
+    for e in all_events:
+        # Check ob erstellt ODER Fahrer drin ist
+        if str(e.get('created_by')) == str(driver_id) or str(driver_id) in [str(d) for d in e.get('drivers', [])]:
+            my_events.append(e)
+            
+    return render_template('boxengasse.html', driver=current_driver, messages=messages, liveries=liveries, cars=cars, events=my_events)
+
+@app.route('/boxengasse/event/new', methods=['POST'])
+@driver_login_required
+def boxengasse_new_event():
+    driver_id = session.get('driver_id')
+    drivers = load_drivers()
+    driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    
+    # Daten aus Formular
+    title = request.form.get('title')
+    date = request.form.get('date') # Format: YYYY-MM-DDTHH:MM
+    track = request.form.get('track')
+    series = request.form.get('series')
+    car = request.form.get('car')
+    
+    events = load_events()
+    new_event = {
+        "id": str(uuid.uuid4()),
+        "title": title,
+        "date": date,
+        "track": track,
+        "series": series,
+        "car_model": car,
+        "created_by": str(driver_id),
+        "created_by_name": driver['name'],
+        "status": "pending", # Muss freigegeben werden
+        "drivers": [str(driver_id)] # Ersteller ist automatisch Fahrer
+    }
+    
+    events.append(new_event)
+    save_events(events)
+    flash("Event beantragt! Warte auf Freigabe durch Admin.", "info")
+    return redirect(url_for('boxengasse'))
+
+@app.route('/boxengasse/event/delete/<event_id>')
+@driver_login_required
+def boxengasse_delete_event(event_id):
+    driver_id = str(session.get('driver_id'))
+    events = load_events()
+    event = next((e for e in events if e['id'] == event_id), None)
+    
+    if event:
+        # Nur Ersteller darf löschen
+        if str(event.get('created_by')) == driver_id:
+            events.remove(event)
+            save_events(events)
+            flash("Event gelöscht.", "success")
+        else:
+            flash("Keine Berechtigung.", "error")
+            
+    return redirect(url_for('boxengasse'))
 
 @app.route('/boxengasse/livery/upload', methods=['POST'])
 @driver_login_required
@@ -790,8 +849,34 @@ def admin_logout():
 def admin_dashboard():
     # Zeigt jetzt die Übersichtskacheln
     drivers = load_drivers()
+    events = load_events()
+    
     pending_drivers = [d for d in drivers if d.get('pending_image_url')]
-    return render_template('admin_dashboard.html', pending_drivers=pending_drivers)
+    pending_events = [e for e in events if e.get('status') == 'pending']
+    
+    return render_template('admin_dashboard.html', pending_drivers=pending_drivers, pending_events=pending_events)
+
+@app.route('/admin/approve_event/<event_id>')
+@login_required
+def admin_approve_event(event_id):
+    events = load_events()
+    event = next((e for e in events if e['id'] == event_id), None)
+    if event:
+        event['status'] = 'approved'
+        save_events(events)
+        flash(f"Event '{event['title']}' freigegeben.", "success")
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/reject_event/<event_id>')
+@login_required
+def admin_reject_event(event_id):
+    events = load_events()
+    event = next((e for e in events if e['id'] == event_id), None)
+    if event:
+        events.remove(event)
+        save_events(events)
+        flash(f"Event '{event['title']}' abgelehnt.", "warning")
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/approve_image/<driver_id>')
 @login_required
