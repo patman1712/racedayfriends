@@ -578,6 +578,18 @@ def save_profil():
     driver['number'] = request.form.get('number')
     driver['twitch'] = request.form.get('twitch')
     
+    # Passwort ändern (Optional)
+    password = request.form.get('password')
+    password_confirm = request.form.get('password_confirm')
+    
+    if password:
+        if password == password_confirm:
+            driver['password'] = generate_password_hash(password)
+            flash("Passwort erfolgreich geändert!", "success")
+        else:
+            flash("Passwörter stimmen nicht überein! (Profil gespeichert, Passwort NICHT)", "error")
+            # Wir speichern trotzdem den Rest, aber warnen den User
+    
     # Bild Upload
     if 'driver_image' in request.files:
         file = request.files['driver_image']
