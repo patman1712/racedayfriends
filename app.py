@@ -604,10 +604,15 @@ def save_profil():
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
             
-            driver['image_url'] = url_for('static', filename=f'uploads/{filename}')
+            # NICHT sofort live schalten, sondern als Pending markieren
+            driver['pending_image_url'] = url_for('static', filename=f'uploads/{filename}')
+            flash("Profilbild hochgeladen! Es wird vom Admin geprüft und dann freigeschaltet.", "info")
     
     save_drivers(drivers)
-    flash("Profil gespeichert!", "success")
+    # Wenn kein Bild hochgeladen wurde, aber andere Daten geändert wurden:
+    if 'driver_image' not in request.files or request.files['driver_image'].filename == '':
+        flash("Profil gespeichert!", "success")
+        
     return redirect(url_for('boxengasse'))
 
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -630,7 +635,43 @@ def admin_logout():
 @login_required
 def admin_dashboard():
     # Zeigt jetzt die Übersichtskacheln
-    return render_template('admin_dashboard.html')
+    drivers = load_drivers()
+    pending_drivers = [d for d in drivers if d.get('pending_image_url')]
+    return render_template('admin_dashboard.html', pending_drivers=pending_drivers)
+
+@app.route('/admin/approve_image/<driver_id>')
+@login_required
+def approve_image(driver_id):
+    drivers = load_drivers()
+    driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    
+    if driver and driver.get('pending_image_url'):
+        # Pending -> Live
+        driver['image_url'] = driver['pending_image_url']
+        del driver['pending_image_url']
+        save_drivers(drivers)
+        flash(f"Profilbild für {driver['name']} freigegeben!", "success")
+    else:
+        flash("Kein ausstehendes Bild gefunden.", "error")
+        
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/reject_image/<driver_id>')
+@login_required
+def reject_image(driver_id):
+    drivers = load_drivers()
+    driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    
+    if driver and driver.get('pending_image_url'):
+        # Einfach Pending löschen
+        # Optional: Datei auch von Platte löschen, aber URL ist relativ.
+        del driver['pending_image_url']
+        save_drivers(drivers)
+        flash(f"Profilbild für {driver['name']} abgelehnt.", "warning")
+    else:
+        flash("Kein ausstehendes Bild gefunden.", "error")
+        
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/settings')
 @login_required

@@ -43,7 +43,12 @@
                                     {% endif %}
                                     <input type="file" name="driver_image" class="form-control" accept="image/*" style="padding: 6px;">
                                 </div>
-                                <small style="color: var(--rdf-silver); display: block; margin-top: 5px;">PNG mit transparentem Hintergrund empfohlen.</small>
+                                <small style="color: var(--rdf-silver); display: block; margin-top: 5px;">PNG mit transparentem Hintergrund empfohlen. (Wird vom Admin geprüft)</small>
+                                {% if driver.pending_image_url %}
+                                <div style="margin-top: 10px; background: rgba(255, 165, 0, 0.1); border: 1px solid orange; color: orange; padding: 10px; border-radius: 4px; font-size: 0.9rem;">
+                                    <i class="fas fa-clock"></i> Ein Bild wartet auf Freigabe.
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
 
