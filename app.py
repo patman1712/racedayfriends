@@ -91,6 +91,7 @@ CONFIG_FILE = os.path.join(BASE_DATA_DIR, 'site_config.json')
 CARS_FILE = os.path.join(BASE_DATA_DIR, 'cars.json')
 EVENTS_FILE = os.path.join(BASE_DATA_DIR, 'events.json')
 NEWS_FILE = os.path.join(BASE_DATA_DIR, 'news.json')
+MESSAGES_FILE = os.path.join(BASE_DATA_DIR, 'messages.json')
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
 
 UPLOAD_FOLDER = os.path.join(BASE_DATA_DIR, 'static/uploads')
