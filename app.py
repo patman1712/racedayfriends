@@ -1000,12 +1000,35 @@ def admin_dashboard():
     # Zeigt jetzt die Übersichtskacheln
     drivers = load_drivers()
     events = load_events()
-    applications = load_applications()
+    all_apps = load_applications()
+    
+    # Filter applications
+    applications = [a for a in all_apps if a.get('status', 'new') == 'new']
+    archived_applications = [a for a in all_apps if a.get('status') == 'archived']
     
     pending_drivers = [d for d in drivers if d.get('pending_image_url')]
     pending_events = [e for e in events if e.get('status') == 'pending']
     
-    return render_template('admin_dashboard.html', pending_drivers=pending_drivers, pending_events=pending_events, applications=applications)
+    return render_template('admin_dashboard.html', 
+                         pending_drivers=pending_drivers, 
+                         pending_events=pending_events, 
+                         applications=applications,
+                         archived_applications=archived_applications)
+
+@app.route('/admin/application/archive/<app_id>')
+@login_required
+def archive_application(app_id):
+    apps = load_applications()
+    app_item = next((a for a in apps if a['id'] == app_id), None)
+    
+    if app_item:
+        app_item['status'] = 'archived'
+        save_applications(apps)
+        flash("Bewerbung ins Archiv verschoben.", "success")
+    else:
+        flash("Bewerbung nicht gefunden.", "error")
+        
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/application/delete/<app_id>')
 @login_required
@@ -1016,7 +1039,7 @@ def delete_application(app_id):
     if app_item:
         apps.remove(app_item)
         save_applications(apps)
-        flash("Bewerbung gelöscht/archiviert.", "success")
+        flash("Bewerbung endgültig gelöscht.", "info")
     else:
         flash("Bewerbung nicht gefunden.", "error")
         
@@ -1916,6 +1939,7 @@ def add_driver_application():
             "iracing_class": iracing_class,
             "irating": irating,
             "motivation": motivation,
+            "status": "new",
             "date": datetime.now().isoformat()
         }
         
