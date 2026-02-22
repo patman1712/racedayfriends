@@ -93,7 +93,7 @@
                 </div>
                 {% endif %}
 
-                <div class="next-race-actions" style="display: flex; gap: 15px;">
+                <div id="next-race-actions" class="next-race-actions" style="display: flex; gap: 15px;">
                     <a href="/event/{{ next_event.id }}" class="btn-primary" style="background-color: var(--rdf-teal); color: var(--rdf-navy); flex: 1; text-align: center; border: none;">EVENT INFO</a>
                     <a href="/calendar" class="btn-primary" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; flex: 1; text-align: center;">CALENDAR</a>
                 </div>
@@ -166,6 +166,10 @@
             // Live Status einblenden
             const liveEl = document.getElementById("race-live-status");
             if(liveEl) liveEl.style.display = "flex";
+
+            // Normale Buttons ausblenden (damit es nicht doppelt ist)
+            const actionsEl = document.getElementById("next-race-actions");
+            if(actionsEl) actionsEl.style.display = "none";
             
             // Dummy Werte setzen falls JS weiterläuft
             const daysEl = document.getElementById("days");
