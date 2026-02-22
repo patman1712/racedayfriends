@@ -93,60 +93,7 @@
                     </li>
                 </ul>
             </div>
-
-            <h2 style="margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px;">Driver Lineup</h2>
-            {% if drivers %}
-            <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px;">
-                {% for driver in drivers %}
-                <div class="driver-card-pro">
-                    <!-- Background Pattern -->
-                    <div class="card-bg"></div>
-                    
-                    <!-- Driver Image -->
-                    <div class="driver-image">
-                        {% if driver.image_url %}
-                        <img src="{{ driver.image_url }}" alt="{{ driver.name }}">
-                        {% else %}
-                        <i class="fas fa-user" style="font-size: 120px; color: rgba(255,255,255,0.05); position: absolute; bottom: -10px; right: 20px;"></i>
-                        {% endif %}
-                    </div>
-
-                    <!-- Content -->
-                    <div class="driver-content">
-                        <div class="watermark-logo"></div>
-                        <div class="driver-name">
-                            {% set names = driver.name.split(' ') %}
-                            <span class="first-name">{{ names[0] }}</span>
-                            <span class="last-name">{{ names[1:] | join(' ') }}</span>
-                        </div>
-                        
-                        <div class="driver-number">{{ driver.number or '00' }}</div>
-                        
-                        <div class="driver-footer">
-                            {% if driver.nationality %}
-                            <div class="driver-flag">
-                                <span class="fi fi-{{ driver.nationality.lower() }}"></span>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Mini Stats (iRating) -->
-                            <div class="driver-stats-mini">
-                                <div>
-                                    <span class="label">iR</span>
-                                    <span class="value">{{ driver.ir_sports or '-' }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <a href="/driver/{{ driver.id }}" class="card-link"></a>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p style="color: var(--rdf-silver);">Noch keine Fahrer nominiert.</p>
-            {% endif %}
-        </div>
+        </div> <!-- Ende Linke Spalte -->
 
         <!-- Rechts: Twitch & Infos -->
         <div>
@@ -239,6 +186,65 @@
 
         </div>
 
+    </div>
+</div>
+
+<!-- DRIVER LINEUP (Full Width) -->
+<div style="width: 100%; padding: 60px 40px; background: #08121f; border-top: 1px solid #1a2a40;">
+    <div style="max-width: 1600px; margin: 0 auto;">
+        <h2 style="margin-bottom: 40px; text-transform: uppercase; letter-spacing: 1px; font-size: 2.5rem; text-align: center;">Driver Lineup</h2>
+        
+        {% if drivers %}
+        <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;">
+            {% for driver in drivers %}
+            <div class="driver-card-pro">
+                <!-- Background Pattern -->
+                <div class="card-bg"></div>
+                
+                <!-- Driver Image -->
+                <div class="driver-image">
+                    {% if driver.image_url %}
+                    <img src="{{ driver.image_url }}" alt="{{ driver.name }}">
+                    {% else %}
+                    <i class="fas fa-user" style="font-size: 120px; color: rgba(255,255,255,0.05); position: absolute; bottom: -10px; right: 20px;"></i>
+                    {% endif %}
+                </div>
+
+                <!-- Content -->
+                <div class="driver-content">
+                    <div class="watermark-logo"></div>
+                    <div class="driver-name">
+                        {% set names = driver.name.split(' ') %}
+                        <span class="first-name">{{ names[0] }}</span>
+                        <span class="last-name">{{ names[1:] | join(' ') }}</span>
+                    </div>
+                    
+                    <div class="driver-number">{{ driver.number or '00' }}</div>
+                    
+                    <div class="driver-footer">
+                        {% if driver.nationality %}
+                        <div class="driver-flag">
+                            <span class="fi fi-{{ driver.nationality.lower() }}"></span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Mini Stats (iRating) -->
+                        <div class="driver-stats-mini">
+                            <div>
+                                <span class="label">iR</span>
+                                <span class="value">{{ driver.ir_sports or '-' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="/driver/{{ driver.id }}" class="card-link"></a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--rdf-silver); text-align: center;">Noch keine Fahrer nominiert.</p>
+        {% endif %}
     </div>
 </div>
 
