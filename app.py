@@ -168,6 +168,19 @@ IRACING_PASSWORD = os.getenv('IRACING_PASSWORD', '')
 
 # --- Hilfsfunktionen ---
 
+def load_messages():
+    if not os.path.exists(MESSAGES_FILE):
+        return []
+    try:
+        with open(MESSAGES_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_messages(data):
+    with open(MESSAGES_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
+
 def load_events():
     if not os.path.exists(EVENTS_FILE):
         return []
