@@ -525,10 +525,14 @@ def boxengasse():
     # Events laden (eigene)
     all_events = load_events()
     my_events = []
+    now_minus_12h = (datetime.now() - timedelta(hours=12)).isoformat()
+    
     for e in all_events:
         # Check ob erstellt ODER Fahrer drin ist
         if str(e.get('created_by')) == str(driver_id) or str(driver_id) in [str(d) for d in e.get('drivers', [])]:
-            my_events.append(e)
+            # Nur zukünftige Events anzeigen (oder solche die vor kurzem waren)
+            if e.get('date') and e.get('date') > now_minus_12h:
+                my_events.append(e)
             
     return render_template('boxengasse.html', driver=current_driver, messages=messages, liveries=liveries, cars=cars, events=my_events)
 
