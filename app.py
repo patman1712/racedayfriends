@@ -663,11 +663,23 @@ def reject_image(driver_id):
     driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
     
     if driver and driver.get('pending_image_url'):
-        # Einfach Pending löschen
-        # Optional: Datei auch von Platte löschen, aber URL ist relativ.
+        # Datei auch vom Server löschen
+        try:
+            pending_url = driver['pending_image_url']
+            # URL ist z.B. /static/uploads/filename.png -> wir brauchen nur filename
+            filename = pending_url.split('/')[-1]
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                print(f"Gelöscht: {filepath}")
+        except Exception as e:
+            print(f"Fehler beim Löschen der Datei: {e}")
+
+        # Link aus DB entfernen
         del driver['pending_image_url']
         save_drivers(drivers)
-        flash(f"Profilbild für {driver['name']} abgelehnt.", "warning")
+        flash(f"Profilbild für {driver['name']} abgelehnt und Datei gelöscht.", "warning")
     else:
         flash("Kein ausstehendes Bild gefunden.", "error")
         
