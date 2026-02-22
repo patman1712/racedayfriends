@@ -1737,7 +1737,31 @@ def index():
         all_news = load_news()
         latest_news = all_news[:6]
         
-        return render_template('home.html', drivers=data, news=latest_news)
+        # Events laden und filtern (Nur Approved)
+        events = load_events()
+        public_events = [e for e in events if e.get('status', 'approved') == 'approved']
+        
+        # Nächstes Event finden
+        now = datetime.now().isoformat()
+        future_events = [e for e in public_events if e['date'] > now]
+        future_events.sort(key=lambda x: x['date'])
+        
+        next_event = future_events[0] if future_events else None
+        
+        # Check if LIVE (Server-Side Check)
+        if next_event:
+            event_start = datetime.fromisoformat(next_event['date'])
+            # Live wenn Startzeit vorbei ist, aber nicht länger als 4h
+            diff = datetime.now() - event_start
+            hours_since_start = diff.total_seconds() / 3600
+            
+            if 0 < hours_since_start < 4:
+                next_event['is_live'] = True
+            else:
+                next_event['is_live'] = False
+
+        site_config = load_site_config()
+        return render_template('home.html', drivers=data, news=latest_news, next_event=next_event, site_config=site_config)
     except Exception as e:
         import traceback
         traceback.print_exc()
