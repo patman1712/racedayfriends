@@ -2761,42 +2761,43 @@ def driver_detail(driver_id):
             
             # Check if event has a result file linked
             if e.get('result_file'):
-                 # Try to load stats from that file
-                 res_path = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(e['result_file']))
-                 if os.path.exists(res_path):
-                     try:
-                         with open(res_path, 'r') as f:
-                             res_data = json.load(f)
-                             sessions = res_data.get('data', {}).get('session_results', [])
-                             race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
-                             
-                             if race_session:
-                                # Find driver
-                                # Try ID as string and int
-                                d_res = next((r for r in race_session.get('results', []) if str(r.get('cust_id')) == d_id_str), None)
+                # Try to load stats from that file
+                res_path = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(e['result_file']))
+                if os.path.exists(res_path):
+                    try:
+                        with open(res_path, 'r') as f:
+                            res_data = json.load(f)
+                        
+                        sessions = res_data.get('data', {}).get('session_results', [])
+                        race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
+                        
+                        if race_session:
+                            # Find driver
+                            # Try ID as string and int
+                            d_res = next((r for r in race_session.get('results', []) if str(r.get('cust_id')) == d_id_str), None)
+                            
+                            # If not found by ID, maybe by name? (less reliable)
+                            if not d_res:
+                                d_res = next((r for r in race_session.get('results', []) if r.get('display_name') == driver['name']), None)
                                 
-                                # If not found by ID, maybe by name? (less reliable)
-                                if not d_res:
-                                    d_res = next((r for r in race_session.get('results', []) if r.get('display_name') == driver['name']), None)
-                                    
-                                if d_res:
-                                    def format_time(val):
-                                        if val <= 0: return "-"
-                                        # iRacing time is in 1/10000 seconds
-                                        seconds = val / 10000
-                                        minutes = int(seconds // 60)
-                                        rem_seconds = seconds % 60
-                                        return f"{minutes}:{rem_seconds:06.3f}"
-                                    
-                                    e['best_lap'] = format_time(d_res.get('best_lap_time', 0))
-                                    e['inc'] = d_res.get('incidents', 0)
-                                    e['result_link'] = e['result_file']
-                                    # Debug info for template (in HTML comments)
-                                    e['debug'] = "Found via ID/Name"
-                                else:
-                                    e['debug'] = f"Driver {d_id_str} not found in result"
+                            if d_res:
+                                def format_time(val):
+                                    if val <= 0: return "-"
+                                    # iRacing time is in 1/10000 seconds
+                                    seconds = val / 10000
+                                    minutes = int(seconds // 60)
+                                    rem_seconds = seconds % 60
+                                    return f"{minutes}:{rem_seconds:06.3f}"
+                                
+                                e['best_lap'] = format_time(d_res.get('best_lap_time', 0))
+                                e['inc'] = d_res.get('incidents', 0)
+                                e['result_link'] = e['result_file']
+                                # Debug info for template (in HTML comments)
+                                e['debug'] = "Found via ID/Name"
                             else:
-                                e['debug'] = "No Race session found"
+                                e['debug'] = f"Driver {d_id_str} not found in result"
+                        else:
+                            e['debug'] = "No Race session found"
                     except Exception as ex: 
                         e['debug'] = f"Error: {str(ex)}"
                 else:
