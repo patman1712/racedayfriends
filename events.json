@@ -35,7 +35,7 @@
     },
     {
         "id": "1771600365",
-        "title": "Ligarennen",
+        "title": "IEC Ligarennen 6",
         "series": "GT3 Endurance",
         "track": "Imola",
         "date": "2026-02-28T17:00",
@@ -45,7 +45,8 @@
         "car_model": "McLaren 720S GT3 EVO",
         "twitch": "",
         "description": "Letztes Rennen der Saison",
-        "result": "",
+        "result": "P8",
+        "result_file": "iec_imola_result.json",
         "drivers": [
             "1771591892",
             "1771594254"

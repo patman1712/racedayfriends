@@ -1,0 +1,40 @@
+{
+    "data": {
+        "track": {"track_name": "Autodromo Internazionale Enzo e Dino Ferrari", "config_name": "Grand Prix"},
+        "start_time": "2026-02-28T17:00:00Z",
+        "series_name": "GT3 Endurance",
+        "session_results": [
+            {
+                "simsession_type_name": "Race",
+                "results": [
+                    {
+                        "cust_id": 1771591892,
+                        "display_name": "Patrick Scheiber",
+                        "finish_position": 7,
+                        "finish_position_in_class": 7,
+                        "car_class_short_name": "GT3",
+                        "livery": {"car_number": "21"},
+                        "laps_complete": 120,
+                        "incidents": 8,
+                        "best_lap_time": 102500,
+                        "average_lap": 103200,
+                        "car_name": "McLaren 720S GT3 EVO"
+                    },
+                    {
+                        "cust_id": 1771594254,
+                        "display_name": "Adrian Beume",
+                        "finish_position": 7,
+                        "finish_position_in_class": 7,
+                        "car_class_short_name": "GT3",
+                        "livery": {"car_number": "69"},
+                        "laps_complete": 120,
+                        "incidents": 2,
+                        "best_lap_time": 102800,
+                        "average_lap": 103500,
+                        "car_name": "McLaren 720S GT3 EVO"
+                    }
+                ]
+            }
+        ]
+    }
+}
