@@ -1717,7 +1717,10 @@ def admin_event_new():
                 })
     results.sort(key=lambda x: x['date'], reverse=True)
     
-    return render_template('admin_event_edit.html', event=event, all_drivers=all_drivers, cars_data=cars_data, mode="new", result_files=results)
+    # Load News for selection
+    all_news = load_news()
+    
+    return render_template('admin_event_edit.html', event=event, all_drivers=all_drivers, cars_data=cars_data, mode="new", result_files=results, all_news=all_news)
 
 @app.route('/admin/event/edit/<event_id>')
 @login_required
@@ -1745,7 +1748,10 @@ def admin_event_edit(event_id):
                 })
     results.sort(key=lambda x: x['date'], reverse=True)
     
-    return render_template('admin_event_edit.html', event=event, all_drivers=all_drivers, cars_data=cars_data, mode="edit", result_files=results)
+    # Load News for selection
+    all_news = load_news()
+    
+    return render_template('admin_event_edit.html', event=event, all_drivers=all_drivers, cars_data=cars_data, mode="edit", result_files=results, all_news=all_news)
 
 @app.route('/admin/event/save', methods=['POST'])
 @login_required
@@ -1779,6 +1785,7 @@ def admin_event_save():
     event['description'] = request.form.get('description')
     event['result'] = request.form.get('result') # Ergebnis
     event['result_file'] = request.form.get('result_file') # Verknüpftes JSON File
+    event['news_ids'] = request.form.getlist('news_ids') # Verknüpfte News (Multi-Select)
     
     # Bild Upload
     if 'event_image' in request.files:
@@ -1860,12 +1867,70 @@ def event_detail(event_id):
     except Exception:
         pass
 
+    # Load Linked News
+    linked_news = []
+    if event.get('news_ids'):
+        all_news = load_news()
+        linked_news = [n for n in all_news if n['id'] in event['news_ids']]
+        
+    # Load Result Summary if file exists
+    rdf_result_summary = []
+    if event.get('result_file'):
+        try:
+            filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(event['result_file']))
+            if os.path.exists(filepath):
+                with open(filepath, 'r') as f:
+                    data = json.load(f)
+                    
+                    # Get RDF Driver Names from Event Lineup
+                    rdf_names = [d['name'] for d in event_drivers]
+                    
+                    # Find these drivers in the result
+                    sessions = data.get('data', {}).get('session_results', [])
+                    race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
+                    
+                    if race_session:
+                        for entry in race_session.get('results', []):
+                            is_rdf = False
+                            # Check main driver name
+                            if entry.get('display_name') in rdf_names:
+                                is_rdf = True
+                            
+                            # Check team drivers
+                            entry_driver_names = []
+                            if entry.get('driver_results'):
+                                for d in entry.get('driver_results'):
+                                    dname = d.get('display_name')
+                                    entry_driver_names.append(dname)
+                                    if dname in rdf_names:
+                                        is_rdf = True
+                            else:
+                                entry_driver_names.append(entry.get('display_name'))
+                            
+                            # Also check if "RaceDayFriends" is in team name (if available) or just assume matched by driver
+                            # If no drivers matched but we want to be sure, maybe check 'team_name'? 
+                            # But 'display_name' is often the team name in team events.
+                            if "RaceDayFriends" in str(entry.get('display_name')):
+                                is_rdf = True
+                            
+                            if is_rdf:
+                                rdf_result_summary.append({
+                                    'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1) + 1,
+                                    'class': entry.get('car_class_short_name'),
+                                    'car_number': entry.get('livery', {}).get('car_number', '#'),
+                                    'inc': entry.get('incidents', 0),
+                                    'laps': entry.get('laps_complete', 0),
+                                    'drivers': entry_driver_names
+                                })
+        except Exception as e:
+            print(f"Error loading result summary: {e}")
+
     # Wir bauen ein Fake-Config Objekt, damit das Template nicht umgebaut werden muss
     # Das Template erwartet config.next_race.*
     # Wir könnten das Template anpassen, aber einfacher ist es, die Datenstruktur passend zu machen
     
     # BESSER: Template anpassen, um 'event' Objekt zu nutzen statt config.next_race
-    return render_template('event_info.html', event=event, drivers=event_drivers, config=config, is_past=is_past)
+    return render_template('event_info.html', event=event, drivers=event_drivers, config=config, is_past=is_past, linked_news=linked_news, rdf_result_summary=rdf_result_summary)
 
 @app.route('/admin/nav')
 @login_required

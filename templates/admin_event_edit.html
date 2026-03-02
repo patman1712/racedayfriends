@@ -112,6 +112,24 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Verknüpfte News Artikel</label>
+                    <div style="background: #0B1829; border: 1px solid var(--rdf-border); padding: 15px; border-radius: 4px; max-height: 200px; overflow-y: auto;">
+                        {% for news in all_news %}
+                        <div style="margin-bottom: 8px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; text-transform: none;">
+                                <input type="checkbox" name="news_ids" value="{{ news.id }}" 
+                                    {% if event.news_ids and news.id in event.news_ids %}checked{% endif %}
+                                    style="margin-right: 10px;">
+                                <span style="font-weight: bold; margin-right: 10px; color: var(--rdf-teal);">{{ news.date }}</span>
+                                {{ news.title }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <small style="color: var(--rdf-silver);">Ausgewählte News werden auf der Event-Seite angezeigt.</small>
+                </div>
+
+                <div class="form-group">
                     <label>Fahrer Lineup</label>
                     <div style="background: #0B1829; border: 1px solid var(--rdf-border); padding: 15px; border-radius: 4px; max-height: 200px; overflow-y: auto;">
                         {% for driver in all_drivers %}

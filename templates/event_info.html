@@ -46,6 +46,29 @@
                     <i class="fas fa-list-ol"></i> Zum Rennergebnis
                 </a>
             </div>
+            
+            {% if rdf_result_summary %}
+            <div style="margin-top: 30px; background: rgba(11, 24, 41, 0.8); border: 1px solid var(--rdf-teal); border-radius: 12px; padding: 20px; max-width: 800px; margin-left: auto; margin-right: auto; backdrop-filter: blur(10px);">
+                <h3 style="color: var(--rdf-teal); margin-bottom: 15px; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px;">RaceDayFriends Results</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    {% for res in rdf_result_summary %}
+                    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; text-align: left; border-left: 3px solid {% if res.pos == 1 %}#ffd700{% elif res.pos == 2 %}#c0c0c0{% elif res.pos == 3 %}#cd7f32{% else %}var(--rdf-teal){% endif %};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-weight: bold; font-size: 1.2rem; color: white;">P{{ res.pos }} <span style="font-size: 0.8rem; color: var(--rdf-silver);">{{ res.class }}</span></span>
+                            <span style="font-family: monospace; color: var(--rdf-teal);">#{{ res.car_number }}</span>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 5px;">
+                            <i class="fas fa-users" style="font-size: 0.8rem; margin-right: 5px;"></i> {{ res.drivers|join(', ') }}
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--rdf-silver); display: flex; gap: 10px;">
+                            <span><i class="fas fa-sync-alt"></i> {{ res.laps }} Laps</span>
+                            <span style="color: {% if res.inc == 0 %}#10b981{% elif res.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};"><i class="fas fa-exclamation-triangle"></i> {{ res.inc }}x</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             {% endif %}
             
             {% if not event.result and not event.result_file %}
@@ -259,6 +282,30 @@
     </div>
 </div>
 
+<!-- LINKED NEWS -->
+{% if linked_news %}
+<div style="width: 100%; padding: 60px 40px; background: #08121f;">
+    <div style="max-width: 1600px; margin: 0 auto;">
+        <h2 style="margin-bottom: 40px; text-transform: uppercase; letter-spacing: 1px; font-size: 2.5rem; text-align: center;">Event News</h2>
+        
+        <div class="news-grid">
+            {% for item in linked_news %}
+            <a href="{{ '/news/' + item.id if item.content else (item.link if item.link else '#') }}" class="news-card" style="background-image: url('{{ item.image_url }}');">
+                <div class="news-overlay"></div>
+                <div class="news-badge">
+                    <span class="news-cat">{{ item.category }}</span>
+                    <div class="news-title-row">
+                        <span class="news-title">{{ item.title }}</span>
+                        <i class="fas fa-arrow-right news-arrow"></i>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <script>
     {% if not event.result and not is_past %}
     const raceDateStr = "{{ event.date }}";
@@ -435,5 +482,48 @@
             font-size: 0.9rem;
         }
     }
+
+    /* News Grid Layout */
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        margin: 0 auto;
+    }
+
+    .news-card {
+        position: relative;
+        display: block;
+        height: 350px;
+        background-size: cover;
+        background-position: center;
+        border-radius: 20px;
+        overflow: hidden;
+        text-decoration: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .news-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        z-index: 2;
+    }
+
+    .news-overlay {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.4) 100%);
+    }
+
+    .news-badge {
+        position: absolute; bottom: 25px; left: 25px; max-width: 80%;
+        background-color: #00d2be; color: #000; padding: 15px 20px; border-radius: 8px;
+        display: flex; flex-direction: column; gap: 5px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .news-cat { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+    .news-title-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 15px; }
+    .news-title { font-weight: 700; font-size: 0.95rem; line-height: 1.3; font-family: 'Space Grotesk', sans-serif; }
+    .news-arrow { font-size: 1rem; transform: translateX(0); transition: transform 0.3s ease; }
+    .news-card:hover .news-arrow { transform: translateX(5px); }
 </style>
 {% endblock %}
