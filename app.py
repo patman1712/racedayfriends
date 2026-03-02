@@ -2877,7 +2877,7 @@ def driver_detail(driver_id):
                             e['result_link'] = e['result_file']
                             
                             # Find driver (Single or Team Event)
-                            d_res = None
+                            d_res = None # Init
                             scanned_teams = 0
                             scanned_drivers = 0
                             
