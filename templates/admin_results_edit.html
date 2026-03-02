@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; max-width: 800px;">
+    <h1 class="section-title">Ergebnis bearbeiten</h1>
+    <p class="section-subtitle">{{ filename }}</p>
+
+    <div class="content-box" style="padding: 40px;">
+        <form action="/admin/results/edit/{{ filename }}" method="POST">
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="title" style="display: block; margin-bottom: 8px; color: var(--rdf-silver);">Event Titel *</label>
+                <input type="text" id="title" name="title" value="{{ meta.title }}" required class="form-control" 
+                       style="width: 100%; padding: 12px; background: #0B1829; border: 1px solid var(--rdf-border); color: white; border-radius: 4px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="series" style="display: block; margin-bottom: 8px; color: var(--rdf-silver);">Serie</label>
+                <input type="text" id="series" name="series" value="{{ meta.series }}" class="form-control" 
+                       style="width: 100%; padding: 12px; background: #0B1829; border: 1px solid var(--rdf-border); color: white; border-radius: 4px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="track" style="display: block; margin-bottom: 8px; color: var(--rdf-silver);">Strecke</label>
+                <input type="text" id="track" name="track" value="{{ meta.track }}" class="form-control" 
+                       style="width: 100%; padding: 12px; background: #0B1829; border: 1px solid var(--rdf-border); color: white; border-radius: 4px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="date" style="display: block; margin-bottom: 8px; color: var(--rdf-silver);">Datum / Uhrzeit</label>
+                <input type="text" id="date" name="date" value="{{ meta.date }}" class="form-control" 
+                       style="width: 100%; padding: 12px; background: #0B1829; border: 1px solid var(--rdf-border); color: white; border-radius: 4px;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label for="description" style="display: block; margin-bottom: 8px; color: var(--rdf-silver);">Beschreibung / Bericht</label>
+                <textarea id="description" name="description" rows="5" class="form-control"
+                          style="width: 100%; padding: 12px; background: #0B1829; border: 1px solid var(--rdf-border); color: white; border-radius: 4px; font-family: inherit;">{{ meta.description }}</textarea>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <a href="/admin/results" class="btn-primary" style="background: var(--rdf-silver); color: black; flex: 1; text-align: center; text-decoration: none;">Abbrechen</a>
+                <button type="submit" class="btn-primary" style="flex: 1;">Speichern</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

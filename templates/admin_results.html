@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; max-width: 1200px;">
+    <h1 class="section-title">Ergebnisse verwalten</h1>
+    
+    <div class="card" style="margin-bottom: 30px;">
+        <div class="card-header">
+            <h3>Neues Ergebnis hochladen</h3>
+        </div>
+        <div class="card-body">
+            <form action="/admin/results/upload" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center;">
+                <input type="file" name="result_file" accept=".json" required class="form-control" style="background: #0B1829; border: 1px solid var(--rdf-border); color: white; padding: 10px;">
+                <button type="submit" class="btn-primary" style="white-space: nowrap;">Hochladen</button>
+            </form>
+            <p style="color: var(--rdf-silver); font-size: 0.8rem; margin-top: 10px;">Bitte lade die iRacing Result JSON Datei hoch (z.B. eventresult-12345.json).</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Vorhandene Ergebnisse</h3>
+        </div>
+        <div class="card-body">
+            {% if results %}
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--rdf-border); text-align: left; color: var(--rdf-silver);">
+                        <th style="padding: 10px;">Datum</th>
+                        <th style="padding: 10px;">Titel</th>
+                        <th style="padding: 10px;">Dateiname</th>
+                        <th style="padding: 10px; text-align: right;">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in results %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px 10px; color: white;">{{ res.date }}</td>
+                        <td style="padding: 15px 10px; font-weight: bold; color: var(--rdf-teal);">{{ res.title }}</td>
+                        <td style="padding: 15px 10px; color: var(--rdf-silver); font-family: monospace; font-size: 0.8rem;">{{ res.filename }}</td>
+                        <td style="padding: 15px 10px; text-align: right;">
+                            <a href="/boxengasse/result/{{ res.filename }}" target="_blank" class="btn-primary" style="background: #3b82f6; font-size: 0.8rem; padding: 5px 10px; text-decoration: none; margin-right: 5px;"><i class="fas fa-eye"></i></a>
+                            <a href="/admin/results/edit/{{ res.filename }}" class="btn-primary" style="background: #f59e0b; font-size: 0.8rem; padding: 5px 10px; text-decoration: none; margin-right: 5px;"><i class="fas fa-edit"></i></a>
+                            <a href="/admin/results/delete/{{ res.filename }}" class="btn-primary" style="background: #ef4444; font-size: 0.8rem; padding: 5px 10px; text-decoration: none;" onclick="return confirm('Ergebnis wirklich löschen?');"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; color: var(--rdf-silver);">Keine Ergebnisse vorhanden.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

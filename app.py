@@ -97,7 +97,23 @@ MESSAGES_FILE = os.path.join(BASE_DATA_DIR, 'messages.json')
 LIVERIES_FILE = os.path.join(BASE_DATA_DIR, 'liveries.json')
 SETUPS_FILE = os.path.join(BASE_DATA_DIR, 'setups.json')
 APPLICATIONS_FILE = os.path.join(BASE_DATA_DIR, 'applications.json')
+RESULTS_META_FILE = os.path.join(BASE_DATA_DIR, 'results_meta.json')
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
+
+# ...
+
+def load_results_meta():
+    if not os.path.exists(RESULTS_META_FILE):
+        return {}
+    try:
+        with open(RESULTS_META_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_results_meta(data):
+    with open(RESULTS_META_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
 
 UPLOAD_FOLDER = os.path.join(BASE_DATA_DIR, 'static/uploads')
 RESULTS_FOLDER = os.path.join(BASE_DATA_DIR, 'static/results')
@@ -169,7 +185,7 @@ def init_persistence():
         print(f"Fehler beim Symlink Handling (Results): {e}")
 
     # 4. JSON Dateien initialisieren
-    for filename in ['drivers.json', 'site_config.json', 'cars.json', 'events.json', 'news.json', 'applications.json']:
+    for filename in ['drivers.json', 'site_config.json', 'cars.json', 'events.json', 'news.json', 'applications.json', 'results_meta.json']:
         target_file = os.path.join(BASE_DATA_DIR, filename)
         source_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
         
@@ -181,7 +197,10 @@ def init_persistence():
                 else:
                     print(f"Erstelle leere {filename}...")
                     with open(target_file, 'w') as f:
-                        json.dump([], f) # Leeres Array als Standard
+                        if filename == 'results_meta.json':
+                            json.dump({}, f)
+                        else:
+                            json.dump([], f) # Leeres Array als Standard
         except Exception as e:
             print(f"Fehler bei Datei {filename}: {e}")
 
@@ -707,38 +726,161 @@ def boxengasse():
             
     return render_template('boxengasse.html', driver=current_driver, messages=messages, liveries=liveries, cars=cars, events=my_events, setups=setups)
 
+@app.route('/admin/results')
+@login_required
+def admin_results():
+    results = []
+    meta = load_results_meta()
+    
+    if os.path.exists(app.config['RESULTS_FOLDER']):
+        for filename in os.listdir(app.config['RESULTS_FOLDER']):
+            if filename.endswith('.json'):
+                # Basic info from filename/meta
+                file_meta = meta.get(filename, {})
+                results.append({
+                    'filename': filename,
+                    'title': file_meta.get('title', filename),
+                    'date': file_meta.get('date', 'Unknown')
+                })
+    
+    return render_template('admin_results.html', results=results)
+
+@app.route('/admin/results/upload', methods=['POST'])
+@login_required
+def admin_results_upload():
+    if 'result_file' in request.files:
+        file = request.files['result_file']
+        if file and file.filename.endswith('.json'):
+            filename = secure_filename(file.filename)
+            # Timestamp to avoid overwrites? Maybe not, user might want to re-upload.
+            # Let's keep original name but secure it.
+            
+            filepath = os.path.join(app.config['RESULTS_FOLDER'], filename)
+            file.save(filepath)
+            
+            # Initial metadata parsing
+            try:
+                with open(filepath, 'r') as f:
+                    data = json.load(f)
+                    info = data.get('data', {})
+                    
+                    # Extract defaults
+                    meta = load_results_meta()
+                    
+                    # Format Date
+                    start_time = info.get('start_time', '')
+                    date_str = start_time
+                    try:
+                        dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                        date_str = dt.strftime('%Y-%m-%d %H:%M')
+                    except: pass
+
+                    meta[filename] = {
+                        'title': f"{info.get('series_name', 'Race')} @ {info.get('track', {}).get('track_name', 'Unknown')}",
+                        'series': info.get('series_name'),
+                        'track': info.get('track', {}).get('track_name'),
+                        'date': date_str,
+                        'uploaded_at': datetime.now().isoformat()
+                    }
+                    save_results_meta(meta)
+                    
+            except Exception as e:
+                print(f"Error parsing uploaded result: {e}")
+            
+            flash("Ergebnisdatei hochgeladen!", "success")
+        else:
+            flash("Ungültige Datei. Bitte JSON verwenden.", "error")
+            
+    return redirect(url_for('admin_results'))
+
+@app.route('/admin/results/edit/<filename>', methods=['GET', 'POST'])
+@login_required
+def admin_results_edit(filename):
+    meta = load_results_meta()
+    
+    if request.method == 'POST':
+        if filename not in meta: meta[filename] = {}
+        
+        meta[filename]['title'] = request.form.get('title')
+        meta[filename]['series'] = request.form.get('series')
+        meta[filename]['track'] = request.form.get('track')
+        meta[filename]['date'] = request.form.get('date')
+        meta[filename]['description'] = request.form.get('description')
+        
+        save_results_meta(meta)
+        flash("Metadaten gespeichert.", "success")
+        return redirect(url_for('admin_results'))
+    
+    file_meta = meta.get(filename, {})
+    return render_template('admin_results_edit.html', filename=filename, meta=file_meta)
+
+@app.route('/admin/results/delete/<filename>')
+@login_required
+def admin_results_delete(filename):
+    filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
+    if os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+            # Clean meta
+            meta = load_results_meta()
+            if filename in meta:
+                del meta[filename]
+                save_results_meta(meta)
+            flash("Ergebnis gelöscht.", "success")
+        except Exception as e:
+            flash(f"Fehler beim Löschen: {e}", "error")
+    else:
+        flash("Datei nicht gefunden.", "error")
+        
+    return redirect(url_for('admin_results'))
+
 @app.route('/boxengasse/results')
 @driver_login_required
 def boxengasse_results():
     results = []
+    meta = load_results_meta()
+    
     if os.path.exists(app.config['RESULTS_FOLDER']):
         for filename in os.listdir(app.config['RESULTS_FOLDER']):
             if filename.endswith('.json'):
-                filepath = os.path.join(app.config['RESULTS_FOLDER'], filename)
-                try:
-                    with open(filepath, 'r') as f:
-                        data = json.load(f)
-                        # Extract basic info
-                        track_name = data.get('data', {}).get('track', {}).get('track_name', 'Unknown Track')
-                        start_time = data.get('data', {}).get('start_time', 'Unknown Date')
-                        series_name = data.get('data', {}).get('series_name', 'Unknown Series')
-                        
-                        # Format date
-                        try:
-                             dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
-                             date_str = dt.strftime('%d.%m.%Y %H:%M')
-                        except:
-                            date_str = start_time
+                # Prefer meta, fallback to file reading if needed (lazy load)
+                if filename in meta:
+                    m = meta[filename]
+                    results.append({
+                        'filename': filename,
+                        'track': m.get('track', 'Unknown'),
+                        'date': m.get('date', 'Unknown'),
+                        'series': m.get('series', 'Unknown'),
+                        'title': m.get('title', 'Race Result'),
+                        'id': filename
+                    })
+                else:
+                    # Fallback: Read file to get basic info (and maybe update meta?)
+                    # For performance, better to rely on admin upload to set meta.
+                    # But for existing files:
+                    filepath = os.path.join(app.config['RESULTS_FOLDER'], filename)
+                    try:
+                        with open(filepath, 'r') as f:
+                            data = json.load(f)
+                            track_name = data.get('data', {}).get('track', {}).get('track_name', 'Unknown Track')
+                            start_time = data.get('data', {}).get('start_time', 'Unknown Date')
+                            series_name = data.get('data', {}).get('series_name', 'Unknown Series')
                             
-                        results.append({
-                            'filename': filename,
-                            'track': track_name,
-                            'date': date_str,
-                            'series': series_name,
-                            'id': filename # Use filename as ID
-                        })
-                except Exception as e:
-                    print(f"Error reading result {filename}: {e}")
+                            try:
+                                 dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                                 date_str = dt.strftime('%d.%m.%Y %H:%M')
+                            except:
+                                date_str = start_time
+                                
+                            results.append({
+                                'filename': filename,
+                                'track': track_name,
+                                'date': date_str,
+                                'series': series_name,
+                                'title': f"{series_name} @ {track_name}",
+                                'id': filename
+                            })
+                    except: pass
                     
     # Sort by date descending
     results.sort(key=lambda x: x['date'], reverse=True)
@@ -752,6 +894,9 @@ def boxengasse_result_detail(filename):
         flash("Ergebnisdatei nicht gefunden.", "error")
         return redirect(url_for('boxengasse_results'))
         
+    meta = load_results_meta()
+    file_meta = meta.get(filename, {})
+    
     try:
         with open(filepath, 'r') as f:
             full_data = json.load(f)
@@ -761,35 +906,54 @@ def boxengasse_result_detail(filename):
             sessions = data.get('session_results', [])
             race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
             
-            standings = []
+            # Get Class Info
+            classes_raw = data.get('car_classes', [])
+            classes_map = {c['car_class_id']: c for c in classes_raw}
+            
+            # Prepare Results Grouped by Class
+            class_results = {}
+            
             if race_session:
-                # Calculate winner laps for gap calculation if needed (optional)
-                winner_laps = 0
+                # Find Overall Winner Laps (max laps of any driver)
+                overall_winner_laps = 0
                 if race_session.get('results'):
-                     winner_laps = race_session['results'][0].get('laps_complete', 0)
+                    overall_winner_laps = max([r.get('laps_complete', 0) for r in race_session.get('results', [])])
 
                 for entry in race_session.get('results', []):
+                    cid = entry.get('car_class_id')
+                    cname = entry.get('car_class_short_name') or "Unknown"
+                    
+                    if cid not in class_results:
+                        class_results[cid] = {
+                            'id': cid,
+                            'name': cname,
+                            'full_name': entry.get('car_class_name'),
+                            'drivers': []
+                        }
+                    
                     # Format Gap
                     interval = entry.get('interval', 0)
+                    class_interval = entry.get('class_interval', 0)
                     laps_complete = entry.get('laps_complete', 0)
-                    gap = ""
                     
-                    if interval == 0: 
-                        gap = "-"
-                    elif interval > 0:
-                        # interval is in microseconds (1/10000s based on sample)
-                        # Sample: 11034 -> 1.1s? 
-                        # Wait, iRacing API: "interval": Time behind leader in microseconds. -1 if laps down.
-                        # But wait, 11034 microseconds is 0.011s. That's too small.
-                        # 928439 best lap is 92.8s. So 1 unit = 1/10000 second.
+                    # Gap Calculation (Complex in iRacing JSON)
+                    # interval: time behind LEADER (overall) in microseconds?
+                    # class_interval: time behind CLASS LEADER?
+                    
+                    # Let's use class_interval for class views
+                    gap_str = "-"
+                    if class_interval > 0:
+                        seconds = class_interval / 10000
+                        if seconds > 60:
+                             gap_str = f"+{int(seconds//60)}:{seconds%60:05.2f}"
+                        else:
+                             gap_str = f"+{seconds:.3f}s"
+                    elif class_interval == -1:
+                        # Laps down relative to class leader? 
+                        # Usually iRacing provides 'laps_complete'.
+                        # We need to find the winner of THIS class to calc laps down.
+                        pass # handled later if we sort list first
                         
-                        seconds = interval / 10000
-                        gap = f"+{seconds:.3f}s"
-                    elif interval == -1:
-                        # Laps down
-                        diff = winner_laps - laps_complete
-                        gap = f"+{diff} Lap{'s' if diff > 1 else ''}"
-
                     # Format Best Lap
                     best_lap = entry.get('best_lap_time', 0)
                     best_lap_str = "-"
@@ -798,43 +962,79 @@ def boxengasse_result_detail(filename):
                         minutes = int(seconds // 60)
                         rem_seconds = seconds % 60
                         best_lap_str = f"{minutes}:{rem_seconds:06.3f}"
+                        
+                    # Average Lap
+                    avg_lap = entry.get('average_lap', 0)
+                    avg_lap_str = "-"
+                    if avg_lap > 0:
+                        seconds = avg_lap / 10000
+                        minutes = int(seconds // 60)
+                        rem_seconds = seconds % 60
+                        avg_lap_str = f"{minutes}:{rem_seconds:06.3f}"
 
-                    # Driver Name
-                    name = entry.get('display_name')
+                    # Driver Name(s)
+                    driver_name = entry.get('display_name')
+                    # Team Drivers
+                    team_drivers = []
+                    if entry.get('driver_results'):
+                        for d in entry.get('driver_results'):
+                            team_drivers.append(d.get('display_name'))
                     
-                    standings.append({
-                        'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1),
-                        'class': entry.get('car_class_short_name'),
+                    class_results[cid]['drivers'].append({
+                        'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1) + 1, # 0-indexed usually
+                        'overall_pos': entry.get('finish_position', 0) + 1,
                         'car_number': entry.get('livery', {}).get('car_number', '#'),
-                        'name': name,
+                        'name': driver_name,
+                        'team_drivers': team_drivers,
                         'laps': laps_complete,
-                        'gap': gap,
+                        'gap_raw': class_interval, # for sorting/calc
                         'best_lap': best_lap_str,
+                        'avg_lap': avg_lap_str,
                         'inc': entry.get('incidents'),
-                        'drivers': entry.get('driver_results', [])
+                        'car_name': entry.get('car_name'),
+                        'club': entry.get('club_name'), # Need to check if this exists in this json version
+                        'id': entry.get('cust_id')
                     })
+
+            # Post-Process: Sort and Fix Gaps
+            sorted_classes = []
+            for cid, data in class_results.items():
+                # Sort drivers by position
+                data['drivers'].sort(key=lambda x: x['pos'])
+                
+                # Fix Gaps (Laps down)
+                class_winner_laps = data['drivers'][0]['laps'] if data['drivers'] else 0
+                
+                for d in data['drivers']:
+                    if d['laps'] < class_winner_laps:
+                        diff = class_winner_laps - d['laps']
+                        d['gap'] = f"+{diff} Lap{'s' if diff > 1 else ''}"
+                    elif d['gap_raw'] > 0:
+                        seconds = d['gap_raw'] / 10000
+                        if seconds > 60:
+                             d['gap'] = f"+{int(seconds//60)}:{seconds%60:05.2f}"
+                        else:
+                             d['gap'] = f"+{seconds:.3f}s"
+                    else:
+                        d['gap'] = "-" # Winner
+                
+                sorted_classes.append(data)
             
-            # Sort standings by Pos
-            standings.sort(key=lambda x: x['pos'])
-            
-            # Format Start Time
-            start_time = data.get('start_time', '')
-            try:
-                dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
-                date_str = dt.strftime('%d.%m.%Y %H:%M')
-            except:
-                date_str = start_time
+            # Sort classes by something (maybe name or ID)
+            sorted_classes.sort(key=lambda x: x['name'])
 
             result_info = {
-                'track': data.get('track', {}).get('track_name'),
+                'track': file_meta.get('track') or data.get('track', {}).get('track_name'),
                 'config': data.get('track', {}).get('config_name'),
-                'series': data.get('series_name'),
-                'date': date_str
+                'series': file_meta.get('series') or data.get('series_name'),
+                'date': file_meta.get('date') or 'Unknown Date',
+                'title': file_meta.get('title') or f"{data.get('series_name')} @ {data.get('track', {}).get('track_name')}",
+                'description': file_meta.get('description', '')
             }
                     
             return render_template('boxengasse_result_detail.html', 
                                  info=result_info, 
-                                 standings=standings,
+                                 classes=sorted_classes,
                                  filename=filename)
                                  
     except Exception as e:

@@ -5,62 +5,179 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <a href="/boxengasse/results" style="color: var(--rdf-teal); font-weight: bold;">&larr; Alle Ergebnisse</a>
         <div style="text-align: right;">
-            <h1 style="margin: 0; font-size: 1.5rem;">{{ info.track }}</h1>
-            <p style="color: var(--rdf-silver); margin: 0; font-size: 0.9rem;">{{ info.date }} | {{ info.series }}</p>
+            <h1 style="margin: 0; font-size: 1.5rem;">{{ info.title }}</h1>
+            <p style="color: var(--rdf-silver); margin: 0; font-size: 0.9rem;">
+                {{ info.date }} | {{ info.track }} ({{ info.config }})
+            </p>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h3>Rennergebnis</h3>
+    {% if info.description %}
+    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid var(--rdf-teal);">
+        <p style="margin: 0; color: #d1d5db;">{{ info.description }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Tabs for Classes -->
+    <div class="tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--rdf-border); padding-bottom: 10px; overflow-x: auto;">
+        <button class="tab-btn active" onclick="openClass(event, 'All')" style="background: transparent; border: none; color: white; padding: 10px 20px; cursor: pointer; border-bottom: 2px solid var(--rdf-teal); font-weight: bold;">Gesamt</button>
+        {% for class in classes %}
+        <button class="tab-btn" onclick="openClass(event, '{{ class.id }}')" style="background: transparent; border: none; color: var(--rdf-silver); padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent;">{{ class.name }}</button>
+        {% endfor %}
+    </div>
+
+    <!-- Content for All Classes (Optional, maybe just list all blocks) -->
+    <div id="All" class="tab-content" style="display: block;">
+        {% for class in classes %}
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>{{ class.full_name }}</h3>
+                <span style="font-size: 0.8rem; color: var(--rdf-silver); background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 12px;">{{ class.drivers|length }} Starter</span>
+            </div>
+            <div class="card-body" style="overflow-x: auto; padding: 0;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--rdf-teal); text-align: left; color: var(--rdf-silver); font-size: 0.8rem; background: rgba(0,0,0,0.2);">
+                            <th style="padding: 12px 15px; width: 50px;">Pos</th>
+                            <th style="padding: 12px 15px; width: 60px;">#</th>
+                            <th style="padding: 12px 15px;">Fahrer / Team</th>
+                            <th style="padding: 12px 15px;">Fahrzeug</th>
+                            <th style="padding: 12px 15px; text-align: center; width: 60px;">Runden</th>
+                            <th style="padding: 12px 15px; text-align: right; width: 100px;">Abstand</th>
+                            <th style="padding: 12px 15px; text-align: right; width: 100px;">Bestzeit</th>
+                            <th style="padding: 12px 15px; text-align: right; width: 100px;">Ø Zeit</th>
+                            <th style="padding: 12px 15px; text-align: center; width: 50px;">Inc</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in class.drivers %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; background: {% if loop.index is even %}rgba(255,255,255,0.02){% else %}transparent{% endif %};">
+                            <td style="padding: 10px 15px; font-weight: bold; color: {% if row.pos == 1 %}#ffd700{% elif row.pos == 2 %}#c0c0c0{% elif row.pos == 3 %}#cd7f32{% else %}white{% endif %};">
+                                {{ row.pos }}.
+                            </td>
+                            <td style="padding: 10px 15px; color: var(--rdf-teal); font-family: monospace;">{{ row.car_number }}</td>
+                            <td style="padding: 10px 15px;">
+                                <div style="font-weight: bold; color: white;">{{ row.name }}</div>
+                                {% if row.team_drivers %}
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">
+                                    <i class="fas fa-users"></i> {{ row.team_drivers|join(', ') }}
+                                </div>
+                                {% endif %}
+                                {% if row.club %}
+                                <div style="font-size: 0.75rem; color: #4b5563;">{{ row.club }}</div>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 10px 15px; font-size: 0.8rem; color: var(--rdf-silver);">{{ row.car_name }}</td>
+                            <td style="padding: 10px 15px; text-align: center; color: white;">{{ row.laps }}</td>
+                            <td style="padding: 10px 15px; text-align: right; color: {% if row.gap == '-' %}var(--rdf-teal){% else %}var(--rdf-silver){% endif %}; font-family: monospace;">
+                                {{ row.gap }}
+                            </td>
+                            <td style="padding: 10px 15px; text-align: right; color: #10b981; font-family: monospace;">
+                                {{ row.best_lap }}
+                            </td>
+                            <td style="padding: 10px 15px; text-align: right; color: #6b7280; font-family: monospace;">
+                                {{ row.avg_lap }}
+                            </td>
+                            <td style="padding: 10px 15px; text-align: center; color: {% if row.inc == 0 %}#10b981{% elif row.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">
+                                {{ row.inc }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="card-body" style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
-                <thead>
-                    <tr style="border-bottom: 2px solid var(--rdf-teal); text-align: left; color: var(--rdf-silver); font-size: 0.9rem;">
-                        <th style="padding: 15px 10px; width: 50px;">Pos</th>
-                        <th style="padding: 15px 10px; width: 60px;">#</th>
-                        <th style="padding: 15px 10px;">Fahrer / Team</th>
-                        <th style="padding: 15px 10px; width: 80px;">Klasse</th>
-                        <th style="padding: 15px 10px; text-align: center; width: 60px;">Runden</th>
-                        <th style="padding: 15px 10px; text-align: right; width: 100px;">Abstand</th>
-                        <th style="padding: 15px 10px; text-align: right; width: 100px;">Bestzeit</th>
-                        <th style="padding: 15px 10px; text-align: center; width: 50px;">Inc</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in standings %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;">
-                        <td style="padding: 12px 10px; font-weight: bold; color: {% if row.pos == 1 %}#ffd700{% elif row.pos == 2 %}#c0c0c0{% elif row.pos == 3 %}#cd7f32{% else %}white{% endif %};">
-                            {{ row.pos }}
-                        </td>
-                        <td style="padding: 12px 10px; color: var(--rdf-teal); font-family: monospace;">{{ row.car_number }}</td>
-                        <td style="padding: 12px 10px;">
-                            <div style="font-weight: bold; color: white;">{{ row.name }}</div>
-                            {% if row.drivers %}
-                            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">
-                                {% for d in row.drivers %}
-                                {{ d.display_name }}{% if not loop.last %}, {% endif %}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 12px 10px; font-size: 0.8rem; color: var(--rdf-silver);">{{ row.class }}</td>
-                        <td style="padding: 12px 10px; text-align: center; color: white;">{{ row.laps }}</td>
-                        <td style="padding: 12px 10px; text-align: right; color: {% if row.gap == '-' %}var(--rdf-teal){% else %}var(--rdf-silver){% endif %}; font-family: monospace;">
-                            {{ row.gap }}
-                        </td>
-                        <td style="padding: 12px 10px; text-align: right; color: #10b981; font-family: monospace;">
-                            {{ row.best_lap }}
-                        </td>
-                        <td style="padding: 12px 10px; text-align: center; color: {% if row.inc == 0 %}#10b981{% elif row.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">
-                            {{ row.inc }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        {% endfor %}
+    </div>
+
+    <!-- Individual Class Tabs -->
+    {% for class in classes %}
+    <div id="{{ class.id }}" class="tab-content" style="display: none;">
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>{{ class.full_name }}</h3>
+                <span style="font-size: 0.8rem; color: var(--rdf-silver);">Klasse</span>
+            </div>
+            <div class="card-body" style="overflow-x: auto; padding: 0;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--rdf-teal); text-align: left; color: var(--rdf-silver); font-size: 0.8rem; background: rgba(0,0,0,0.2);">
+                            <th style="padding: 12px 15px; width: 50px;">Pos</th>
+                            <th style="padding: 12px 15px; width: 60px;">#</th>
+                            <th style="padding: 12px 15px;">Fahrer / Team</th>
+                            <th style="padding: 12px 15px;">Fahrzeug</th>
+                            <th style="padding: 12px 15px; text-align: center; width: 60px;">Runden</th>
+                            <th style="padding: 12px 15px; text-align: right; width: 100px;">Abstand</th>
+                            <th style="padding: 12px 15px; text-align: right; width: 100px;">Bestzeit</th>
+                            <th style="padding: 12px 15px; text-align: right; width: 100px;">Ø Zeit</th>
+                            <th style="padding: 12px 15px; text-align: center; width: 50px;">Inc</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in class.drivers %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; background: {% if loop.index is even %}rgba(255,255,255,0.02){% else %}transparent{% endif %};">
+                            <td style="padding: 10px 15px; font-weight: bold; color: {% if row.pos == 1 %}#ffd700{% elif row.pos == 2 %}#c0c0c0{% elif row.pos == 3 %}#cd7f32{% else %}white{% endif %};">
+                                {{ row.pos }}.
+                            </td>
+                            <td style="padding: 10px 15px; color: var(--rdf-teal); font-family: monospace;">{{ row.car_number }}</td>
+                            <td style="padding: 10px 15px;">
+                                <div style="font-weight: bold; color: white;">{{ row.name }}</div>
+                                {% if row.team_drivers %}
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">
+                                    <i class="fas fa-users"></i> {{ row.team_drivers|join(', ') }}
+                                </div>
+                                {% endif %}
+                                {% if row.club %}
+                                <div style="font-size: 0.75rem; color: #4b5563;">{{ row.club }}</div>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 10px 15px; font-size: 0.8rem; color: var(--rdf-silver);">{{ row.car_name }}</td>
+                            <td style="padding: 10px 15px; text-align: center; color: white;">{{ row.laps }}</td>
+                            <td style="padding: 10px 15px; text-align: right; color: {% if row.gap == '-' %}var(--rdf-teal){% else %}var(--rdf-silver){% endif %}; font-family: monospace;">
+                                {{ row.gap }}
+                            </td>
+                            <td style="padding: 10px 15px; text-align: right; color: #10b981; font-family: monospace;">
+                                {{ row.best_lap }}
+                            </td>
+                            <td style="padding: 10px 15px; text-align: right; color: #6b7280; font-family: monospace;">
+                                {{ row.avg_lap }}
+                            </td>
+                            <td style="padding: 10px 15px; text-align: center; color: {% if row.inc == 0 %}#10b981{% elif row.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">
+                                {{ row.inc }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+    {% endfor %}
+
+    <script>
+        function openClass(evt, classId) {
+            var i, tabcontent, tablinks;
+            
+            // Hide all content
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            
+            // Remove active class from buttons
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+                tablinks[i].style.color = "var(--rdf-silver)";
+                tablinks[i].style.borderBottom = "2px solid transparent";
+            }
+            
+            // Show current tab and activate button
+            document.getElementById(classId).style.display = "block";
+            evt.currentTarget.className += " active";
+            evt.currentTarget.style.color = "white";
+            evt.currentTarget.style.borderBottom = "2px solid var(--rdf-teal)";
+        }
+    </script>
 </div>
 {% endblock %}
