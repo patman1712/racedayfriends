@@ -48,26 +48,6 @@
             </div>
             
             {% if rdf_result_summary %}
-            <div style="margin-top: 30px; background: rgba(11, 24, 41, 0.8); border: 1px solid var(--rdf-teal); border-radius: 12px; padding: 20px; max-width: 800px; margin-left: auto; margin-right: auto; backdrop-filter: blur(10px);">
-                <h3 style="color: var(--rdf-teal); margin-bottom: 15px; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px;">RaceDayFriends Results</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                    {% for res in rdf_result_summary %}
-                    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; text-align: left; border-left: 3px solid {% if res.pos == 1 %}#ffd700{% elif res.pos == 2 %}#c0c0c0{% elif res.pos == 3 %}#cd7f32{% else %}var(--rdf-teal){% endif %};">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <span style="font-weight: bold; font-size: 1.2rem; color: white;">P{{ res.pos }} <span style="font-size: 0.8rem; color: var(--rdf-silver);">{{ res.class }}</span></span>
-                            <span style="font-family: monospace; color: var(--rdf-teal);">#{{ res.car_number }}</span>
-                        </div>
-                        <div style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 5px;">
-                            <i class="fas fa-users" style="font-size: 0.8rem; margin-right: 5px;"></i> {{ res.drivers|join(', ') }}
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--rdf-silver); display: flex; gap: 10px;">
-                            <span><i class="fas fa-sync-alt"></i> {{ res.laps }} Laps</span>
-                            <span style="color: {% if res.inc == 0 %}#10b981{% elif res.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};"><i class="fas fa-exclamation-triangle"></i> {{ res.inc }}x</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
             {% endif %}
             {% endif %}
             
@@ -222,6 +202,78 @@
 
     </div>
 </div>
+
+<!-- LINKED NEWS -->
+{% if linked_news %}
+<div style="width: 100%; padding: 60px 40px; background: #08121f;">
+    <div style="max-width: 1600px; margin: 0 auto;">
+        <h2 style="margin-bottom: 40px; text-transform: uppercase; letter-spacing: 1px; font-size: 2.5rem; text-align: center;">Event News</h2>
+        
+        <div class="news-grid">
+            {% for item in linked_news %}
+            <a href="{{ '/news/' + item.id if item.content else (item.link if item.link else '#') }}" class="news-card" style="background-image: url('{{ item.image_url }}');">
+                <div class="news-overlay"></div>
+                <div class="news-badge">
+                    <span class="news-cat">{{ item.category }}</span>
+                    <div class="news-title-row">
+                        <span class="news-title">{{ item.title }}</span>
+                        <i class="fas fa-arrow-right news-arrow"></i>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- RDF RESULTS SUMMARY (Unter Hero) -->
+{% if rdf_result_summary %}
+<div style="width: 100%; padding: 60px 40px; background: #0b1829; border-top: 1px solid #1a2a40; position: relative; overflow: hidden;">
+    <!-- Background Elements -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.05; background-image: radial-gradient(var(--rdf-teal) 1px, transparent 1px); background-size: 20px 20px;"></div>
+    
+    <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 2;">
+        <h2 style="margin-bottom: 40px; text-transform: uppercase; letter-spacing: 2px; font-size: 2rem; text-align: center; color: var(--rdf-teal);">
+            <i class="fas fa-flag-checkered"></i> RaceDayFriends Results
+        </h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+            {% for res in rdf_result_summary %}
+            <div class="result-card-pro" style="position: relative; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 25px; transition: transform 0.3s ease; overflow: hidden;">
+                <!-- Rank Badge -->
+                <div style="position: absolute; top: -10px; right: 20px; background: {% if res.pos == 1 %}#ffd700{% elif res.pos == 2 %}#c0c0c0{% elif res.pos == 3 %}#cd7f32{% else %}var(--rdf-teal){% endif %}; color: #000; padding: 20px 15px 10px 15px; font-weight: 900; font-size: 1.5rem; border-radius: 0 0 10px 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+                    P{{ res.pos }}
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 0.9rem; color: var(--rdf-silver); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">{{ res.class }} Class</div>
+                    <div style="font-size: 2.5rem; font-weight: 900; color: white; font-family: monospace; letter-spacing: -2px;">#{{ res.car_number }}</div>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <div style="font-size: 0.8rem; color: var(--rdf-teal); text-transform: uppercase; margin-bottom: 8px;">Drivers</div>
+                    <div style="font-size: 1.1rem; color: #e2e8f0; font-weight: 600; line-height: 1.4;">
+                        {{ res.drivers|join(', ') }}
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <div>
+                        <div style="font-size: 0.7rem; color: var(--rdf-silver); text-transform: uppercase;">Laps</div>
+                        <div style="font-size: 1.2rem; font-weight: bold; color: white;">{{ res.laps }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: var(--rdf-silver); text-transform: uppercase;">Incidents</div>
+                        <div style="font-size: 1.2rem; font-weight: bold; color: {% if res.inc == 0 %}#10b981{% elif res.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ res.inc }}x</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- DRIVER LINEUP (Full Width) -->
 <div style="width: 100%; padding: 60px 40px; background: #08121f; border-top: 1px solid #1a2a40;">
