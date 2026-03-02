@@ -2797,10 +2797,10 @@ def driver_detail(driver_id):
                                     e['debug'] = f"Driver {d_id_str} not found in result"
                             else:
                                 e['debug'] = "No Race session found"
-                     except Exception as ex: 
+                    except Exception as ex: 
                         e['debug'] = f"Error: {str(ex)}"
-                 else:
-                     e['debug'] = f"File not found: {res_path}"
+                else:
+                    e['debug'] = f"File not found: {res_path}"
             else:
                 e['debug'] = "No result file linked"
 
