@@ -393,6 +393,42 @@ def save_drivers(drivers):
     with open(DRIVERS_FILE, 'w') as f:
         json.dump(drivers, f, indent=4)
 
+# --- Daten-Migration (Quick Fix) ---
+def run_migrations():
+    print("Starte Daten-Migration...")
+    try:
+        events = load_events()
+        changed = False
+        
+        # 1. IEC Imola
+        imola = next((e for e in events if str(e.get('id')) == "1771600365"), None)
+        if imola:
+            if not imola.get('result_file'):
+                print("Migriere IEC Imola Event...")
+                imola['result_file'] = "iec_imola_result.json"
+                imola['result'] = "P8"
+                imola['title'] = "IEC Ligarennen 6"
+                changed = True
+        
+        # 2. Daytona
+        daytona = next((e for e in events if str(e.get('id')) == "1"), None)
+        if daytona:
+            if not daytona.get('result_file'):
+                print("Migriere Daytona Event...")
+                daytona['result_file'] = "daytona24_result.json"
+                changed = True
+                
+        if changed:
+            save_events(events)
+            print("Migration gespeichert.")
+        else:
+            print("Keine Migration notwendig.")
+            
+    except Exception as e:
+        print(f"Fehler bei Migration: {e}")
+
+run_migrations()
+
 @app.context_processor
 def inject_config():
     return dict(site_config=load_config())
