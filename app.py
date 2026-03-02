@@ -2777,9 +2777,12 @@ def driver_detail(driver_id):
                             
                             # Find driver (Single or Team Event)
                             d_res = None
+                            scanned_teams = 0
+                            scanned_drivers = 0
                             
                             for r in race_session.get('results', []):
-                                # 1. Single Driver Match
+                                scanned_teams += 1
+                                # 1. Single Driver Match (ID)
                                 if str(r.get('cust_id')) == d_id_str:
                                     d_res = r
                                     e['debug'] = "Found via Single ID"
@@ -2788,6 +2791,7 @@ def driver_detail(driver_id):
                                 # 2. Team Driver Match (search inside driver_results)
                                 if 'driver_results' in r:
                                     for team_driver in r.get('driver_results', []):
+                                        scanned_drivers += 1
                                         if str(team_driver.get('cust_id')) == d_id_str:
                                             # Found driver in team!
                                             # We need to COMBINE team info (Position) with Driver Info (Incidents, Laps)
@@ -2838,7 +2842,7 @@ def driver_detail(driver_id):
                                 else:
                                     dr_info = " | No driver_results key"
 
-                                e['debug'] = f"Search: {d_id_str} | Not found. Keys: {','.join(keys)}{dr_info}"
+                                e['debug'] = f"Search: {d_id_str} | Scanned: {scanned_teams} Teams, {scanned_drivers} Drivers | Not found. Keys: {','.join(keys)}{dr_info}"
                         else:
                             e['debug'] = "No Race session found"
                     except Exception as ex: 
