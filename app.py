@@ -2476,10 +2476,6 @@ def admin_results_save(filename):
         
     return redirect(url_for('admin_results'))
 
-@app.route('/admin/results/delete/<filename>')
-@login_required
-def admin_results_delete(filename):
-    filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
     if os.path.exists(filepath):
         os.remove(filepath)
         flash(f'Datei {filename} gelöscht', 'success')
