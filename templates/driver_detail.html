@@ -606,11 +606,7 @@
                         <td data-label="Serie">{{ event.series or '-' }}</td>
                         <td data-label="Fahrzeug">{{ event.car_model or '-' }}</td>
                         <td data-label="Ergebnis">
-                            <!-- DEBUG: {{ event.debug }} -->
                             <span class="res-badge">{{ event.result or '-' }}</span>
-                            {% if event.debug %}
-                                <div style="font-size: 0.6rem; color: #ef4444; margin-top: 5px; max-width: 250px; white-space: pre-wrap; line-height: 1.2; word-break: break-all;">DEBUG: {{ event.debug }}</div>
-                            {% endif %}
                             {% if event.best_lap or event.inc or event.result_link %}
                             <div style="font-size: 0.8rem; margin-top: 5px; color: var(--rdf-silver);">
                                 {% if event.best_lap %}
@@ -621,7 +617,7 @@
                                 {% endif %}
                                 {% if event.result_link %}
                                 <a href="/results/view/{{ event.result_link }}" style="color: var(--rdf-teal); text-decoration: none; border-bottom: 1px dotted var(--rdf-teal);">
-                                    Details <i class="fas fa-arrow-right" style="font-size: 0.7em;"></i>
+                                    Zum Rennergebnis <i class="fas fa-arrow-right" style="font-size: 0.7em;"></i>
                                 </a>
                                 {% endif %}
                             </div>
