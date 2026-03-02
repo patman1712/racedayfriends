@@ -994,7 +994,11 @@ def boxengasse_result_detail(filename):
                                 'laps': d.get('laps_complete', 0),
                                 'best_lap': format_time(d.get('best_lap_time', 0)),
                                 'avg_lap': format_time(d.get('average_lap', 0)),
-                                'inc': d.get('incidents', 0)
+                                'inc': d.get('incidents', 0),
+                                'irating': d.get('oldi_rating', 0),
+                                'new_irating': d.get('newi_rating', 0),
+                                'sr': d.get('old_safety_rating', 0),
+                                'new_sr': d.get('new_safety_rating', 0)
                             })
                     
                     class_results[cid]['drivers'].append({

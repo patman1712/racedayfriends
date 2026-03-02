@@ -57,7 +57,12 @@
                             </td>
                             <td style="padding: 10px 15px; color: var(--rdf-teal); font-family: monospace;">{{ row.car_number }}</td>
                             <td style="padding: 10px 15px;">
-                                <div style="font-weight: bold; color: white;">{{ row.name }}</div>
+                                <div style="font-weight: bold; color: white; cursor: pointer;" onclick="toggleDrivers('{{ loop.index }}-{{ class.id }}')">
+                                    {{ row.name }}
+                                    {% if row.team_drivers_detailed %}
+                                    <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px; color: var(--rdf-teal);"></i>
+                                    {% endif %}
+                                </div>
                                 {% if row.club %}
                                 <div style="font-size: 0.75rem; color: #4b5563;">{{ row.club }}</div>
                                 {% endif %}
@@ -79,21 +84,50 @@
                         </tr>
                         <!-- Driver Details Sub-Rows -->
                         {% if row.team_drivers_detailed %}
-                            {% for d in row.team_drivers_detailed %}
-                            <tr style="background: rgba(0,0,0,0.2); font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.02);">
-                                <td></td>
-                                <td></td>
-                                <td style="padding: 8px 15px 8px 30px; color: #9ca3af;">
-                                    <i class="fas fa-angle-right" style="font-size: 0.7rem; margin-right: 5px; color: var(--rdf-teal);"></i> {{ d.name }}
+                            <tr id="drivers-{{ loop.index }}-{{ class.id }}" style="display: none; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td colspan="9" style="padding: 10px;">
+                                    <table style="width: 100%; font-size: 0.8rem; color: #9ca3af;">
+                                        <thead>
+                                            <tr style="text-align: left; color: var(--rdf-teal);">
+                                                <th style="padding: 5px 10px;">Fahrer</th>
+                                                <th style="padding: 5px 10px; text-align: center;">Runden</th>
+                                                <th style="padding: 5px 10px; text-align: right;">Bestzeit</th>
+                                                <th style="padding: 5px 10px; text-align: right;">Ø Zeit</th>
+                                                <th style="padding: 5px 10px; text-align: center;">Inc</th>
+                                                <th style="padding: 5px 10px; text-align: right;">iRating</th>
+                                                <th style="padding: 5px 10px; text-align: right;">SR</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for d in row.team_drivers_detailed %}
+                                            <tr>
+                                                <td style="padding: 5px 10px;">{{ d.name }}</td>
+                                                <td style="padding: 5px 10px; text-align: center;">{{ d.laps }}</td>
+                                                <td style="padding: 5px 10px; text-align: right; font-family: monospace;">{{ d.best_lap }}</td>
+                                                <td style="padding: 5px 10px; text-align: right; font-family: monospace;">{{ d.avg_lap }}</td>
+                                                <td style="padding: 5px 10px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ d.inc }}</td>
+                                                <td style="padding: 5px 10px; text-align: right;">
+                                                    {{ d.irating }} 
+                                                    {% if d.new_irating != 0 and d.new_irating != d.irating %}
+                                                        <span style="font-size: 0.7rem; color: {% if d.new_irating > d.irating %}#10b981{% else %}#ef4444{% endif %};">
+                                                            ({% if d.new_irating > d.irating %}+{% endif %}{{ d.new_irating - d.irating }})
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td style="padding: 5px 10px; text-align: right;">
+                                                    {{ d.sr }} 
+                                                    {% if d.new_sr != 0 and d.new_sr != d.sr %}
+                                                        <span style="font-size: 0.7rem; color: {% if d.new_sr > d.sr %}#10b981{% else %}#ef4444{% endif %};">
+                                                            ({% if d.new_sr > d.sr %}+{% endif %}{{ "%.2f"|format(d.new_sr - d.sr) }})
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </td>
-                                <td></td>
-                                <td style="padding: 8px 15px; text-align: center; color: #9ca3af;">{{ d.laps }}</td>
-                                <td></td>
-                                <td style="padding: 8px 15px; text-align: right; color: #9ca3af; font-family: monospace;">{{ d.best_lap }}</td>
-                                <td style="padding: 8px 15px; text-align: right; color: #9ca3af; font-family: monospace;">{{ d.avg_lap }}</td>
-                                <td style="padding: 8px 15px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ d.inc }}</td>
                             </tr>
-                            {% endfor %}
                         {% endif %}
                         {% endfor %}
                     </tbody>
@@ -134,7 +168,12 @@
                             </td>
                             <td style="padding: 10px 15px; color: var(--rdf-teal); font-family: monospace;">{{ row.car_number }}</td>
                             <td style="padding: 10px 15px;">
-                                <div style="font-weight: bold; color: white;">{{ row.name }}</div>
+                                <div style="font-weight: bold; color: white; cursor: pointer;" onclick="toggleDrivers('all-{{ loop.index }}-{{ class.id }}')">
+                                    {{ row.name }}
+                                    {% if row.team_drivers_detailed %}
+                                    <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px; color: var(--rdf-teal);"></i>
+                                    {% endif %}
+                                </div>
                                 {% if row.club %}
                                 <div style="font-size: 0.75rem; color: #4b5563;">{{ row.club }}</div>
                                 {% endif %}
@@ -156,21 +195,50 @@
                         </tr>
                         <!-- Driver Details Sub-Rows -->
                         {% if row.team_drivers_detailed %}
-                            {% for d in row.team_drivers_detailed %}
-                            <tr style="background: rgba(0,0,0,0.2); font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.02);">
-                                <td></td>
-                                <td></td>
-                                <td style="padding: 8px 15px 8px 30px; color: #9ca3af;">
-                                    <i class="fas fa-angle-right" style="font-size: 0.7rem; margin-right: 5px; color: var(--rdf-teal);"></i> {{ d.name }}
+                            <tr id="drivers-all-{{ loop.index }}-{{ class.id }}" style="display: none; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td colspan="9" style="padding: 10px;">
+                                    <table style="width: 100%; font-size: 0.8rem; color: #9ca3af;">
+                                        <thead>
+                                            <tr style="text-align: left; color: var(--rdf-teal);">
+                                                <th style="padding: 5px 10px;">Fahrer</th>
+                                                <th style="padding: 5px 10px; text-align: center;">Runden</th>
+                                                <th style="padding: 5px 10px; text-align: right;">Bestzeit</th>
+                                                <th style="padding: 5px 10px; text-align: right;">Ø Zeit</th>
+                                                <th style="padding: 5px 10px; text-align: center;">Inc</th>
+                                                <th style="padding: 5px 10px; text-align: right;">iRating</th>
+                                                <th style="padding: 5px 10px; text-align: right;">SR</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for d in row.team_drivers_detailed %}
+                                            <tr>
+                                                <td style="padding: 5px 10px;">{{ d.name }}</td>
+                                                <td style="padding: 5px 10px; text-align: center;">{{ d.laps }}</td>
+                                                <td style="padding: 5px 10px; text-align: right; font-family: monospace;">{{ d.best_lap }}</td>
+                                                <td style="padding: 5px 10px; text-align: right; font-family: monospace;">{{ d.avg_lap }}</td>
+                                                <td style="padding: 5px 10px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ d.inc }}</td>
+                                                <td style="padding: 5px 10px; text-align: right;">
+                                                    {{ d.irating }} 
+                                                    {% if d.new_irating != 0 and d.new_irating != d.irating %}
+                                                        <span style="font-size: 0.7rem; color: {% if d.new_irating > d.irating %}#10b981{% else %}#ef4444{% endif %};">
+                                                            ({% if d.new_irating > d.irating %}+{% endif %}{{ d.new_irating - d.irating }})
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td style="padding: 5px 10px; text-align: right;">
+                                                    {{ d.sr }} 
+                                                    {% if d.new_sr != 0 and d.new_sr != d.sr %}
+                                                        <span style="font-size: 0.7rem; color: {% if d.new_sr > d.sr %}#10b981{% else %}#ef4444{% endif %};">
+                                                            ({% if d.new_sr > d.sr %}+{% endif %}{{ "%.2f"|format(d.new_sr - d.sr) }})
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </td>
-                                <td></td>
-                                <td style="padding: 8px 15px; text-align: center; color: #9ca3af;">{{ d.laps }}</td>
-                                <td></td>
-                                <td style="padding: 8px 15px; text-align: right; color: #9ca3af; font-family: monospace;">{{ d.best_lap }}</td>
-                                <td style="padding: 8px 15px; text-align: right; color: #9ca3af; font-family: monospace;">{{ d.avg_lap }}</td>
-                                <td style="padding: 8px 15px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ d.inc }}</td>
                             </tr>
-                            {% endfor %}
                         {% endif %}
                         {% endfor %}
                     </tbody>
@@ -203,6 +271,17 @@
             evt.currentTarget.className += " active";
             evt.currentTarget.style.color = "white";
             evt.currentTarget.style.borderBottom = "2px solid var(--rdf-teal)";
+        }
+        
+        function toggleDrivers(id) {
+            var row = document.getElementById('drivers-' + id);
+            if (row) {
+                if (row.style.display === 'none') {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
         }
     </script>
 </div>
