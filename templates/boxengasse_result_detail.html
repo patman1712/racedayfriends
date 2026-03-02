@@ -57,14 +57,7 @@
                             </td>
                             <td style="padding: 10px 15px; color: var(--rdf-teal); font-family: monospace;">{{ row.car_number }}</td>
                             <td style="padding: 10px 15px;">
-                                <a href="/boxengasse/result/{{ filename }}/driver/{{ row.id }}" style="text-decoration: none;">
-                                    <div style="font-weight: bold; color: white;">{{ row.name }}</div>
-                                </a>
-                                {% if row.team_drivers %}
-                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">
-                                    <i class="fas fa-users"></i> {{ row.team_drivers|join(', ') }}
-                                </div>
-                                {% endif %}
+                                <div style="font-weight: bold; color: white;">{{ row.name }}</div>
                                 {% if row.club %}
                                 <div style="font-size: 0.75rem; color: #4b5563;">{{ row.club }}</div>
                                 {% endif %}
@@ -84,6 +77,24 @@
                                 {{ row.inc }}
                             </td>
                         </tr>
+                        <!-- Driver Details Sub-Rows -->
+                        {% if row.team_drivers_detailed %}
+                            {% for d in row.team_drivers_detailed %}
+                            <tr style="background: rgba(0,0,0,0.2); font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.02);">
+                                <td></td>
+                                <td></td>
+                                <td style="padding: 8px 15px 8px 30px; color: #9ca3af;">
+                                    <i class="fas fa-angle-right" style="font-size: 0.7rem; margin-right: 5px; color: var(--rdf-teal);"></i> {{ d.name }}
+                                </td>
+                                <td></td>
+                                <td style="padding: 8px 15px; text-align: center; color: #9ca3af;">{{ d.laps }}</td>
+                                <td></td>
+                                <td style="padding: 8px 15px; text-align: right; color: #9ca3af; font-family: monospace;">{{ d.best_lap }}</td>
+                                <td style="padding: 8px 15px; text-align: right; color: #9ca3af; font-family: monospace;">{{ d.avg_lap }}</td>
+                                <td style="padding: 8px 15px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ d.inc }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -123,14 +134,7 @@
                             </td>
                             <td style="padding: 10px 15px; color: var(--rdf-teal); font-family: monospace;">{{ row.car_number }}</td>
                             <td style="padding: 10px 15px;">
-                                <a href="/boxengasse/result/{{ filename }}/driver/{{ row.id }}" style="text-decoration: none;">
-                                    <div style="font-weight: bold; color: white;">{{ row.name }}</div>
-                                </a>
-                                {% if row.team_drivers %}
-                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">
-                                    <i class="fas fa-users"></i> {{ row.team_drivers|join(', ') }}
-                                </div>
-                                {% endif %}
+                                <div style="font-weight: bold; color: white;">{{ row.name }}</div>
                                 {% if row.club %}
                                 <div style="font-size: 0.75rem; color: #4b5563;">{{ row.club }}</div>
                                 {% endif %}
@@ -150,6 +154,24 @@
                                 {{ row.inc }}
                             </td>
                         </tr>
+                        <!-- Driver Details Sub-Rows -->
+                        {% if row.team_drivers_detailed %}
+                            {% for d in row.team_drivers_detailed %}
+                            <tr style="background: rgba(0,0,0,0.2); font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.02);">
+                                <td></td>
+                                <td></td>
+                                <td style="padding: 8px 15px 8px 30px; color: #9ca3af;">
+                                    <i class="fas fa-angle-right" style="font-size: 0.7rem; margin-right: 5px; color: var(--rdf-teal);"></i> {{ d.name }}
+                                </td>
+                                <td></td>
+                                <td style="padding: 8px 15px; text-align: center; color: #9ca3af;">{{ d.laps }}</td>
+                                <td></td>
+                                <td style="padding: 8px 15px; text-align: right; color: #9ca3af; font-family: monospace;">{{ d.best_lap }}</td>
+                                <td style="padding: 8px 15px; text-align: right; color: #9ca3af; font-family: monospace;">{{ d.avg_lap }}</td>
+                                <td style="padding: 8px 15px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ d.inc }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>

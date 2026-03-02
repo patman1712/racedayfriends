@@ -972,13 +972,30 @@ def boxengasse_result_detail(filename):
                         rem_seconds = seconds % 60
                         avg_lap_str = f"{minutes}:{rem_seconds:06.3f}"
 
+                    # Helper for time formatting
+                    def format_time(val):
+                        if val <= 0: return "-"
+                        seconds = val / 10000
+                        minutes = int(seconds // 60)
+                        rem_seconds = seconds % 60
+                        return f"{minutes}:{rem_seconds:06.3f}"
+
                     # Driver Name(s)
                     driver_name = entry.get('display_name')
                     # Team Drivers
                     team_drivers = []
+                    team_drivers_detailed = []
+                    
                     if entry.get('driver_results'):
                         for d in entry.get('driver_results'):
                             team_drivers.append(d.get('display_name'))
+                            team_drivers_detailed.append({
+                                'name': d.get('display_name'),
+                                'laps': d.get('laps_complete', 0),
+                                'best_lap': format_time(d.get('best_lap_time', 0)),
+                                'avg_lap': format_time(d.get('average_lap', 0)),
+                                'inc': d.get('incidents', 0)
+                            })
                     
                     class_results[cid]['drivers'].append({
                         'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1) + 1, # 0-indexed usually
@@ -986,6 +1003,7 @@ def boxengasse_result_detail(filename):
                         'car_number': entry.get('livery', {}).get('car_number', '#'),
                         'name': driver_name,
                         'team_drivers': team_drivers,
+                        'team_drivers_detailed': team_drivers_detailed,
                         'laps': laps_complete,
                         'gap_raw': class_interval, # for sorting/calc
                         'best_lap': best_lap_str,
