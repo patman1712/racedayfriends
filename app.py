@@ -2749,6 +2749,11 @@ def driver_detail(driver_id):
     d_id_str = str(driver_id)
     d_id_int = int(driver_id) if str(driver_id).isdigit() else None
     
+    # Determine the ID to search for in result files (prefer iRacing ID)
+    search_id_str = d_id_str
+    if driver.get('iracing_id'):
+        search_id_str = str(driver.get('iracing_id'))
+    
     driver_events = []
     for e in events:
         d_ids = e.get('drivers', [])
@@ -2783,7 +2788,7 @@ def driver_detail(driver_id):
                             for r in race_session.get('results', []):
                                 scanned_teams += 1
                                 # 1. Single Driver Match (ID)
-                                if str(r.get('cust_id')) == d_id_str:
+                                if str(r.get('cust_id')) == search_id_str:
                                     d_res = r
                                     e['debug'] = "Found via Single ID"
                                     break
@@ -2792,7 +2797,7 @@ def driver_detail(driver_id):
                                 if 'driver_results' in r:
                                     for team_driver in r.get('driver_results', []):
                                         scanned_drivers += 1
-                                        if str(team_driver.get('cust_id')) == d_id_str:
+                                        if str(team_driver.get('cust_id')) == search_id_str:
                                             # Found driver in team!
                                             # We need to COMBINE team info (Position) with Driver Info (Incidents, Laps)
                                             d_res = r.copy() # Copy team result
@@ -2842,7 +2847,7 @@ def driver_detail(driver_id):
                                 else:
                                     dr_info = " | No driver_results key"
 
-                                e['debug'] = f"Search: {d_id_str} | Scanned: {scanned_teams} Teams, {scanned_drivers} Drivers | Not found. Keys: {','.join(keys)}{dr_info}"
+                                e['debug'] = f"Search: {search_id_str} (Internal: {d_id_str}) | Scanned: {scanned_teams} Teams, {scanned_drivers} Drivers | Not found. Keys: {','.join(keys)}{dr_info}"
                         else:
                             e['debug'] = "No Race session found"
                     except Exception as ex: 

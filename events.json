@@ -46,7 +46,7 @@
         "twitch": "",
         "description": "Letztes Rennen der Saison",
         "result": "P8",
-        "result_file": "iec_imola_result.json",
+        "result_file": "eventresult-83916242.json",
         "drivers": [
             "1771591892",
             "1771594254"
