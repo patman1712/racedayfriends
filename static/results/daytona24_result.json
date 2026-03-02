@@ -1,0 +1,27 @@
+{
+    "data": {
+        "track": {"track_name": "Daytona International Speedway", "config_name": "Road Course"},
+        "start_time": "2026-01-20T14:00:00Z",
+        "series_name": "IMSA Endurance Series",
+        "session_results": [
+            {
+                "simsession_type_name": "Race",
+                "results": [
+                    {
+                        "cust_id": 1771591892,
+                        "display_name": "Patrick Scheiber",
+                        "finish_position": 4,
+                        "finish_position_in_class": 4,
+                        "car_class_short_name": "GTP",
+                        "livery": {"car_number": "21"},
+                        "laps_complete": 820,
+                        "incidents": 4,
+                        "best_lap_time": 951234,
+                        "average_lap": 962000,
+                        "car_name": "BMW M Hybrid V8"
+                    }
+                ]
+            }
+        ]
+    }
+}

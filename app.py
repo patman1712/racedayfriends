@@ -2733,6 +2733,7 @@ def driver_detail(driver_id):
                              res_data = json.load(f)
                              sessions = res_data.get('data', {}).get('session_results', [])
                              race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
+                             
                              if race_session:
                                  # Find driver
                                  d_res = next((r for r in race_session.get('results', []) if str(r.get('cust_id')) == d_id_str), None)
@@ -2751,7 +2752,8 @@ def driver_detail(driver_id):
                                      e['best_lap'] = format_time(d_res.get('best_lap_time', 0))
                                      e['inc'] = d_res.get('incidents', 0)
                                      e['result_link'] = e['result_file']
-                     except: pass
+                     except Exception: 
+                        pass
 
             driver_events.append(e)
             
