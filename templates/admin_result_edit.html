@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="color: white;">Ergebnis bearbeiten: <span style="color: var(--rdf-teal); font-family: monospace; font-size: 0.8em;">{{ filename }}</span></h1>
+        <div>
+            <a href="/admin/results" class="btn-secondary" style="margin-right: 10px;">Abbrechen</a>
+            <button onclick="document.getElementById('editForm').submit()" class="btn-primary"><i class="fas fa-save"></i> Speichern</button>
+        </div>
+    </div>
+
+    {% if error %}
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+        <strong>Fehler beim Speichern:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <div style="background: #0B1829; padding: 20px; border-radius: 8px; border: 1px solid var(--rdf-border);">
+        <p style="color: var(--rdf-silver); margin-bottom: 10px; font-size: 0.9rem;">
+            <i class="fas fa-exclamation-triangle" style="color: orange;"></i> <strong>Vorsicht:</strong> Änderungen hier wirken sich sofort auf die Darstellung aus. Ein Backup (.bak) wird beim Speichern automatisch erstellt.<br>
+            Nutze STRG+F (oder CMD+F) um nach Fahrern zu suchen.
+        </p>
+        <form id="editForm" action="/admin/results/save/{{ filename }}" method="post">
+            <textarea name="content" style="width: 100%; height: 600px; background: #15273d; color: #e2e8f0; font-family: monospace; border: 1px solid var(--rdf-border); padding: 15px; border-radius: 4px; line-height: 1.4; tab-size: 2; white-space: pre;" spellcheck="false">{{ content }}</textarea>
+        </form>
+    </div>
+</div>
+{% endblock %}

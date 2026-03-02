@@ -1,56 +1,65 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container" style="padding-top: 120px; max-width: 1200px;">
-    <h1 class="section-title">Ergebnisse verwalten</h1>
-    
-    <div class="card" style="margin-bottom: 30px;">
-        <div class="card-header">
-            <h3>Neues Ergebnis hochladen</h3>
-        </div>
-        <div class="card-body">
-            <form action="/admin/results/upload" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center;">
-                <input type="file" name="result_file" accept=".json" required class="form-control" style="background: #0B1829; border: 1px solid var(--rdf-border); color: white; padding: 10px;">
-                <button type="submit" class="btn-primary" style="white-space: nowrap;">Hochladen</button>
-            </form>
-            <p style="color: var(--rdf-silver); font-size: 0.8rem; margin-top: 10px;">Bitte lade die iRacing Result JSON Datei hoch (z.B. eventresult-12345.json).</p>
-        </div>
+<div class="container" style="padding-top: 120px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <h1 style="color: white;"><i class="fas fa-flag-checkered" style="color: var(--rdf-teal); margin-right: 15px;"></i>Ergebnis-Verwaltung</h1>
+        <a href="/admin" class="btn-secondary"><i class="fas fa-arrow-left"></i> Zurück</a>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h3>Vorhandene Ergebnisse</h3>
-        </div>
-        <div class="card-body">
-            {% if results %}
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--rdf-border); text-align: left; color: var(--rdf-silver);">
-                        <th style="padding: 10px;">Datum</th>
-                        <th style="padding: 10px;">Titel</th>
-                        <th style="padding: 10px;">Dateiname</th>
-                        <th style="padding: 10px; text-align: right;">Aktionen</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for res in results %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <td style="padding: 15px 10px; color: white;">{{ res.date }}</td>
-                        <td style="padding: 15px 10px; font-weight: bold; color: var(--rdf-teal);">{{ res.title }}</td>
-                        <td style="padding: 15px 10px; color: var(--rdf-silver); font-family: monospace; font-size: 0.8rem;">{{ res.filename }}</td>
-                        <td style="padding: 15px 10px; text-align: right;">
-                            <a href="/results/view/{{ res.filename }}" target="_blank" class="btn-primary" style="background: #3b82f6; font-size: 0.8rem; padding: 5px 10px; text-decoration: none; margin-right: 5px;"><i class="fas fa-eye"></i></a>
-                            <a href="/admin/results/edit/{{ res.filename }}" class="btn-primary" style="background: #f59e0b; font-size: 0.8rem; padding: 5px 10px; text-decoration: none; margin-right: 5px;"><i class="fas fa-edit"></i></a>
-                            <a href="/admin/results/delete/{{ res.filename }}" class="btn-primary" style="background: #ef4444; font-size: 0.8rem; padding: 5px 10px; text-decoration: none;" onclick="return confirm('Ergebnis wirklich löschen?');"><i class="fas fa-trash"></i></a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p style="text-align: center; color: var(--rdf-silver);">Keine Ergebnisse vorhanden.</p>
-            {% endif %}
-        </div>
+    <!-- Feedback Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="margin-bottom: 30px; padding: 15px; background: {% if category == 'error' %}rgba(239, 68, 68, 0.1){% else %}rgba(79, 209, 197, 0.1){% endif %}; border-left: 4px solid {% if category == 'error' %}#ef4444{% else %}var(--rdf-teal){% endif %}; color: white;">
+              {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Upload Box -->
+    <div style="background: #0B1829; padding: 20px; border-radius: 8px; border: 1px solid var(--rdf-border); margin-bottom: 30px;">
+        <h3 style="color: white; margin-bottom: 15px;">Neues Ergebnis hochladen</h3>
+        <form action="/admin/results/upload" method="post" enctype="multipart/form-data" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="file" name="result_file" accept=".json" required style="color: white; flex-grow: 1; padding: 10px; background: #15273d; border: 1px solid var(--rdf-border); border-radius: 4px;">
+            <button type="submit" class="btn-primary"><i class="fas fa-upload"></i> Hochladen</button>
+        </form>
+        <p style="color: var(--rdf-silver); font-size: 0.8rem; margin-top: 10px;">
+            <i class="fas fa-info-circle"></i> Wenn eine Datei mit demselben Namen existiert, wird sie überschrieben. Dies ist nützlich, um korrigierte Ergebnisse hochzuladen.
+        </p>
+    </div>
+
+    <!-- File List -->
+    <div style="background: #0B1829; border-radius: 8px; border: 1px solid var(--rdf-border); overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #15273d; border-bottom: 1px solid var(--rdf-border);">
+                    <th style="padding: 15px; text-align: left; color: var(--rdf-teal);">Dateiname</th>
+                    <th style="padding: 15px; text-align: left; color: var(--rdf-silver);">Datum</th>
+                    <th style="padding: 15px; text-align: left; color: var(--rdf-silver);">Größe</th>
+                    <th style="padding: 15px; text-align: right; color: var(--rdf-silver);">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in results %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 15px; color: white; font-family: monospace;">{{ res.filename }}</td>
+                    <td style="padding: 15px; color: var(--rdf-silver);">{{ res.date }}</td>
+                    <td style="padding: 15px; color: var(--rdf-silver);">{{ res.size }}</td>
+                    <td style="padding: 15px; text-align: right;">
+                        <a href="/results/view/{{ res.filename }}" target="_blank" class="btn-secondary" style="padding: 5px 10px; font-size: 0.8rem; margin-right: 5px;" title="Ansehen"><i class="fas fa-eye"></i></a>
+                        <a href="/admin/results/edit/{{ res.filename }}" class="btn-primary" style="padding: 5px 10px; font-size: 0.8rem; margin-right: 5px; background: #3b82f6;" title="Bearbeiten"><i class="fas fa-edit"></i></a>
+                        <a href="/admin/results/delete/{{ res.filename }}" class="btn-primary" style="padding: 5px 10px; font-size: 0.8rem; background: #ef4444;" title="Löschen" onclick="return confirm('Wirklich löschen?');"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="padding: 30px; text-align: center; color: var(--rdf-silver);">Keine Ergebnisse gefunden.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

@@ -2392,6 +2392,102 @@ def admin_news_delete(news_id):
     flash("News gelöscht.", "info")
     return redirect(url_for('admin_news'))
 
+@app.route('/admin/results')
+@login_required
+def admin_results():
+    results = []
+    if os.path.exists(app.config['RESULTS_FOLDER']):
+        for filename in os.listdir(app.config['RESULTS_FOLDER']):
+            if filename.endswith('.json'):
+                filepath = os.path.join(app.config['RESULTS_FOLDER'], filename)
+                try:
+                    size_kb = os.path.getsize(filepath) / 1024
+                    mod_time = datetime.fromtimestamp(os.path.getmtime(filepath)).strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    results.append({
+                        'filename': filename,
+                        'size': f"{size_kb:.1f} KB",
+                        'date': mod_time
+                    })
+                except Exception as e:
+                    print(f"Fehler bei Datei {filename}: {e}")
+    
+    # Sortieren nach Datum (neueste zuerst)
+    results.sort(key=lambda x: x['date'], reverse=True)
+    return render_template('admin_results.html', results=results)
+
+@app.route('/admin/results/upload', methods=['POST'])
+@login_required
+def admin_results_upload():
+    if 'result_file' not in request.files:
+        flash('Keine Datei ausgewählt', 'error')
+        return redirect(url_for('admin_results'))
+        
+    file = request.files['result_file']
+    if file.filename == '':
+        flash('Keine Datei ausgewählt', 'error')
+        return redirect(url_for('admin_results'))
+        
+    if file and file.filename.endswith('.json'):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['RESULTS_FOLDER'], filename)
+        file.save(filepath)
+        flash(f'Datei {filename} erfolgreich hochgeladen', 'success')
+    else:
+        flash('Nur .json Dateien erlaubt', 'error')
+        
+    return redirect(url_for('admin_results'))
+
+@app.route('/admin/results/edit/<filename>')
+@login_required
+def admin_results_edit(filename):
+    filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
+    if not os.path.exists(filepath):
+        flash('Datei nicht gefunden', 'error')
+        return redirect(url_for('admin_results'))
+        
+    with open(filepath, 'r') as f:
+        content = f.read()
+        
+    return render_template('admin_result_edit.html', filename=filename, content=content)
+
+@app.route('/admin/results/save/<filename>', methods=['POST'])
+@login_required
+def admin_results_save(filename):
+    filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
+    content = request.form.get('content')
+    
+    try:
+        # Validierung: Ist es valides JSON?
+        json.loads(content)
+        
+        # Backup erstellen (Sicherheit)
+        if os.path.exists(filepath):
+            backup_path = filepath + ".bak"
+            import shutil
+            shutil.copy2(filepath, backup_path)
+            
+        with open(filepath, 'w') as f:
+            f.write(content)
+            
+        flash('Datei erfolgreich gespeichert (Backup wurde erstellt)', 'success')
+    except json.JSONDecodeError as e:
+        flash(f'Fehler: Ungültiges JSON! ({str(e)})', 'error')
+        return render_template('admin_result_edit.html', filename=filename, content=content, error=str(e))
+        
+    return redirect(url_for('admin_results'))
+
+@app.route('/admin/results/delete/<filename>')
+@login_required
+def admin_results_delete(filename):
+    filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        flash(f'Datei {filename} gelöscht', 'success')
+    else:
+        flash('Datei nicht gefunden', 'error')
+    return redirect(url_for('admin_results'))
+
 @app.route('/admin/debug_iracing')
 def debug_iracing():
     if not session.get('admin_logged_in'):
