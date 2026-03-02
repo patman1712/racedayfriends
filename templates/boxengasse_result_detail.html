@@ -73,13 +73,13 @@
                                 {{ row.overall_gap }}
                             </td>
                             <td style="padding: 10px 15px; text-align: right; color: #10b981; font-family: monospace;">
-                                {{ row.best_lap }}
+                                <i class="fas fa-stopwatch" style="margin-right: 5px;"></i>{{ row.best_lap }}
                             </td>
                             <td style="padding: 10px 15px; text-align: right; color: #6b7280; font-family: monospace;">
                                 {{ row.avg_lap }}
                             </td>
                             <td style="padding: 10px 15px; text-align: center; color: {% if row.inc == 0 %}#10b981{% elif row.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">
-                                {{ row.inc }}
+                                <i class="fas fa-exclamation-triangle" style="margin-right: 2px;"></i>{{ row.inc }}x
                             </td>
                         </tr>
                         <!-- Driver Details Sub-Rows -->
@@ -103,9 +103,9 @@
                                             <tr>
                                                 <td style="padding: 5px 10px;">{{ d.name }}</td>
                                                 <td style="padding: 5px 10px; text-align: center;">{{ d.laps }}</td>
-                                                <td style="padding: 5px 10px; text-align: right; font-family: monospace;">{{ d.best_lap }}</td>
+                                                <td style="padding: 5px 10px; text-align: right; font-family: monospace;"><i class="fas fa-stopwatch" style="margin-right: 5px;"></i>{{ d.best_lap }}</td>
                                                 <td style="padding: 5px 10px; text-align: right; font-family: monospace;">{{ d.avg_lap }}</td>
-                                                <td style="padding: 5px 10px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ d.inc }}</td>
+                                                <td style="padding: 5px 10px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};"><i class="fas fa-exclamation-triangle" style="margin-right: 2px;"></i>{{ d.inc }}x</td>
                                                 <td style="padding: 5px 10px; text-align: right;">
                                                     {{ d.irating }} 
                                                     {% if d.new_irating != 0 and d.new_irating != d.irating %}
@@ -183,13 +183,13 @@
                                 {{ row.gap }}
                             </td>
                             <td style="padding: 10px 15px; text-align: right; color: #10b981; font-family: monospace;">
-                                {{ row.best_lap }}
+                                <i class="fas fa-stopwatch" style="margin-right: 5px;"></i>{{ row.best_lap }}
                             </td>
                             <td style="padding: 10px 15px; text-align: right; color: #6b7280; font-family: monospace;">
                                 {{ row.avg_lap }}
                             </td>
                             <td style="padding: 10px 15px; text-align: center; color: {% if row.inc == 0 %}#10b981{% elif row.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">
-                                {{ row.inc }}
+                                <i class="fas fa-exclamation-triangle" style="margin-right: 2px;"></i>{{ row.inc }}x
                             </td>
                         </tr>
                         <!-- Driver Details Sub-Rows -->
@@ -213,9 +213,9 @@
                                             <tr>
                                                 <td style="padding: 5px 10px;">{{ d.name }}</td>
                                                 <td style="padding: 5px 10px; text-align: center;">{{ d.laps }}</td>
-                                                <td style="padding: 5px 10px; text-align: right; font-family: monospace;">{{ d.best_lap }}</td>
+                                                <td style="padding: 5px 10px; text-align: right; font-family: monospace;"><i class="fas fa-stopwatch" style="margin-right: 5px;"></i>{{ d.best_lap }}</td>
                                                 <td style="padding: 5px 10px; text-align: right; font-family: monospace;">{{ d.avg_lap }}</td>
-                                                <td style="padding: 5px 10px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ d.inc }}</td>
+                                                <td style="padding: 5px 10px; text-align: center; color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};"><i class="fas fa-exclamation-triangle" style="margin-right: 2px;"></i>{{ d.inc }}x</td>
                                                 <td style="padding: 5px 10px; text-align: right;">
                                                     {{ d.irating }} 
                                                     {% if d.new_irating != 0 and d.new_irating != d.irating %}
