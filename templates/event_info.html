@@ -355,31 +355,6 @@
     </div>
 </div>
 
-<!-- LINKED NEWS -->
-{% if linked_news %}
-<div style="width: 100%; padding: 60px 40px; background: #08121f;">
-    <div style="max-width: 1600px; margin: 0 auto;">
-        <h2 style="margin-bottom: 40px; text-transform: uppercase; letter-spacing: 1px; font-size: 2.5rem; text-align: center;">Event News</h2>
-        
-        <div class="news-grid">
-            {% for item in linked_news %}
-            <a href="{{ '/news/' + item.id if item.content else (item.link if item.link else '#') }}" class="news-card" style="background-image: url('{{ item.image_url }}');">
-                <div class="news-overlay"></div>
-                <div class="news-badge">
-                    <span class="news-cat">{{ item.category }}</span>
-                    <div class="news-title-row">
-                        <span class="news-title">{{ item.title }}</span>
-                        <i class="fas fa-arrow-right news-arrow"></i>
-                    </div>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<script>
     {% if not event.result and not is_past %}
     const raceDateStr = "{{ event.date }}";
     let raceDate;
