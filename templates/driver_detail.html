@@ -605,7 +605,24 @@
                         <td data-label="Event">{{ event.title }}</td>
                         <td data-label="Serie">{{ event.series or '-' }}</td>
                         <td data-label="Fahrzeug">{{ event.car_model or '-' }}</td>
-                        <td data-label="Ergebnis" class="res-badge">{{ event.result or '-' }}</td>
+                        <td data-label="Ergebnis">
+                            <span class="res-badge">{{ event.result or '-' }}</span>
+                            {% if event.best_lap or event.inc or event.result_link %}
+                            <div style="font-size: 0.8rem; margin-top: 5px; color: var(--rdf-silver);">
+                                {% if event.best_lap %}
+                                <span style="margin-right: 10px; color: #10b981; font-family: monospace;" title="Beste Runde"><i class="fas fa-stopwatch"></i> {{ event.best_lap }}</span>
+                                {% endif %}
+                                {% if event.inc is defined %}
+                                <span style="margin-right: 10px; color: {% if event.inc == 0 %}#10b981{% elif event.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %}; font-weight: bold;" title="Incidents"><i class="fas fa-exclamation-triangle"></i> {{ event.inc }}x</span>
+                                {% endif %}
+                                {% if event.result_link %}
+                                <a href="/results/view/{{ event.result_link }}" style="color: var(--rdf-teal); text-decoration: none; border-bottom: 1px dotted var(--rdf-teal);">
+                                    Details <i class="fas fa-arrow-right" style="font-size: 0.7em;"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 {% else %}

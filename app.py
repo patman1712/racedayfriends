@@ -540,6 +540,56 @@ def get_drivers_data():
                 driver_entry['last_race_pos'] = f"P{start} &rarr; P{finish}"
                 driver_entry['last_race_inc'] = last_race.get('incidents', 0)
                 
+                # Check for RDF Result Link
+                # We need to match this race with our stored results
+                # Criteria: Track Name AND Date (approximate)
+                meta = load_results_meta()
+                for filename, m in meta.items():
+                    # Simple matching: Track name must be in our result track name
+                    # AND Date string should match day
+                    
+                    # Convert our meta date to object if possible
+                    try:
+                        res_date = m.get('date', '') # Expect YYYY-MM-DD HH:MM
+                        res_dt = datetime.fromisoformat(res_date)
+                        
+                        # Compare dates (day level)
+                        if res_dt.date() == dt.date():
+                            # Compare track (loose match)
+                            t1 = driver_entry['last_race_track'].lower()
+                            t2 = m.get('track', '').lower()
+                            if t1 in t2 or t2 in t1:
+                                driver_entry['result_link'] = filename
+                                
+                                # If we have a link, try to get specific stats from that file for this driver
+                                # Optimization: Maybe load this on demand or cache it?
+                                # For now, let's peek into the file if it exists
+                                res_path = os.path.join(app.config['RESULTS_FOLDER'], filename)
+                                if os.path.exists(res_path):
+                                    try:
+                                        with open(res_path, 'r') as f:
+                                            res_data = json.load(f)
+                                            # ... (find driver in result logic similar to before)
+                                            sessions = res_data.get('data', {}).get('session_results', [])
+                                            race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
+                                            if race_session:
+                                                # Look for driver ID
+                                                d_res = next((r for r in race_session.get('results', []) if r.get('cust_id') == cust_id), None)
+                                                if d_res:
+                                                    # Found him!
+                                                    def format_time(val):
+                                                        if val <= 0: return "-"
+                                                        seconds = val / 10000
+                                                        minutes = int(seconds // 60)
+                                                        rem_seconds = seconds % 60
+                                                        return f"{minutes}:{rem_seconds:06.3f}"
+                                                        
+                                                    driver_entry['best_lap'] = format_time(d_res.get('best_lap_time', 0))
+                                                    driver_entry['inc'] = d_res.get('incidents', 0)
+                                    except: pass
+                                break
+                    except: pass
+                
         except Exception:
             pass
 
@@ -2647,86 +2697,69 @@ def team():
 
 @app.route('/driver/<driver_id>')
 def driver_detail(driver_id):
-    try:
-        # 1. Fahrer aus lokaler DB laden
-        drivers = load_drivers()
-        # Migration Check (falls noch alte IDs drin sind)
-        if drivers and isinstance(drivers[0], int):
-             drivers = [{"id": str(d), "iracing_id": str(d), "name": "Unknown"} for d in drivers]
-
-        # Fahrer suchen (ID ist jetzt String in JSON)
-        driver = next((d for d in drivers if str(d.get('id')) == str(driver_id)), None)
+    drivers = get_drivers_data()
+    # Driver ID can be string or int in JSON, so check both
+    driver = next((d for d in drivers if str(d['id']) == str(driver_id)), None)
+    
+    if not driver:
+        flash("Fahrer nicht gefunden.", "error")
+        return redirect(url_for('team'))
         
-        if not driver:
-            flash("Fahrer nicht gefunden", "error")
-            return redirect(url_for('team')) # Besser zur Team-Seite
-
-        # 2. iRacing Daten anreichern (optional)
-        client = get_client()
-        recent_races = []
-        # career_stats = [] # Nicht mehr benötigt
-
-        # Initiale Lizenz-Liste (leer)
-        driver['licenses'] = []
-
-        if client and driver.get('iracing_id'):
-            try:
-                ir_id = int(driver['iracing_id'])
-                
-                # Member Info für Lizenzen (könnte man auch entfernen, wenn nicht gewünscht)
-                # Aber wir lassen es drin falls wir es später brauchen
-                # member_resp = client.member(cust_id=ir_id) 
-                
-                # Recent Races
-                recent_resp = client.stats_member_recent_races(cust_id=ir_id)
-                if recent_resp and 'races' in recent_resp:
-                    for race in recent_resp['races'][:10]:
-                        raw_date = race['session_start_time']
-                        dt = datetime.fromisoformat(raw_date.replace('Z', '+00:00'))
-                        race['date_str'] = dt.strftime('%d.%m.%Y %H:%M')
-                        
-                        start = race.get('start_position', 0)
-                        finish = race.get('finish_position', 0)
-                        race['pos_diff'] = start - finish
-                        recent_races.append(race)
-
-            except Exception as e:
-                print(f"API Fehler für {driver.get('name')}: {e}")
-                # Wir machen weiter, zeigen halt keine Stats an
-
-        # 3. Events laden (wo der Fahrer dabei ist)
-        all_events = load_events()
-        now_iso = datetime.now().isoformat()
+    # Get upcoming and past events for this driver
+    events = load_events()
+    now = datetime.now().isoformat()
+    
+    # Filter by driver ID participation
+    d_id_str = str(driver_id)
+    d_id_int = int(driver_id) if str(driver_id).isdigit() else None
+    
+    driver_events = []
+    for e in events:
+        d_ids = e.get('drivers', [])
+        # Convert all to string for comparison
+        d_ids_str = [str(did) for did in d_ids]
         
-        upcoming_events = []
-        past_events = []
-        
-        for ev in all_events:
-            # Check ob Fahrer im Lineup (Strings vergleichen)
-            if str(driver_id) in ev.get('drivers', []):
-                if ev.get('date') and ev.get('date') > now_iso:
-                    upcoming_events.append(ev)
-                else:
-                    past_events.append(ev)
-        
-        # Sortieren
-        upcoming_events.sort(key=lambda x: x.get('date', ''))
-        past_events.sort(key=lambda x: x.get('date', ''), reverse=True) # Neueste zuerst
+        if d_id_str in d_ids_str:
+            # Add extra info if available (result link, stats)
+            # We need to enrich the event object with result data specifically for this driver
+            
+            # Check if event has a result file linked
+            if e.get('result_file'):
+                 # Try to load stats from that file
+                 res_path = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(e['result_file']))
+                 if os.path.exists(res_path):
+                     try:
+                         with open(res_path, 'r') as f:
+                             res_data = json.load(f)
+                             sessions = res_data.get('data', {}).get('session_results', [])
+                             race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
+                             if race_session:
+                                 # Find driver
+                                 d_res = next((r for r in race_session.get('results', []) if str(r.get('cust_id')) == d_id_str), None)
+                                 # If not found by ID, maybe by name? (less reliable)
+                                 if not d_res:
+                                     d_res = next((r for r in race_session.get('results', []) if r.get('display_name') == driver['name']), None)
+                                     
+                                 if d_res:
+                                     def format_time(val):
+                                            if val <= 0: return "-"
+                                            seconds = val / 10000
+                                            minutes = int(seconds // 60)
+                                            rem_seconds = seconds % 60
+                                            return f"{minutes}:{rem_seconds:06.3f}"
+                                     
+                                     e['best_lap'] = format_time(d_res.get('best_lap_time', 0))
+                                     e['inc'] = d_res.get('incidents', 0)
+                                     e['result_link'] = e['result_file']
+                     except: pass
 
-        # Alle Fahrer für die Navigation laden
-        all_drivers = sorted(drivers, key=lambda x: x.get('name', ''))
-
-        return render_template('driver_detail.html', 
-                             driver=driver, 
-                             upcoming_events=upcoming_events,
-                             past_events=past_events,
-                             all_drivers=all_drivers) # Neu übergeben
-
-    except Exception as e:
-        print(f"FEHLER in driver_detail: {e}")
-        import traceback
-        traceback.print_exc()
-        return f"<h1>Fehler beim Laden der Details:</h1><p>{e}</p>"
+            driver_events.append(e)
+            
+    upcoming_events = [e for e in driver_events if e.get('date') > now]
+    past_events = [e for e in driver_events if e.get('date') <= now]
+    past_events.sort(key=lambda x: x.get('date'), reverse=True) # Newest first
+    
+    return render_template('driver_detail.html', driver=driver, upcoming_events=upcoming_events, past_events=past_events)
 
 @app.route('/add', methods=['POST'])
 def add():
