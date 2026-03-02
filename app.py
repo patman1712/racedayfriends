@@ -2775,13 +2775,33 @@ def driver_detail(driver_id):
                             # Always set result link if file exists and has race session
                             e['result_link'] = e['result_file']
                             
-                            # Find driver
-                            # Try ID as string and int
-                            d_res = next((r for r in race_session.get('results', []) if str(r.get('cust_id')) == d_id_str), None)
+                            # Find driver (Single or Team Event)
+                            d_res = None
                             
-                            # If not found by ID, maybe by name? (less reliable)
+                            for r in race_session.get('results', []):
+                                # 1. Single Driver Match
+                                if str(r.get('cust_id')) == d_id_str:
+                                    d_res = r
+                                    e['debug'] = "Found via Single ID"
+                                    break
+                                
+                                # 2. Team Driver Match (search inside driver_results)
+                                if 'driver_results' in r:
+                                    for team_driver in r.get('driver_results', []):
+                                        if str(team_driver.get('cust_id')) == d_id_str:
+                                            # Found driver in team!
+                                            # We use the TEAM result for position
+                                            d_res = r 
+                                            # But we might want to override incidents with personal ones if available
+                                            # For now, let's just use the team entry
+                                            e['debug'] = "Found via Team ID"
+                                            break
+                                if d_res: break
+                                
+                            # If not found by ID, maybe by name? (less reliable, only top level)
                             if not d_res:
                                 d_res = next((r for r in race_session.get('results', []) if r.get('display_name') == driver['name']), None)
+                                if d_res: e['debug'] = "Found via Name"
                                 
                             if d_res:
                                 def format_time(val):
@@ -2794,13 +2814,11 @@ def driver_detail(driver_id):
                                 
                                 e['best_lap'] = format_time(d_res.get('best_lap_time', 0))
                                 e['inc'] = d_res.get('incidents', 0)
-                                # Debug info for template (in HTML comments)
-                                e['debug'] = "Found via ID/Name"
                             else:
-                                # Get list of available keys for first result to see structure
+                                # Debug info
                                 first_res = race_session.get('results', [])[0] if race_session.get('results') else {}
                                 keys = list(first_res.keys())
-                                e['debug'] = f"Driver {d_id_str} not found. Keys: {','.join(keys)} | IDs: {','.join([str(r.get('cust_id')) for r in race_session.get('results', [])[:3]])}"
+                                e['debug'] = f"Not found. Keys: {','.join(keys)}"
                         else:
                             e['debug'] = "No Race session found"
                     except Exception as ex: 
