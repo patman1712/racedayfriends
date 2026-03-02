@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; max-width: 800px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <a href="/boxengasse/result/{{ filename }}" style="color: var(--rdf-teal); font-weight: bold;">&larr; Zurück zum Ergebnis</a>
+    </div>
+
+    <div class="card" style="border-top: 4px solid var(--rdf-teal);">
+        <div class="card-header" style="text-align: center;">
+            <h1 style="margin-bottom: 5px;">{{ driver_name }}</h1>
+            <p style="color: var(--rdf-silver); margin: 0;">{{ stats.car }} #{{ stats.number }}</p>
+        </div>
+        
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;">
+                <div>
+                    <span style="display: block; color: var(--rdf-silver); font-size: 0.8rem;">Position (Gesamt)</span>
+                    <span style="font-size: 1.5rem; font-weight: bold; color: white;">P{{ stats.pos }}</span>
+                </div>
+                <div>
+                    <span style="display: block; color: var(--rdf-silver); font-size: 0.8rem;">Position (Klasse)</span>
+                    <span style="font-size: 1.5rem; font-weight: bold; color: var(--rdf-teal);">P{{ stats.class_pos }}</span>
+                </div>
+                <div>
+                    <span style="display: block; color: var(--rdf-silver); font-size: 0.8rem;">Incidents</span>
+                    <span style="font-size: 1.5rem; font-weight: bold; color: {% if stats.inc == 0 %}#10b981{% elif stats.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ stats.inc }}x</span>
+                </div>
+            </div>
+
+            <h3 style="color: var(--rdf-teal); margin-bottom: 20px;">Statistiken</h3>
+            
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <span style="display: block; color: var(--rdf-silver); font-size: 0.8rem;">Schnellste Runde</span>
+                    <span style="font-size: 1.2rem; font-family: monospace; color: #10b981;">{{ stats.best_lap }}</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <span style="display: block; color: var(--rdf-silver); font-size: 0.8rem;">Durchschnitt</span>
+                    <span style="font-size: 1.2rem; font-family: monospace; color: white;">{{ stats.avg_lap }}</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <span style="display: block; color: var(--rdf-silver); font-size: 0.8rem;">Runden gefahren</span>
+                    <span style="font-size: 1.2rem; color: white;">{{ stats.laps_completed }}</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <span style="display: block; color: var(--rdf-silver); font-size: 0.8rem;">Status</span>
+                    <span style="font-size: 1.2rem; color: {% if stats.reason_out == 'Running' %}#10b981{% else %}#ef4444{% endif %};">{{ stats.reason_out }}</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                    <span style="display: block; color: var(--rdf-silver); font-size: 0.8rem;">Champ Points</span>
+                    <span style="font-size: 1.2rem; color: #f59e0b;">{{ stats.champ_points }}</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: center;">
+                <p style="color: var(--rdf-silver); font-size: 0.8rem;">
+                    Event: {{ info.title }}<br>
+                    Datum: {{ info.date }} | Strecke: {{ info.track }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

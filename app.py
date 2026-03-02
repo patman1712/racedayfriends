@@ -1035,11 +1035,102 @@ def boxengasse_result_detail(filename):
             return render_template('boxengasse_result_detail.html', 
                                  info=result_info, 
                                  classes=sorted_classes,
-                                 filename=filename)
+                                 filename=filename,
+                                 meta=file_meta) # Pass meta for editing/viewing options
                                  
     except Exception as e:
         flash(f"Fehler beim Lesen der Datei: {e}", "error")
         return redirect(url_for('boxengasse_results'))
+
+@app.route('/boxengasse/result/<filename>/driver/<int:cust_id>')
+@driver_login_required
+def boxengasse_result_driver(filename, cust_id):
+    filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
+    if not os.path.exists(filepath):
+        flash("Ergebnisdatei nicht gefunden.", "error")
+        return redirect(url_for('boxengasse_results'))
+    
+    meta = load_results_meta()
+    file_meta = meta.get(filename, {})
+    
+    try:
+        with open(filepath, 'r') as f:
+            full_data = json.load(f)
+            data = full_data.get('data', {})
+            
+            # Basic Info
+            result_info = {
+                'track': file_meta.get('track') or data.get('track', {}).get('track_name'),
+                'config': data.get('track', {}).get('config_name'),
+                'series': file_meta.get('series') or data.get('series_name'),
+                'date': file_meta.get('date') or 'Unknown Date',
+                'title': file_meta.get('title') or f"{data.get('series_name')} @ {data.get('track', {}).get('track_name')}"
+            }
+            
+            # Find Race Session
+            sessions = data.get('session_results', [])
+            race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
+            
+            if not race_session:
+                flash("Keine Rennsession gefunden.", "error")
+                return redirect(url_for('boxengasse_result_detail', filename=filename))
+                
+            # Find Driver Result
+            driver_result = next((r for r in race_session.get('results', []) if r.get('cust_id') == cust_id), None)
+            
+            if not driver_result:
+                flash("Fahrer in diesem Ergebnis nicht gefunden.", "error")
+                return redirect(url_for('boxengasse_result_detail', filename=filename))
+                
+            # Helper for time formatting
+            def format_time(val):
+                if val <= 0: return "-"
+                seconds = val / 10000
+                minutes = int(seconds // 60)
+                rem_seconds = seconds % 60
+                return f"{minutes}:{rem_seconds:06.3f}"
+            
+            # Extract Laps
+            # Note: iRacing JSON sometimes has 'laps' array in the result object, 
+            # or we might need to look elsewhere.
+            # Usually it's NOT in the summary result. We need telemetry or full lap data.
+            # BUT: Many JSON exports include a separate 'laps' list or similar.
+            # Let's check the structure. Usually "session_results" -> "results" -> "laps" (array of lap objects)?
+            # NO, typically standard JSON export has minimal lap data.
+            # However, let's assume standard iRacing Result JSON structure.
+            
+            # WAIT: The provided JSON structure (from previous `cat`) showed "results" array.
+            # Does it have lap-by-lap data?
+            # Let's look at the structure again or assume it might not be there.
+            # If no lap data, we can only show summary.
+            
+            # Let's check if there is a global 'laps' array or per-driver.
+            # If not, we can only show what we have in `driver_result`.
+            
+            # Statistics from driver_result
+            stats = {
+                'pos': driver_result.get('finish_position', 0) + 1,
+                'class_pos': driver_result.get('finish_position_in_class', 0) + 1,
+                'car': driver_result.get('car_name', 'Unknown'),
+                'number': driver_result.get('livery', {}).get('car_number', '#'),
+                'laps_completed': driver_result.get('laps_complete', 0),
+                'inc': driver_result.get('incidents', 0),
+                'best_lap': format_time(driver_result.get('best_lap_time', 0)),
+                'avg_lap': format_time(driver_result.get('average_lap', 0)),
+                'qual_lap': format_time(driver_result.get('best_qual_lap_at', 0)), # might be 0 if no qual
+                'reason_out': driver_result.get('reason_out', 'Running'),
+                'champ_points': driver_result.get('champ_points', 0)
+            }
+            
+            return render_template('boxengasse_result_driver.html', 
+                                 info=result_info, 
+                                 stats=stats,
+                                 driver_name=driver_result.get('display_name'),
+                                 filename=filename)
+                                 
+    except Exception as e:
+        flash(f"Fehler: {e}", "error")
+        return redirect(url_for('boxengasse_result_detail', filename=filename))
 
 @app.route('/boxengasse/event/new', methods=['POST'])
 @driver_login_required
