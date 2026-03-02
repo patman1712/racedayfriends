@@ -2797,9 +2797,10 @@ def driver_detail(driver_id):
                                 # Debug info for template (in HTML comments)
                                 e['debug'] = "Found via ID/Name"
                             else:
-                                # Get list of IDs in result for debugging
-                                found_ids = [str(r.get('cust_id')) for r in race_session.get('results', [])]
-                                e['debug'] = f"Driver {d_id_str} not found. Available: {','.join(found_ids[:5])}..."
+                                # Get list of available keys for first result to see structure
+                                first_res = race_session.get('results', [])[0] if race_session.get('results') else {}
+                                keys = list(first_res.keys())
+                                e['debug'] = f"Driver {d_id_str} not found. Keys: {','.join(keys)} | IDs: {','.join([str(r.get('cust_id')) for r in race_session.get('results', [])[:3]])}"
                         else:
                             e['debug'] = "No Race session found"
                     except Exception as ex: 
