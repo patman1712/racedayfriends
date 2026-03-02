@@ -100,8 +100,10 @@ APPLICATIONS_FILE = os.path.join(BASE_DATA_DIR, 'applications.json')
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123") # Default Passwort
 
 UPLOAD_FOLDER = os.path.join(BASE_DATA_DIR, 'static/uploads')
+RESULTS_FOLDER = os.path.join(BASE_DATA_DIR, 'static/results')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 LOCAL_STATIC_UPLOADS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/uploads')
+LOCAL_STATIC_RESULTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/results')
 
 # Initialisierung der Daten
 def init_persistence():
@@ -114,20 +116,21 @@ def init_persistence():
         except OSError as e:
             print(f"Fehler beim Erstellen von {BASE_DATA_DIR}: {e}")
 
-    # 2. Upload Ordner im Persistenten Bereich erstellen
-    if not os.path.exists(UPLOAD_FOLDER):
-        try:
-            os.makedirs(UPLOAD_FOLDER)
-            print(f"Upload Ordner erstellt: {UPLOAD_FOLDER}")
-        except Exception as e:
-            print(f"Fehler beim Erstellen von {UPLOAD_FOLDER}: {e}")
+    # 2. Upload & Results Ordner im Persistenten Bereich erstellen
+    for folder in [UPLOAD_FOLDER, RESULTS_FOLDER]:
+        if not os.path.exists(folder):
+            try:
+                os.makedirs(folder)
+                print(f"Ordner erstellt: {folder}")
+            except Exception as e:
+                print(f"Fehler beim Erstellen von {folder}: {e}")
 
-    # 3. Symlink für Uploads
+    # 3. Symlink für Uploads & Results
+    # Uploads
     try:
         if os.path.abspath(LOCAL_STATIC_UPLOADS) != os.path.abspath(UPLOAD_FOLDER):
-            # Check ob Symlink schon existiert
             if os.path.islink(LOCAL_STATIC_UPLOADS):
-                print("Symlink existiert bereits.")
+                print("Symlink uploads existiert bereits.")
             elif os.path.exists(LOCAL_STATIC_UPLOADS):
                 print("Kopiere bestehende Uploads ins Volume...")
                 for item in os.listdir(LOCAL_STATIC_UPLOADS):
@@ -142,7 +145,28 @@ def init_persistence():
                 os.symlink(UPLOAD_FOLDER, LOCAL_STATIC_UPLOADS)
                 print(f"Symlink erstellt: {LOCAL_STATIC_UPLOADS} -> {UPLOAD_FOLDER}")
     except Exception as e:
-        print(f"Fehler beim Symlink Handling: {e}")
+        print(f"Fehler beim Symlink Handling (Uploads): {e}")
+
+    # Results
+    try:
+        if os.path.abspath(LOCAL_STATIC_RESULTS) != os.path.abspath(RESULTS_FOLDER):
+            if os.path.islink(LOCAL_STATIC_RESULTS):
+                print("Symlink results existiert bereits.")
+            elif os.path.exists(LOCAL_STATIC_RESULTS):
+                print("Kopiere bestehende Results ins Volume...")
+                for item in os.listdir(LOCAL_STATIC_RESULTS):
+                    s = os.path.join(LOCAL_STATIC_RESULTS, item)
+                    d = os.path.join(RESULTS_FOLDER, item)
+                    if os.path.isfile(s):
+                        shutil.copy2(s, d)
+                shutil.rmtree(LOCAL_STATIC_RESULTS)
+                print("Lokaler Results Ordner bereinigt.")
+            
+            if not os.path.exists(LOCAL_STATIC_RESULTS) and not os.path.islink(LOCAL_STATIC_RESULTS):
+                os.symlink(RESULTS_FOLDER, LOCAL_STATIC_RESULTS)
+                print(f"Symlink erstellt: {LOCAL_STATIC_RESULTS} -> {RESULTS_FOLDER}")
+    except Exception as e:
+        print(f"Fehler beim Symlink Handling (Results): {e}")
 
     # 4. JSON Dateien initialisieren
     for filename in ['drivers.json', 'site_config.json', 'cars.json', 'events.json', 'news.json', 'applications.json']:
@@ -166,6 +190,7 @@ def init_persistence():
 init_persistence()
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['RESULTS_FOLDER'] = RESULTS_FOLDER
 
 # iRacing Zugangsdaten
 IRACING_USER = os.getenv('IRACING_USERNAME', '')
@@ -681,6 +706,140 @@ def boxengasse():
                 my_events.append(e)
             
     return render_template('boxengasse.html', driver=current_driver, messages=messages, liveries=liveries, cars=cars, events=my_events, setups=setups)
+
+@app.route('/boxengasse/results')
+@driver_login_required
+def boxengasse_results():
+    results = []
+    if os.path.exists(app.config['RESULTS_FOLDER']):
+        for filename in os.listdir(app.config['RESULTS_FOLDER']):
+            if filename.endswith('.json'):
+                filepath = os.path.join(app.config['RESULTS_FOLDER'], filename)
+                try:
+                    with open(filepath, 'r') as f:
+                        data = json.load(f)
+                        # Extract basic info
+                        track_name = data.get('data', {}).get('track', {}).get('track_name', 'Unknown Track')
+                        start_time = data.get('data', {}).get('start_time', 'Unknown Date')
+                        series_name = data.get('data', {}).get('series_name', 'Unknown Series')
+                        
+                        # Format date
+                        try:
+                             dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                             date_str = dt.strftime('%d.%m.%Y %H:%M')
+                        except:
+                            date_str = start_time
+                            
+                        results.append({
+                            'filename': filename,
+                            'track': track_name,
+                            'date': date_str,
+                            'series': series_name,
+                            'id': filename # Use filename as ID
+                        })
+                except Exception as e:
+                    print(f"Error reading result {filename}: {e}")
+                    
+    # Sort by date descending
+    results.sort(key=lambda x: x['date'], reverse=True)
+    return render_template('boxengasse_results.html', results=results)
+
+@app.route('/boxengasse/result/<filename>')
+@driver_login_required
+def boxengasse_result_detail(filename):
+    filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
+    if not os.path.exists(filepath):
+        flash("Ergebnisdatei nicht gefunden.", "error")
+        return redirect(url_for('boxengasse_results'))
+        
+    try:
+        with open(filepath, 'r') as f:
+            full_data = json.load(f)
+            data = full_data.get('data', {})
+            
+            # Sessions find race
+            sessions = data.get('session_results', [])
+            race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
+            
+            standings = []
+            if race_session:
+                # Calculate winner laps for gap calculation if needed (optional)
+                winner_laps = 0
+                if race_session.get('results'):
+                     winner_laps = race_session['results'][0].get('laps_complete', 0)
+
+                for entry in race_session.get('results', []):
+                    # Format Gap
+                    interval = entry.get('interval', 0)
+                    laps_complete = entry.get('laps_complete', 0)
+                    gap = ""
+                    
+                    if interval == 0: 
+                        gap = "-"
+                    elif interval > 0:
+                        # interval is in microseconds (1/10000s based on sample)
+                        # Sample: 11034 -> 1.1s? 
+                        # Wait, iRacing API: "interval": Time behind leader in microseconds. -1 if laps down.
+                        # But wait, 11034 microseconds is 0.011s. That's too small.
+                        # 928439 best lap is 92.8s. So 1 unit = 1/10000 second.
+                        
+                        seconds = interval / 10000
+                        gap = f"+{seconds:.3f}s"
+                    elif interval == -1:
+                        # Laps down
+                        diff = winner_laps - laps_complete
+                        gap = f"+{diff} Lap{'s' if diff > 1 else ''}"
+
+                    # Format Best Lap
+                    best_lap = entry.get('best_lap_time', 0)
+                    best_lap_str = "-"
+                    if best_lap > 0:
+                        seconds = best_lap / 10000
+                        minutes = int(seconds // 60)
+                        rem_seconds = seconds % 60
+                        best_lap_str = f"{minutes}:{rem_seconds:06.3f}"
+
+                    # Driver Name
+                    name = entry.get('display_name')
+                    
+                    standings.append({
+                        'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1),
+                        'class': entry.get('car_class_short_name'),
+                        'car_number': entry.get('livery', {}).get('car_number', '#'),
+                        'name': name,
+                        'laps': laps_complete,
+                        'gap': gap,
+                        'best_lap': best_lap_str,
+                        'inc': entry.get('incidents'),
+                        'drivers': entry.get('driver_results', [])
+                    })
+            
+            # Sort standings by Pos
+            standings.sort(key=lambda x: x['pos'])
+            
+            # Format Start Time
+            start_time = data.get('start_time', '')
+            try:
+                dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                date_str = dt.strftime('%d.%m.%Y %H:%M')
+            except:
+                date_str = start_time
+
+            result_info = {
+                'track': data.get('track', {}).get('track_name'),
+                'config': data.get('track', {}).get('config_name'),
+                'series': data.get('series_name'),
+                'date': date_str
+            }
+                    
+            return render_template('boxengasse_result_detail.html', 
+                                 info=result_info, 
+                                 standings=standings,
+                                 filename=filename)
+                                 
+    except Exception as e:
+        flash(f"Fehler beim Lesen der Datei: {e}", "error")
+        return redirect(url_for('boxengasse_results'))
 
 @app.route('/boxengasse/event/new', methods=['POST'])
 @driver_login_required

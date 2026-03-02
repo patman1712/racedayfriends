@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <a href="/boxengasse" style="color: var(--rdf-teal); font-weight: bold;">&larr; Zurück zur Boxengasse</a>
+        <h1>Rennergebnisse</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Verfügbare Ergebnisse</h3>
+        </div>
+        <div class="card-body">
+            {% if results %}
+            <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                {% for res in results %}
+                <a href="/boxengasse/result/{{ res.id }}" style="text-decoration: none;">
+                    <div style="background: #0B1829; padding: 20px; border-radius: 8px; border: 1px solid var(--rdf-border); transition: all 0.3s ease; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--rdf-teal);"></div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: var(--rdf-teal); font-size: 0.8rem; font-weight: bold;">{{ res.date }}</span>
+                        </div>
+                        
+                        <h4 style="color: white; margin: 0 0 10px 0;">{{ res.track }}</h4>
+                        <div style="color: var(--rdf-silver); font-size: 0.9rem;">
+                            <i class="fas fa-flag-checkered"></i> {{ res.series }}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="text-align: center; color: var(--rdf-silver); padding: 20px;">Keine Ergebnisse gefunden.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <a href="/boxengasse/results" style="color: var(--rdf-teal); font-weight: bold;">&larr; Alle Ergebnisse</a>
+        <div style="text-align: right;">
+            <h1 style="margin: 0; font-size: 1.5rem;">{{ info.track }}</h1>
+            <p style="color: var(--rdf-silver); margin: 0; font-size: 0.9rem;">{{ info.date }} | {{ info.series }}</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Rennergebnis</h3>
+        </div>
+        <div class="card-body" style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--rdf-teal); text-align: left; color: var(--rdf-silver); font-size: 0.9rem;">
+                        <th style="padding: 15px 10px; width: 50px;">Pos</th>
+                        <th style="padding: 15px 10px; width: 60px;">#</th>
+                        <th style="padding: 15px 10px;">Fahrer / Team</th>
+                        <th style="padding: 15px 10px; width: 80px;">Klasse</th>
+                        <th style="padding: 15px 10px; text-align: center; width: 60px;">Runden</th>
+                        <th style="padding: 15px 10px; text-align: right; width: 100px;">Abstand</th>
+                        <th style="padding: 15px 10px; text-align: right; width: 100px;">Bestzeit</th>
+                        <th style="padding: 15px 10px; text-align: center; width: 50px;">Inc</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in standings %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;">
+                        <td style="padding: 12px 10px; font-weight: bold; color: {% if row.pos == 1 %}#ffd700{% elif row.pos == 2 %}#c0c0c0{% elif row.pos == 3 %}#cd7f32{% else %}white{% endif %};">
+                            {{ row.pos }}
+                        </td>
+                        <td style="padding: 12px 10px; color: var(--rdf-teal); font-family: monospace;">{{ row.car_number }}</td>
+                        <td style="padding: 12px 10px;">
+                            <div style="font-weight: bold; color: white;">{{ row.name }}</div>
+                            {% if row.drivers %}
+                            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">
+                                {% for d in row.drivers %}
+                                {{ d.display_name }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 10px; font-size: 0.8rem; color: var(--rdf-silver);">{{ row.class }}</td>
+                        <td style="padding: 12px 10px; text-align: center; color: white;">{{ row.laps }}</td>
+                        <td style="padding: 12px 10px; text-align: right; color: {% if row.gap == '-' %}var(--rdf-teal){% else %}var(--rdf-silver){% endif %}; font-family: monospace;">
+                            {{ row.gap }}
+                        </td>
+                        <td style="padding: 12px 10px; text-align: right; color: #10b981; font-family: monospace;">
+                            {{ row.best_lap }}
+                        </td>
+                        <td style="padding: 12px 10px; text-align: center; color: {% if row.inc == 0 %}#10b981{% elif row.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">
+                            {{ row.inc }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
