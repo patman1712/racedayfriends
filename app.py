@@ -2804,7 +2804,7 @@ def driver_detail(driver_id):
             else:
                 e['debug'] = "No result file linked"
 
-            driver_events.append(e)
+        driver_events.append(e)
             
     upcoming_events = [e for e in driver_events if e.get('date') > now]
     past_events = [e for e in driver_events if e.get('date') <= now]
