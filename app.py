@@ -2080,15 +2080,29 @@ def event_detail(event_id):
                                 is_rdf = True
                             
                             # Check team drivers
-                            entry_driver_names = []
+                            drivers_details = []
                             if entry.get('driver_results'):
                                 for d in entry.get('driver_results'):
                                     dname = d.get('display_name')
-                                    entry_driver_names.append(dname)
+                                    
+                                    drivers_details.append({
+                                        'name': dname,
+                                        'best_lap': format_time(d.get('best_lap_time', 0)),
+                                        'laps': d.get('laps_complete', 0),
+                                        'inc': d.get('incidents', 0)
+                                    })
+                                    
                                     if dname in rdf_names:
                                         is_rdf = True
                             else:
-                                entry_driver_names.append(entry.get('display_name'))
+                                # Single driver entry
+                                dname = entry.get('display_name')
+                                drivers_details.append({
+                                    'name': dname,
+                                    'best_lap': format_time(entry.get('best_lap_time', 0)),
+                                    'laps': entry.get('laps_complete', 0),
+                                    'inc': entry.get('incidents', 0)
+                                })
                             
                             # Also check if "RaceDayFriends" is in team name (if available) or just assume matched by driver
                             # If no drivers matched but we want to be sure, maybe check 'team_name'? 
@@ -2123,7 +2137,7 @@ def event_detail(event_id):
                                     'laps': laps,
                                     'gap': gap_str,
                                     'best_lap': format_time(entry.get('best_lap_time', 0)),
-                                    'drivers': entry_driver_names
+                                    'drivers': drivers_details
                                 })
         except Exception as e:
             print(f"Error loading result summary: {e}")

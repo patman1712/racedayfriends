@@ -259,10 +259,17 @@
                 
                 <div style="margin-bottom: 25px;">
                     <div style="font-size: 0.8rem; color: var(--rdf-teal); text-transform: uppercase; margin-bottom: 8px;">Drivers</div>
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        {% for driver in res.drivers %}
-                        <div style="font-size: 1.1rem; color: #e2e8f0; font-weight: 600;">
-                            <i class="fas fa-user-helmet" style="font-size: 0.8rem; margin-right: 8px; opacity: 0.5;"></i> {{ driver }}
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        {% for d in res.drivers %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px;">
+                            <div style="font-size: 1.0rem; color: #e2e8f0; font-weight: 600;">
+                                <i class="fas fa-user" style="font-size: 0.7rem; margin-right: 8px; opacity: 0.5;"></i> {{ d.name }}
+                            </div>
+                            <div style="text-align: right; font-size: 0.8rem; color: var(--rdf-silver); display: flex; gap: 12px;">
+                                <span title="Best Lap" style="font-family: monospace; color: #10b981;">{{ d.best_lap }}</span>
+                                <span title="Laps driven">{{ d.laps }} Laps</span>
+                                <span title="Incidents" style="color: {% if d.inc == 0 %}#10b981{% elif d.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %}; font-weight: bold;">{{ d.inc }}x</span>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
