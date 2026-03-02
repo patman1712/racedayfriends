@@ -2814,11 +2814,26 @@ def driver_detail(driver_id):
                                 
                                 e['best_lap'] = format_time(d_res.get('best_lap_time', 0))
                                 e['inc'] = d_res.get('incidents', 0)
+                                if not e.get('debug'): e['debug'] = "Found via ID (Standard)"
                             else:
                                 # Debug info
                                 first_res = race_session.get('results', [])[0] if race_session.get('results') else {}
                                 keys = list(first_res.keys())
-                                e['debug'] = f"Not found. Keys: {','.join(keys)}"
+                                
+                                # Deep inspection of driver_results
+                                dr_info = ""
+                                if 'driver_results' in first_res:
+                                    drs = first_res.get('driver_results', [])
+                                    if drs:
+                                        dr_keys = list(drs[0].keys())
+                                        dr_ids = [str(d.get('cust_id', 'N/A')) for d in drs]
+                                        dr_info = f" | DR Keys: {','.join(dr_keys)} | DR IDs in Team 1: {','.join(dr_ids)}"
+                                    else:
+                                        dr_info = " | driver_results empty"
+                                else:
+                                    dr_info = " | No driver_results key"
+
+                                e['debug'] = f"Search: {d_id_str} | Not found. Keys: {','.join(keys)}{dr_info}"
                         else:
                             e['debug'] = "No Race session found"
                     except Exception as ex: 
