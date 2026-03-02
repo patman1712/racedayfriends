@@ -2776,34 +2776,34 @@ def driver_detail(driver_id):
                             e['result_link'] = e['result_file']
                             
                             # Find driver (Single or Team Event)
-                             d_res = None
-                             
-                             for r in race_session.get('results', []):
-                                 # 1. Single Driver Match
-                                 if str(r.get('cust_id')) == d_id_str:
-                                     d_res = r
-                                     e['debug'] = "Found via Single ID"
-                                     break
-                                 
-                                 # 2. Team Driver Match (search inside driver_results)
-                                 if 'driver_results' in r:
-                                     for team_driver in r.get('driver_results', []):
-                                         if str(team_driver.get('cust_id')) == d_id_str:
-                                             # Found driver in team!
-                                             # We need to COMBINE team info (Position) with Driver Info (Incidents, Laps)
-                                             d_res = r.copy() # Copy team result
-                                             # Override specific driver stats
-                                             d_res['incidents'] = team_driver.get('incidents', 0)
-                                             # Best lap might be team best lap, or driver best lap?
-                                             # Usually we want the driver's best lap if available
-                                             if 'best_lap_time' in team_driver:
-                                                 d_res['best_lap_time'] = team_driver.get('best_lap_time')
-                                                 
-                                             e['debug'] = "Found via Team ID"
-                                             break
-                                 if d_res: break
-                                 
-                             # If not found by ID, maybe by name? (less reliable, only top level)
+                            d_res = None
+                            
+                            for r in race_session.get('results', []):
+                                # 1. Single Driver Match
+                                if str(r.get('cust_id')) == d_id_str:
+                                    d_res = r
+                                    e['debug'] = "Found via Single ID"
+                                    break
+                                
+                                # 2. Team Driver Match (search inside driver_results)
+                                if 'driver_results' in r:
+                                    for team_driver in r.get('driver_results', []):
+                                        if str(team_driver.get('cust_id')) == d_id_str:
+                                            # Found driver in team!
+                                            # We need to COMBINE team info (Position) with Driver Info (Incidents, Laps)
+                                            d_res = r.copy() # Copy team result
+                                            # Override specific driver stats
+                                            d_res['incidents'] = team_driver.get('incidents', 0)
+                                            # Best lap might be team best lap, or driver best lap?
+                                            # Usually we want the driver's best lap if available
+                                            if 'best_lap_time' in team_driver:
+                                                d_res['best_lap_time'] = team_driver.get('best_lap_time')
+                                                
+                                            e['debug'] = "Found via Team ID"
+                                            break
+                                if d_res: break
+                                
+                            # If not found by ID, maybe by name? (less reliable, only top level)
                             if not d_res:
                                 d_res = next((r for r in race_session.get('results', []) if r.get('display_name') == driver['name']), None)
                                 if d_res: e['debug'] = "Found via Name"
