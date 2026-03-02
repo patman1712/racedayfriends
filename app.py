@@ -2412,7 +2412,6 @@ def admin_results():
                 except Exception as e:
                     print(f"Fehler bei Datei {filename}: {e}")
     
-    # Sortieren nach Datum (neueste zuerst)
     results.sort(key=lambda x: x['date'], reverse=True)
     return render_template('admin_results.html', results=results)
 
