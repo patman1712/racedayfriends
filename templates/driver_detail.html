@@ -608,6 +608,9 @@
                         <td data-label="Ergebnis">
                             <!-- DEBUG: {{ event.debug }} -->
                             <span class="res-badge">{{ event.result or '-' }}</span>
+                            {% if not event.best_lap and not event.inc and event.debug %}
+                                <div style="font-size: 0.7rem; color: #ef4444; margin-top: 5px; max-width: 200px; white-space: pre-wrap;">DEBUG: {{ event.debug }}</div>
+                            {% endif %}
                             {% if event.best_lap or event.inc or event.result_link %}
                             <div style="font-size: 0.8rem; margin-top: 5px; color: var(--rdf-silver);">
                                 {% if event.best_lap %}

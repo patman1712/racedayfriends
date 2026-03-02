@@ -2797,7 +2797,9 @@ def driver_detail(driver_id):
                                 # Debug info for template (in HTML comments)
                                 e['debug'] = "Found via ID/Name"
                             else:
-                                e['debug'] = f"Driver {d_id_str} not found in result"
+                                # Get list of IDs in result for debugging
+                                found_ids = [str(r.get('cust_id')) for r in race_session.get('results', [])]
+                                e['debug'] = f"Driver {d_id_str} not found. Available: {','.join(found_ids[:5])}..."
                         else:
                             e['debug'] = "No Race session found"
                     except Exception as ex: 
