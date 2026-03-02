@@ -1890,6 +1890,22 @@ def event_detail(event_id):
                     race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
                     
                     if race_session:
+                        # 1. Identify Class Winners (for Laps Down calculation)
+                        class_winners = {} # class_id -> max_laps
+                        for entry in race_session.get('results', []):
+                            cid = entry.get('car_class_id')
+                            laps = entry.get('laps_complete', 0)
+                            if cid not in class_winners or laps > class_winners[cid]:
+                                class_winners[cid] = laps
+
+                        # Helper
+                        def format_time(val):
+                            if val <= 0: return "-"
+                            seconds = val / 10000
+                            minutes = int(seconds // 60)
+                            rem_seconds = seconds % 60
+                            return f"{minutes}:{rem_seconds:06.3f}"
+
                         for entry in race_session.get('results', []):
                             is_rdf = False
                             # Check main driver name
@@ -1914,12 +1930,32 @@ def event_detail(event_id):
                                 is_rdf = True
                             
                             if is_rdf:
+                                # Calc Gap
+                                cid = entry.get('car_class_id')
+                                winner_laps = class_winners.get(cid, 0)
+                                laps = entry.get('laps_complete', 0)
+                                class_interval = entry.get('class_interval', 0)
+                                
+                                gap_str = "-"
+                                if laps < winner_laps:
+                                    gap_str = f"+{winner_laps - laps} Laps"
+                                elif class_interval > 0:
+                                    seconds = class_interval / 10000
+                                    if seconds > 60:
+                                         gap_str = f"+{int(seconds//60)}:{seconds%60:05.2f}"
+                                    else:
+                                         gap_str = f"+{seconds:.3f}s"
+                                elif class_interval == 0 and laps == winner_laps:
+                                    gap_str = "Winner"
+
                                 rdf_result_summary.append({
                                     'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1) + 1,
                                     'class': entry.get('car_class_short_name'),
                                     'car_number': entry.get('livery', {}).get('car_number', '#'),
                                     'inc': entry.get('incidents', 0),
-                                    'laps': entry.get('laps_complete', 0),
+                                    'laps': laps,
+                                    'gap': gap_str,
+                                    'best_lap': format_time(entry.get('best_lap_time', 0)),
                                     'drivers': entry_driver_names
                                 })
         except Exception as e:

@@ -246,26 +246,40 @@
                     P{{ res.pos }}
                 </div>
                 
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 0.9rem; color: var(--rdf-silver); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">{{ res.class }} Class</div>
-                    <div style="font-size: 2.5rem; font-weight: 900; color: white; font-family: monospace; letter-spacing: -2px;">#{{ res.car_number }}</div>
+                <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <div style="font-size: 0.9rem; color: var(--rdf-silver); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">{{ res.class }} Class</div>
+                        <div style="font-size: 2.5rem; font-weight: 900; color: white; font-family: monospace; letter-spacing: -2px;">#{{ res.car_number }}</div>
+                    </div>
+                    <div style="text-align: right; margin-right: 70px;">
+                         <div style="font-size: 0.8rem; color: var(--rdf-silver);">Gap</div>
+                         <div style="font-size: 1.2rem; font-family: monospace; color: var(--rdf-teal);">{{ res.gap }}</div>
+                    </div>
                 </div>
                 
                 <div style="margin-bottom: 25px;">
                     <div style="font-size: 0.8rem; color: var(--rdf-teal); text-transform: uppercase; margin-bottom: 8px;">Drivers</div>
-                    <div style="font-size: 1.1rem; color: #e2e8f0; font-weight: 600; line-height: 1.4;">
-                        {{ res.drivers|join(', ') }}
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        {% for driver in res.drivers %}
+                        <div style="font-size: 1.1rem; color: #e2e8f0; font-weight: 600;">
+                            <i class="fas fa-user-helmet" style="font-size: 0.8rem; margin-right: 8px; opacity: 0.5;"></i> {{ driver }}
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
                 
-                <div style="display: flex; gap: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
                     <div>
                         <div style="font-size: 0.7rem; color: var(--rdf-silver); text-transform: uppercase;">Laps</div>
-                        <div style="font-size: 1.2rem; font-weight: bold; color: white;">{{ res.laps }}</div>
+                        <div style="font-size: 1.1rem; font-weight: bold; color: white;">{{ res.laps }}</div>
                     </div>
-                    <div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.7rem; color: var(--rdf-silver); text-transform: uppercase;">Best Lap</div>
+                        <div style="font-size: 1.1rem; font-weight: bold; color: #10b981; font-family: monospace;">{{ res.best_lap }}</div>
+                    </div>
+                    <div style="text-align: right;">
                         <div style="font-size: 0.7rem; color: var(--rdf-silver); text-transform: uppercase;">Incidents</div>
-                        <div style="font-size: 1.2rem; font-weight: bold; color: {% if res.inc == 0 %}#10b981{% elif res.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ res.inc }}x</div>
+                        <div style="font-size: 1.1rem; font-weight: bold; color: {% if res.inc == 0 %}#10b981{% elif res.inc > 10 %}#ef4444{% else %}#f59e0b{% endif %};">{{ res.inc }}x</div>
                     </div>
                 </div>
             </div>
