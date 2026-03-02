@@ -834,9 +834,8 @@ def admin_results_delete(filename):
         
     return redirect(url_for('admin_results'))
 
-@app.route('/boxengasse/results')
-@driver_login_required
-def boxengasse_results():
+@app.route('/results')
+def public_results():
     results = []
     meta = load_results_meta()
     
@@ -884,15 +883,14 @@ def boxengasse_results():
                     
     # Sort by date descending
     results.sort(key=lambda x: x['date'], reverse=True)
-    return render_template('boxengasse_results.html', results=results)
+    return render_template('public_results.html', results=results)
 
-@app.route('/boxengasse/result/<filename>')
-@driver_login_required
-def boxengasse_result_detail(filename):
+@app.route('/results/view/<filename>')
+def public_result_detail(filename):
     filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
     if not os.path.exists(filepath):
         flash("Ergebnisdatei nicht gefunden.", "error")
-        return redirect(url_for('boxengasse_results'))
+        return redirect(url_for('public_results'))
         
     meta = load_results_meta()
     file_meta = meta.get(filename, {})
@@ -906,10 +904,6 @@ def boxengasse_result_detail(filename):
             sessions = data.get('session_results', [])
             race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
             
-            # Get Class Info
-            classes_raw = data.get('car_classes', [])
-            classes_map = {c['car_class_id']: c for c in classes_raw}
-            
             # Prepare Results Grouped by Class
             class_results = {}
             all_drivers_combined = [] # New: Collect all drivers for "Overall" view
@@ -919,6 +913,14 @@ def boxengasse_result_detail(filename):
                 overall_winner_laps = 0
                 if race_session.get('results'):
                     overall_winner_laps = max([r.get('laps_complete', 0) for r in race_session.get('results', [])])
+
+                # 1. Identify Class Winners (for Laps Down calculation)
+                class_winners = {} # class_id -> max_laps
+                for entry in race_session.get('results', []):
+                    cid = entry.get('car_class_id')
+                    laps = entry.get('laps_complete', 0)
+                    if cid not in class_winners or laps > class_winners[cid]:
+                        class_winners[cid] = laps
 
                 for entry in race_session.get('results', []):
                     cid = entry.get('car_class_id')
@@ -1090,19 +1092,19 @@ def boxengasse_result_detail(filename):
                                  classes=sorted_classes,
                                  overall=all_drivers_combined, # New: Pass overall list
                                  filename=filename,
-                                 meta=file_meta) # Pass meta for editing/viewing options
+                                 meta=file_meta,
+                                 public=True) # Flag for template
                                  
     except Exception as e:
         flash(f"Fehler beim Lesen der Datei: {e}", "error")
-        return redirect(url_for('boxengasse_results'))
+        return redirect(url_for('public_results'))
 
-@app.route('/boxengasse/result/<filename>/driver/<int:cust_id>')
-@driver_login_required
-def boxengasse_result_driver(filename, cust_id):
+@app.route('/results/view/<filename>/driver/<int:cust_id>')
+def public_result_driver(filename, cust_id):
     filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
     if not os.path.exists(filepath):
         flash("Ergebnisdatei nicht gefunden.", "error")
-        return redirect(url_for('boxengasse_results'))
+        return redirect(url_for('public_results'))
     
     meta = load_results_meta()
     file_meta = meta.get(filename, {})
@@ -1127,14 +1129,14 @@ def boxengasse_result_driver(filename, cust_id):
             
             if not race_session:
                 flash("Keine Rennsession gefunden.", "error")
-                return redirect(url_for('boxengasse_result_detail', filename=filename))
+                return redirect(url_for('public_result_detail', filename=filename))
                 
             # Find Driver Result
             driver_result = next((r for r in race_session.get('results', []) if r.get('cust_id') == cust_id), None)
             
             if not driver_result:
                 flash("Fahrer in diesem Ergebnis nicht gefunden.", "error")
-                return redirect(url_for('boxengasse_result_detail', filename=filename))
+                return redirect(url_for('public_result_detail', filename=filename))
                 
             # Helper for time formatting
             def format_time(val):
@@ -1143,23 +1145,6 @@ def boxengasse_result_driver(filename, cust_id):
                 minutes = int(seconds // 60)
                 rem_seconds = seconds % 60
                 return f"{minutes}:{rem_seconds:06.3f}"
-            
-            # Extract Laps
-            # Note: iRacing JSON sometimes has 'laps' array in the result object, 
-            # or we might need to look elsewhere.
-            # Usually it's NOT in the summary result. We need telemetry or full lap data.
-            # BUT: Many JSON exports include a separate 'laps' list or similar.
-            # Let's check the structure. Usually "session_results" -> "results" -> "laps" (array of lap objects)?
-            # NO, typically standard JSON export has minimal lap data.
-            # However, let's assume standard iRacing Result JSON structure.
-            
-            # WAIT: The provided JSON structure (from previous `cat`) showed "results" array.
-            # Does it have lap-by-lap data?
-            # Let's look at the structure again or assume it might not be there.
-            # If no lap data, we can only show summary.
-            
-            # Let's check if there is a global 'laps' array or per-driver.
-            # If not, we can only show what we have in `driver_result`.
             
             # Statistics from driver_result
             stats = {
@@ -1180,11 +1165,193 @@ def boxengasse_result_driver(filename, cust_id):
                                  info=result_info, 
                                  stats=stats,
                                  driver_name=driver_result.get('display_name'),
-                                 filename=filename)
+                                 filename=filename,
+                                 public=True) # Flag for template to adjust links
                                  
     except Exception as e:
         flash(f"Fehler: {e}", "error")
-        return redirect(url_for('boxengasse_result_detail', filename=filename))
+        return redirect(url_for('public_result_detail', filename=filename))
+                        rem_seconds = seconds % 60
+                        return f"{minutes}:{rem_seconds:06.3f}"
+
+                    # Driver Name(s)
+                    driver_name = entry.get('display_name')
+                    # Team Drivers
+                    team_drivers = []
+                    team_drivers_detailed = []
+                    
+                    if entry.get('driver_results'):
+                        for d in entry.get('driver_results'):
+                            team_drivers.append(d.get('display_name'))
+                            team_drivers_detailed.append({
+                                'name': d.get('display_name'),
+                                'laps': d.get('laps_complete', 0),
+                                'best_lap': format_time(d.get('best_lap_time', 0)),
+                                'avg_lap': format_time(d.get('average_lap', 0)),
+                                'inc': d.get('incidents', 0),
+                                'irating': d.get('oldi_rating', 0),
+                                'new_irating': d.get('newi_rating', 0),
+                                'sr': d.get('old_safety_rating', 0),
+                                'new_sr': d.get('new_safety_rating', 0)
+                            })
+                    
+                    driver_data = {
+                        'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1) + 1, # 0-indexed usually
+                        'overall_pos': entry.get('finish_position', 0) + 1,
+                        'car_number': entry.get('livery', {}).get('car_number', '#'),
+                        'name': driver_name,
+                        'team_drivers': team_drivers,
+                        'team_drivers_detailed': team_drivers_detailed,
+                        'laps': laps_complete,
+                        'gap_raw': class_interval, # for sorting/calc
+                        'gap': gap_str, # Will be overwritten for class view
+                        'overall_gap': overall_gap_str,
+                        'best_lap': best_lap_str,
+                        'avg_lap': avg_lap_str,
+                        'inc': entry.get('incidents'),
+                        'car_name': entry.get('car_name'),
+                        'class_name': cname, # For overall view
+                        'class_id': cid, # For filtering
+                        'club': entry.get('club_name'), 
+                        'id': entry.get('cust_id')
+                    }
+                    
+                    class_results[cid]['drivers'].append(driver_data)
+                    all_drivers_combined.append(driver_data) # Add to overall list
+
+            # Post-Process: Sort and Fix Gaps per Class
+            sorted_classes = []
+            for cid, data in class_results.items():
+                # Sort drivers by position
+                data['drivers'].sort(key=lambda x: x['pos'])
+                
+                # Fix Gaps (Laps down)
+                class_winner_laps = data['drivers'][0]['laps'] if data['drivers'] else 0
+                
+                for d in data['drivers']:
+                    if d['laps'] < class_winner_laps:
+                        diff = class_winner_laps - d['laps']
+                        d['gap'] = f"+{diff} Lap{'s' if diff > 1 else ''}"
+                    elif d['gap_raw'] > 0:
+                        # Recalc gap string just to be safe
+                        seconds = d['gap_raw'] / 10000
+                        if seconds > 60:
+                             d['gap'] = f"+{int(seconds//60)}:{seconds%60:05.2f}"
+                        else:
+                             d['gap'] = f"+{seconds:.3f}s"
+                    else:
+                        d['gap'] = "-" # Winner
+                
+                sorted_classes.append(data)
+            
+            # Sort classes by something (maybe name or ID)
+            sorted_classes.sort(key=lambda x: x['name'])
+            
+            # Post-Process Overall List
+            all_drivers_combined.sort(key=lambda x: x['overall_pos'])
+            
+            # Fix Overall Gaps (Laps down)
+            if all_drivers_combined:
+                overall_winner_laps = all_drivers_combined[0]['laps']
+                for d in all_drivers_combined:
+                     if d['laps'] < overall_winner_laps:
+                        diff = overall_winner_laps - d['laps']
+                        d['overall_gap'] = f"+{diff} Lap{'s' if diff > 1 else ''}"
+                     elif d['overall_pos'] == 1:
+                        d['overall_gap'] = "-"
+
+            result_info = {
+                'track': file_meta.get('track') or data.get('track', {}).get('track_name'),
+                'config': data.get('track', {}).get('config_name'),
+                'series': file_meta.get('series') or data.get('series_name'),
+                'date': file_meta.get('date') or 'Unknown Date',
+                'title': file_meta.get('title') or f"{data.get('series_name')} @ {data.get('track', {}).get('track_name')}",
+                'description': file_meta.get('description', '')
+            }
+                    
+            return render_template('boxengasse_result_detail.html', 
+                                 info=result_info, 
+                                 classes=sorted_classes,
+                                 overall=all_drivers_combined, # New: Pass overall list
+                                 filename=filename,
+                                 meta=file_meta) # Pass meta for editing/viewing options
+                                 
+    except Exception as e:
+        flash(f"Fehler beim Lesen der Datei: {e}", "error")
+        return redirect(url_for('boxengasse_results'))
+
+@app.route('/results/view/<filename>/driver/<int:cust_id>')
+def public_result_driver(filename, cust_id):
+    filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
+    if not os.path.exists(filepath):
+        flash("Ergebnisdatei nicht gefunden.", "error")
+        return redirect(url_for('public_results'))
+    
+    meta = load_results_meta()
+    file_meta = meta.get(filename, {})
+    
+    try:
+        with open(filepath, 'r') as f:
+            full_data = json.load(f)
+            data = full_data.get('data', {})
+            
+            # Basic Info
+            result_info = {
+                'track': file_meta.get('track') or data.get('track', {}).get('track_name'),
+                'config': data.get('track', {}).get('config_name'),
+                'series': file_meta.get('series') or data.get('series_name'),
+                'date': file_meta.get('date') or 'Unknown Date',
+                'title': file_meta.get('title') or f"{data.get('series_name')} @ {data.get('track', {}).get('track_name')}"
+            }
+            
+            # Find Race Session
+            sessions = data.get('session_results', [])
+            race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
+            
+            if not race_session:
+                flash("Keine Rennsession gefunden.", "error")
+                return redirect(url_for('public_result_detail', filename=filename))
+                
+            # Find Driver Result
+            driver_result = next((r for r in race_session.get('results', []) if r.get('cust_id') == cust_id), None)
+            
+            if not driver_result:
+                flash("Fahrer in diesem Ergebnis nicht gefunden.", "error")
+                return redirect(url_for('public_result_detail', filename=filename))
+                
+            # Helper for time formatting
+            def format_time(val):
+                if val <= 0: return "-"
+                seconds = val / 10000
+                minutes = int(seconds // 60)
+                rem_seconds = seconds % 60
+                return f"{minutes}:{rem_seconds:06.3f}"
+            
+            # Statistics from driver_result
+            stats = {
+                'pos': driver_result.get('finish_position', 0) + 1,
+                'class_pos': driver_result.get('finish_position_in_class', 0) + 1,
+                'car': driver_result.get('car_name', 'Unknown'),
+                'number': driver_result.get('livery', {}).get('car_number', '#'),
+                'laps_completed': driver_result.get('laps_complete', 0),
+                'inc': driver_result.get('incidents', 0),
+                'best_lap': format_time(driver_result.get('best_lap_time', 0)),
+                'avg_lap': format_time(driver_result.get('average_lap', 0)),
+                'qual_lap': format_time(driver_result.get('best_qual_lap_at', 0)), # might be 0 if no qual
+                'reason_out': driver_result.get('reason_out', 'Running'),
+                'champ_points': driver_result.get('champ_points', 0)
+            }
+            
+            return render_template('boxengasse_result_driver.html', 
+                                 info=result_info, 
+                                 stats=stats,
+                                 driver_name=driver_result.get('display_name'),
+                                 filename=filename,
+                                 public=True) # Flag for template to adjust links
+                                 
+    except Exception as e:
+        flash(f"Fehler: {e}", "error")
+        return redirect(url_for('public_result_detail', filename=filename))
 
 @app.route('/boxengasse/event/new', methods=['POST'])
 @driver_login_required

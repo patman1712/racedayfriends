@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px;">
+    <h1 class="section-title">Rennergebnisse</h1>
+    <p class="section-subtitle">Alle Rennergebnisse unserer Events im Überblick</p>
+
+    <div class="card">
+        <div class="card-body">
+            {% if results %}
+            <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 0;">
+                {% for res in results %}
+                <a href="/results/view/{{ res.id }}" style="text-decoration: none; display: block;">
+                    <div style="background: #0B1829; padding: 25px; border-radius: 8px; border: 1px solid var(--rdf-border); transition: all 0.3s ease; position: relative; overflow: hidden; height: 100%;">
+                        <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--rdf-teal);"></div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                            <span style="color: var(--rdf-teal); font-size: 0.9rem; font-weight: bold; background: rgba(79, 209, 197, 0.1); padding: 5px 10px; border-radius: 4px;">{{ res.date }}</span>
+                        </div>
+                        
+                        <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.3rem;">{{ res.title }}</h3>
+                        <div style="color: var(--rdf-silver); font-size: 0.9rem; margin-bottom: 5px;">
+                            <i class="fas fa-map-marker-alt" style="width: 20px; text-align: center;"></i> {{ res.track }}
+                        </div>
+                        <div style="color: var(--rdf-silver); font-size: 0.9rem;">
+                            <i class="fas fa-trophy" style="width: 20px; text-align: center;"></i> {{ res.series }}
+                        </div>
+                        
+                        <div style="margin-top: 20px; text-align: right; color: var(--rdf-teal); font-weight: bold; font-size: 0.9rem;">
+                            Ergebnis ansehen <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="text-align: center; color: var(--rdf-silver); padding: 40px; font-size: 1.1rem;">Keine Ergebnisse gefunden.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .grid a:hover > div {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        border-color: var(--rdf-teal);
+    }
+</style>
+{% endblock %}

@@ -64,6 +64,7 @@
                     {% for item in site_config.navigation %}
                     <li><a href="{{ item.link }}" onclick="toggleMenu()">{{ item.text }}</a></li>
                     {% endfor %}
+                    <li><a href="/results" onclick="toggleMenu()">Ergebnisse</a></li>
                 {% else %}
                     <!-- Fallback Navigation, falls Config leer ist -->
                     <li><a href="/" onclick="toggleMenu()">Home</a></li>
@@ -71,6 +72,7 @@
                     <li><a href="/#news" onclick="toggleMenu()">News</a></li>
                     <li><a href="/gallery" onclick="toggleMenu()">Galerie</a></li>
                     <li><a href="/calendar" onclick="toggleMenu()">Rennkalender</a></li>
+                    <li><a href="/results" onclick="toggleMenu()">Ergebnisse</a></li>
                 {% endif %}
                 
                 {% if session.get('driver_logged_in') %}
