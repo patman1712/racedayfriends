@@ -99,6 +99,19 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Verknüpftes Rennergebnis (JSON-File)</label>
+                    <select name="result_file" class="form-control">
+                        <option value="">-- Kein Ergebnis verknüpft --</option>
+                        {% for res_file in result_files %}
+                        <option value="{{ res_file.filename }}" {% if event.result_file == res_file.filename %}selected{% endif %}>
+                            {{ res_file.date }} - {{ res_file.title }} ({{ res_file.filename }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small style="color: var(--rdf-silver);">Ergebnis muss vorher unter 'Ergebnisse' hochgeladen worden sein.</small>
+                </div>
+
+                <div class="form-group">
                     <label>Fahrer Lineup</label>
                     <div style="background: #0B1829; border: 1px solid var(--rdf-border); padding: 15px; border-radius: 4px; max-height: 200px; overflow-y: auto;">
                         {% for driver in all_drivers %}

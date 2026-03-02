@@ -912,6 +912,7 @@ def boxengasse_result_detail(filename):
             
             # Prepare Results Grouped by Class
             class_results = {}
+            all_drivers_combined = [] # New: Collect all drivers for "Overall" view
             
             if race_session:
                 # Find Overall Winner Laps (max laps of any driver)
@@ -953,6 +954,15 @@ def boxengasse_result_detail(filename):
                         # Usually iRacing provides 'laps_complete'.
                         # We need to find the winner of THIS class to calc laps down.
                         pass # handled later if we sort list first
+                        
+                    # Overall Gap
+                    overall_gap_str = "-"
+                    if interval > 0:
+                        seconds = interval / 10000
+                        if seconds > 60:
+                             overall_gap_str = f"+{int(seconds//60)}:{seconds%60:05.2f}"
+                        else:
+                             overall_gap_str = f"+{seconds:.3f}s"
                         
                     # Format Best Lap
                     best_lap = entry.get('best_lap_time', 0)
@@ -1001,7 +1011,7 @@ def boxengasse_result_detail(filename):
                                 'new_sr': d.get('new_safety_rating', 0)
                             })
                     
-                    class_results[cid]['drivers'].append({
+                    driver_data = {
                         'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1) + 1, # 0-indexed usually
                         'overall_pos': entry.get('finish_position', 0) + 1,
                         'car_number': entry.get('livery', {}).get('car_number', '#'),
@@ -1010,15 +1020,22 @@ def boxengasse_result_detail(filename):
                         'team_drivers_detailed': team_drivers_detailed,
                         'laps': laps_complete,
                         'gap_raw': class_interval, # for sorting/calc
+                        'gap': gap_str, # Will be overwritten for class view
+                        'overall_gap': overall_gap_str,
                         'best_lap': best_lap_str,
                         'avg_lap': avg_lap_str,
                         'inc': entry.get('incidents'),
                         'car_name': entry.get('car_name'),
-                        'club': entry.get('club_name'), # Need to check if this exists in this json version
+                        'class_name': cname, # For overall view
+                        'class_id': cid, # For filtering
+                        'club': entry.get('club_name'), 
                         'id': entry.get('cust_id')
-                    })
+                    }
+                    
+                    class_results[cid]['drivers'].append(driver_data)
+                    all_drivers_combined.append(driver_data) # Add to overall list
 
-            # Post-Process: Sort and Fix Gaps
+            # Post-Process: Sort and Fix Gaps per Class
             sorted_classes = []
             for cid, data in class_results.items():
                 # Sort drivers by position
@@ -1032,6 +1049,7 @@ def boxengasse_result_detail(filename):
                         diff = class_winner_laps - d['laps']
                         d['gap'] = f"+{diff} Lap{'s' if diff > 1 else ''}"
                     elif d['gap_raw'] > 0:
+                        # Recalc gap string just to be safe
                         seconds = d['gap_raw'] / 10000
                         if seconds > 60:
                              d['gap'] = f"+{int(seconds//60)}:{seconds%60:05.2f}"
@@ -1044,6 +1062,19 @@ def boxengasse_result_detail(filename):
             
             # Sort classes by something (maybe name or ID)
             sorted_classes.sort(key=lambda x: x['name'])
+            
+            # Post-Process Overall List
+            all_drivers_combined.sort(key=lambda x: x['overall_pos'])
+            
+            # Fix Overall Gaps (Laps down)
+            if all_drivers_combined:
+                overall_winner_laps = all_drivers_combined[0]['laps']
+                for d in all_drivers_combined:
+                     if d['laps'] < overall_winner_laps:
+                        diff = overall_winner_laps - d['laps']
+                        d['overall_gap'] = f"+{diff} Lap{'s' if diff > 1 else ''}"
+                     elif d['overall_pos'] == 1:
+                        d['overall_gap'] = "-"
 
             result_info = {
                 'track': file_meta.get('track') or data.get('track', {}).get('track_name'),
@@ -1057,6 +1088,7 @@ def boxengasse_result_detail(filename):
             return render_template('boxengasse_result_detail.html', 
                                  info=result_info, 
                                  classes=sorted_classes,
+                                 overall=all_drivers_combined, # New: Pass overall list
                                  filename=filename,
                                  meta=file_meta) # Pass meta for editing/viewing options
                                  
@@ -1665,11 +1697,27 @@ def admin_event_new():
         "description": "",
         "twitch": "",
         "drivers": [],
-        "result": ""
+        "result": "",
+        "result_file": "" # New
     }
     all_drivers = get_drivers_data()
     cars_data = load_cars()
-    return render_template('admin_event_edit.html', event=event, all_drivers=all_drivers, cars_data=cars_data, mode="new")
+    
+    # Load available results
+    results = []
+    meta = load_results_meta()
+    if os.path.exists(app.config['RESULTS_FOLDER']):
+        for filename in os.listdir(app.config['RESULTS_FOLDER']):
+            if filename.endswith('.json'):
+                file_meta = meta.get(filename, {})
+                results.append({
+                    'filename': filename,
+                    'title': file_meta.get('title', filename),
+                    'date': file_meta.get('date', 'Unknown')
+                })
+    results.sort(key=lambda x: x['date'], reverse=True)
+    
+    return render_template('admin_event_edit.html', event=event, all_drivers=all_drivers, cars_data=cars_data, mode="new", result_files=results)
 
 @app.route('/admin/event/edit/<event_id>')
 @login_required
@@ -1682,7 +1730,22 @@ def admin_event_edit(event_id):
         
     all_drivers = get_drivers_data()
     cars_data = load_cars()
-    return render_template('admin_event_edit.html', event=event, all_drivers=all_drivers, cars_data=cars_data, mode="edit")
+    
+    # Load available results
+    results = []
+    meta = load_results_meta()
+    if os.path.exists(app.config['RESULTS_FOLDER']):
+        for filename in os.listdir(app.config['RESULTS_FOLDER']):
+            if filename.endswith('.json'):
+                file_meta = meta.get(filename, {})
+                results.append({
+                    'filename': filename,
+                    'title': file_meta.get('title', filename),
+                    'date': file_meta.get('date', 'Unknown')
+                })
+    results.sort(key=lambda x: x['date'], reverse=True)
+    
+    return render_template('admin_event_edit.html', event=event, all_drivers=all_drivers, cars_data=cars_data, mode="edit", result_files=results)
 
 @app.route('/admin/event/save', methods=['POST'])
 @login_required
@@ -1715,6 +1778,7 @@ def admin_event_save():
     event['twitch'] = request.form.get('twitch')
     event['description'] = request.form.get('description')
     event['result'] = request.form.get('result') # Ergebnis
+    event['result_file'] = request.form.get('result_file') # Verknüpftes JSON File
     
     # Bild Upload
     if 'event_image' in request.files:

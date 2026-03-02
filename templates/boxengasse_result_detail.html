@@ -26,13 +26,12 @@
         {% endfor %}
     </div>
 
-    <!-- Content for All Classes (Optional, maybe just list all blocks) -->
+    <!-- Content for All Classes -->
     <div id="All" class="tab-content" style="display: block;">
-        {% for class in classes %}
         <div class="card" style="margin-bottom: 30px;">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>{{ class.full_name }}</h3>
-                <span style="font-size: 0.8rem; color: var(--rdf-silver); background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 12px;">{{ class.drivers|length }} Starter</span>
+                <h3>Gesamtergebnis</h3>
+                <span style="font-size: 0.8rem; color: var(--rdf-silver); background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 12px;">{{ overall|length }} Starter</span>
             </div>
             <div class="card-body" style="overflow-x: auto; padding: 0;">
                 <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
@@ -50,14 +49,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for row in class.drivers %}
+                        {% for row in overall %}
                         <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; background: {% if loop.index is even %}rgba(255,255,255,0.02){% else %}transparent{% endif %};">
-                            <td style="padding: 10px 15px; font-weight: bold; color: {% if row.pos == 1 %}#ffd700{% elif row.pos == 2 %}#c0c0c0{% elif row.pos == 3 %}#cd7f32{% else %}white{% endif %};">
-                                {{ row.pos }}.
+                            <td style="padding: 10px 15px; font-weight: bold; color: {% if row.overall_pos == 1 %}#ffd700{% elif row.overall_pos == 2 %}#c0c0c0{% elif row.overall_pos == 3 %}#cd7f32{% else %}white{% endif %};">
+                                {{ row.overall_pos }}.
                             </td>
                             <td style="padding: 10px 15px; color: var(--rdf-teal); font-family: monospace;">{{ row.car_number }}</td>
                             <td style="padding: 10px 15px;">
-                                <div style="font-weight: bold; color: white; cursor: pointer;" onclick="toggleDrivers('{{ loop.index }}-{{ class.id }}')">
+                                <div style="font-weight: bold; color: white; cursor: pointer;" onclick="toggleDrivers('all-{{ loop.index }}')">
                                     {{ row.name }}
                                     {% if row.team_drivers_detailed %}
                                     <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px; color: var(--rdf-teal);"></i>
@@ -66,11 +65,12 @@
                                 {% if row.club %}
                                 <div style="font-size: 0.75rem; color: #4b5563;">{{ row.club }}</div>
                                 {% endif %}
+                                <div style="font-size: 0.7rem; color: var(--rdf-teal);">{{ row.class_name }}</div>
                             </td>
                             <td style="padding: 10px 15px; font-size: 0.8rem; color: var(--rdf-silver);">{{ row.car_name }}</td>
                             <td style="padding: 10px 15px; text-align: center; color: white;">{{ row.laps }}</td>
-                            <td style="padding: 10px 15px; text-align: right; color: {% if row.gap == '-' %}var(--rdf-teal){% else %}var(--rdf-silver){% endif %}; font-family: monospace;">
-                                {{ row.gap }}
+                            <td style="padding: 10px 15px; text-align: right; color: {% if row.overall_gap == '-' %}var(--rdf-teal){% else %}var(--rdf-silver){% endif %}; font-family: monospace;">
+                                {{ row.overall_gap }}
                             </td>
                             <td style="padding: 10px 15px; text-align: right; color: #10b981; font-family: monospace;">
                                 {{ row.best_lap }}
@@ -84,7 +84,7 @@
                         </tr>
                         <!-- Driver Details Sub-Rows -->
                         {% if row.team_drivers_detailed %}
-                            <tr id="drivers-{{ loop.index }}-{{ class.id }}" style="display: none; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <tr id="drivers-all-{{ loop.index }}" style="display: none; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05);">
                                 <td colspan="9" style="padding: 10px;">
                                     <table style="width: 100%; font-size: 0.8rem; color: #9ca3af;">
                                         <thead>
@@ -134,7 +134,6 @@
                 </table>
             </div>
         </div>
-        {% endfor %}
     </div>
 
     <!-- Individual Class Tabs -->

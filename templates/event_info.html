@@ -32,12 +32,23 @@
         </div>
         
         <!-- Resultat oder Status -->
-        {% if event.result or is_past %}
+        {% if event.result or is_past or event.result_file %}
             {% if event.result %}
             <div style="margin-top: 20px; font-size: 2rem; color: var(--rdf-teal); font-weight: bold; background: rgba(0,0,0,0.3); display: inline-block; padding: 10px 30px; border-radius: 50px; border: 1px solid var(--rdf-teal);">
-                <i class="fas fa-trophy"></i> Platzierung: {{ event.result }}
+                <i class="fas fa-trophy"></i> {{ event.result }}
             </div>
-            {% else %}
+            <br>
+            {% endif %}
+            
+            {% if event.result_file %}
+            <div style="margin-top: 20px; display: inline-block;">
+                <a href="/boxengasse/result/{{ event.result_file }}" class="btn-primary" style="font-size: 1.2rem; padding: 15px 30px; border-radius: 50px; box-shadow: 0 4px 15px rgba(79, 209, 197, 0.3); text-decoration: none;">
+                    <i class="fas fa-list-ol"></i> Zum Rennergebnis
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if not event.result and not event.result_file %}
             <div style="margin-top: 20px; font-size: 2rem; color: var(--rdf-silver); font-weight: bold; opacity: 0.7;">
                 <i class="fas fa-flag-checkered"></i> Rennen beendet
             </div>
