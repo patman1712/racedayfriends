@@ -606,6 +606,7 @@
                         <td data-label="Serie">{{ event.series or '-' }}</td>
                         <td data-label="Fahrzeug">{{ event.car_model or '-' }}</td>
                         <td data-label="Ergebnis">
+                            <!-- DEBUG: {{ event.debug }} -->
                             <span class="res-badge">{{ event.result or '-' }}</span>
                             {% if event.best_lap or event.inc or event.result_link %}
                             <div style="font-size: 0.8rem; margin-top: 5px; color: var(--rdf-silver);">
