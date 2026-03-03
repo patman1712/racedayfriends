@@ -25,8 +25,13 @@
         <!-- Tabs -->
         <div style="display: flex; border-bottom: 1px solid var(--rdf-border); margin-bottom: 20px;">
             <div class="tab-btn active" onclick="switchTab('visual')" id="tab-visual">
-                <i class="fas fa-table"></i> Visueller Editor
+                <i class="fas fa-table"></i> Race Editor
             </div>
+            {% if quali_results %}
+            <div class="tab-btn" onclick="switchTab('quali')" id="tab-quali">
+                <i class="fas fa-stopwatch"></i> Quali Editor
+            </div>
+            {% endif %}
             <div class="tab-btn" onclick="switchTab('code')" id="tab-code">
                 <i class="fas fa-code"></i> Code Editor
             </div>
@@ -94,6 +99,57 @@
             {% endif %}
         </div>
 
+        <!-- Quali Editor -->
+        <div id="view-quali" style="display: none;">
+            {% if quali_results %}
+            <div style="background: #0B1829; border-radius: 8px; border: 1px solid var(--rdf-border); overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                    <thead>
+                        <tr style="background: #15273d; border-bottom: 1px solid var(--rdf-border);">
+                            <th style="padding: 12px; text-align: left; color: var(--rdf-silver); width: 50px;">Pos</th>
+                            <th style="padding: 12px; text-align: left; color: var(--rdf-silver); width: 80px;">Class Pos</th>
+                            <th style="padding: 12px; text-align: left; color: var(--rdf-silver);">Fahrer / Team</th>
+                            <th style="padding: 12px; text-align: center; color: var(--rdf-silver); width: 80px;">Inc</th>
+                            <th style="padding: 12px; text-align: left; color: var(--rdf-silver); width: 250px;">Info / Strafe</th>
+                            <th style="padding: 12px; text-align: right; color: var(--rdf-silver);">Best Lap</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sortable-rows-quali">
+                        {% for r in quali_results %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); cursor: grab;" draggable="true" class="draggable-row-quali" data-class-id="{{ r.car_class_id }}">
+                            <td style="padding: 10px;">
+                                <input type="number" name="q_pos_{{ r._uid }}" value="{{ r.finish_position }}" class="pos-input-quali" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
+                            </td>
+                            <td style="padding: 10px;">
+                                <input type="number" name="q_class_pos_{{ r._uid }}" value="{{ r.finish_position_in_class }}" class="class-pos-input-quali" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
+                            </td>
+                            <td style="padding: 10px;">
+                                <strong style="color: white; display: block;">{{ r.display_name }}</strong>
+                                <span style="color: var(--rdf-teal); font-size: 0.8rem;">#{{ r.livery.car_number if r.livery else '?' }}</span>
+                                <span style="color: #6b7280; font-size: 0.8rem;">(ID: {{ r.cust_id or r.team_id or '-' }})</span>
+                            </td>
+                            <td style="padding: 10px; text-align: center;">
+                                <input type="number" name="q_inc_{{ r._uid }}" value="{{ r.incidents }}" style="width: 60px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: {% if r.incidents > 10 %}#ef4444{% else %}white{% endif %}; padding: 5px; text-align: center;">
+                            </td>
+                            <td style="padding: 10px;">
+                                <input type="text" name="q_note_{{ r._uid }}" value="{{ r.steward_note or '' }}" placeholder="Strafe / Info..." style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: #f59e0b; padding: 5px;">
+                            </td>
+                            <td style="padding: 10px; text-align: right; font-family: monospace; color: #10b981;">
+                                {{ r.best_lap_time }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p style="margin-top: 15px; color: var(--rdf-silver); font-size: 0.9rem;">
+                <i class="fas fa-arrows-alt-v" style="color: var(--rdf-teal);"></i> <strong>Drag & Drop:</strong> Auch im Qualifying möglich!
+            </p>
+            {% else %}
+            <p style="color: var(--rdf-silver);">Keine Qualifying Session gefunden.</p>
+            {% endif %}
+        </div>
+
         <!-- Code Editor -->
         <div id="view-code" style="display: none;">
             <div style="background: #0B1829; padding: 20px; border-radius: 8px; border: 1px solid var(--rdf-border);">
@@ -134,6 +190,7 @@
         document.getElementById('tab-' + mode).classList.add('active');
         
         document.getElementById('view-visual').style.display = mode === 'visual' ? 'block' : 'none';
+        document.getElementById('view-quali').style.display = mode === 'quali' ? 'block' : 'none';
         document.getElementById('view-code').style.display = mode === 'code' ? 'block' : 'none';
     }
     
@@ -144,12 +201,17 @@
 
     // --- Drag & Drop Implementation ---
     document.addEventListener('DOMContentLoaded', function() {
-        const tbody = document.getElementById('sortable-rows');
+        initDragAndDrop('sortable-rows', 'draggable-row');
+        initDragAndDrop('sortable-rows-quali', 'draggable-row-quali');
+    });
+
+    function initDragAndDrop(containerId, rowClass) {
+        const tbody = document.getElementById(containerId);
         if (!tbody) return;
 
         let draggedRow = null;
 
-        tbody.querySelectorAll('.draggable-row').forEach(row => {
+        tbody.querySelectorAll('.' + rowClass).forEach(row => {
             row.addEventListener('dragstart', function(e) {
                 draggedRow = this;
                 e.dataTransfer.effectAllowed = 'move';
@@ -159,7 +221,7 @@
             row.addEventListener('dragend', function(e) {
                 this.style.opacity = '1';
                 draggedRow = null;
-                updatePositions(); // Update positions after drop
+                updatePositions(containerId); // Update positions after drop
             });
 
             row.addEventListener('dragover', function(e) {
@@ -181,17 +243,26 @@
                 }
             });
         });
-    });
+    }
 
-    function updatePositions() {
-        const rows = document.querySelectorAll('#sortable-rows .draggable-row');
+    function updatePositions(containerId) {
+        const rows = document.querySelectorAll('#' + containerId + ' > tr');
         
         // Track positions per class
         const classCounters = {};
 
         rows.forEach((row, index) => {
+            // Determine input classes based on container
+            let posSelector = '.pos-input';
+            let classPosSelector = '.class-pos-input';
+            
+            if (containerId.includes('quali')) {
+                posSelector = '.pos-input-quali';
+                classPosSelector = '.class-pos-input-quali';
+            }
+
             // Update Overall Position
-            const posInput = row.querySelector('.pos-input');
+            const posInput = row.querySelector(posSelector);
             if (posInput) {
                 posInput.value = index + 1; // 1-based index
                 // Visual feedback
@@ -205,7 +276,7 @@
                 if (!classCounters[classId]) classCounters[classId] = 0;
                 classCounters[classId]++;
                 
-                const classPosInput = row.querySelector('.class-pos-input');
+                const classPosInput = row.querySelector(classPosSelector);
                 if (classPosInput) {
                     classPosInput.value = classCounters[classId];
                     // Visual feedback
@@ -221,12 +292,12 @@
         const mode = document.getElementById('editMode').value;
         const textarea = document.querySelector('textarea[name="content"]');
         
-        if (mode === 'visual') {
+        if (mode === 'visual' || mode === 'quali') {
             // Disable huge textarea so it's not sent
             if (textarea) textarea.disabled = true;
         } else {
             // Code mode: Disable all visual inputs to keep request small(er)
-            document.querySelectorAll('#view-visual input').forEach(input => {
+            document.querySelectorAll('#view-visual input, #view-quali input').forEach(input => {
                 input.disabled = true;
             });
         }

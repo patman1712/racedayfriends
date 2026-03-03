@@ -914,19 +914,24 @@ def public_result_detail(filename):
             # Sessions find race
             sessions = data.get('session_results', [])
             race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), sessions[-1] if sessions else None)
+            quali_session = next((s for s in sessions if 'Qualify' in s.get('simsession_type_name', '')), None)
             
-            # Prepare Results Grouped by Class
+            # --- RACE RESULTS ---
             class_results = {}
-            all_drivers_combined = [] # New: Collect all drivers for "Overall" view
+            all_drivers_combined = [] 
             
-            if race_session:
-                # Find Overall Winner Laps (max laps of any driver)
-                overall_winner_laps = 0
-                if race_session.get('results'):
-                    overall_winner_laps = max([r.get('laps_complete', 0) for r in race_session.get('results', [])])
+            # Helper for time formatting
+            def format_time(val):
+                if val <= 0: return "-"
+                seconds = val / 10000
+                minutes = int(seconds // 60)
+                rem_seconds = seconds % 60
+                return f"{minutes}:{rem_seconds:06.3f}"
 
-                # 1. Identify Class Winners (for Laps Down calculation)
-                class_winners = {} # class_id -> max_laps
+            if race_session:
+                # ... (Existing Race Logic, kept but slightly refactored to use helper) ...
+                # 1. Identify Class Winners
+                class_winners = {} 
                 for entry in race_session.get('results', []):
                     cid = entry.get('car_class_id')
                     laps = entry.get('laps_complete', 0)
@@ -950,25 +955,9 @@ def public_result_detail(filename):
                     class_interval = entry.get('class_interval', 0)
                     laps_complete = entry.get('laps_complete', 0)
                     
-                    # Gap Calculation (Complex in iRacing JSON)
-                    # interval: time behind LEADER (overall) in microseconds?
-                    # class_interval: time behind CLASS LEADER?
-                    
-                    # Let's use class_interval for class views
                     gap_str = "-"
-                    if class_interval > 0:
-                        seconds = class_interval / 10000
-                        if seconds > 60:
-                             gap_str = f"+{int(seconds//60)}:{seconds%60:05.2f}"
-                        else:
-                             gap_str = f"+{seconds:.3f}s"
-                    elif class_interval == -1:
-                        # Laps down relative to class leader? 
-                        # Usually iRacing provides 'laps_complete'.
-                        # We need to find the winner of THIS class to calc laps down.
-                        pass # handled later if we sort list first
-                        
-                    # Overall Gap
+                    # (Simplified gap logic for readability)
+                    
                     overall_gap_str = "-"
                     if interval > 0:
                         seconds = interval / 10000
@@ -977,34 +966,9 @@ def public_result_detail(filename):
                         else:
                              overall_gap_str = f"+{seconds:.3f}s"
                         
-                    # Format Best Lap
-                    best_lap = entry.get('best_lap_time', 0)
-                    best_lap_str = "-"
-                    if best_lap > 0:
-                        seconds = best_lap / 10000
-                        minutes = int(seconds // 60)
-                        rem_seconds = seconds % 60
-                        best_lap_str = f"{minutes}:{rem_seconds:06.3f}"
-                        
-                    # Average Lap
-                    avg_lap = entry.get('average_lap', 0)
-                    avg_lap_str = "-"
-                    if avg_lap > 0:
-                        seconds = avg_lap / 10000
-                        minutes = int(seconds // 60)
-                        rem_seconds = seconds % 60
-                        avg_lap_str = f"{minutes}:{rem_seconds:06.3f}"
+                    best_lap_str = format_time(entry.get('best_lap_time', 0))
+                    avg_lap_str = format_time(entry.get('average_lap', 0))
 
-                    # Helper for time formatting
-                    def format_time(val):
-                        if val <= 0: return "-"
-                        seconds = val / 10000
-                        minutes = int(seconds // 60)
-                        rem_seconds = seconds % 60
-                        return f"{minutes}:{rem_seconds:06.3f}"
-
-                    # Driver Name(s)
-                    driver_name = entry.get('display_name')
                     # Team Drivers
                     team_drivers = []
                     team_drivers_detailed = []
@@ -1025,37 +989,34 @@ def public_result_detail(filename):
                             })
                     
                     driver_data = {
-                        'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1) + 1, # 0-indexed usually
+                        'pos': entry.get('finish_position_in_class', entry.get('position', 0) + 1) + 1, 
                         'overall_pos': entry.get('finish_position', 0) + 1,
                         'car_number': entry.get('livery', {}).get('car_number', '#'),
-                        'name': driver_name,
+                        'name': entry.get('display_name'),
                         'team_drivers': team_drivers,
                         'team_drivers_detailed': team_drivers_detailed,
                         'laps': laps_complete,
-                        'gap_raw': class_interval, # for sorting/calc
-                        'gap': gap_str, # Will be overwritten for class view
+                        'gap_raw': class_interval, 
+                        'gap': gap_str, 
                         'overall_gap': overall_gap_str,
                         'best_lap': best_lap_str,
                         'avg_lap': avg_lap_str,
                         'inc': entry.get('incidents'),
                         'car_name': entry.get('car_name'),
-                        'class_name': cname, # For overall view
-                        'class_id': cid, # For filtering
+                        'class_name': cname, 
+                        'class_id': cid, 
                         'club': entry.get('club_name'), 
                         'id': entry.get('cust_id'),
-                        'steward_note': entry.get('steward_note') # New: Pass Steward Note to template
+                        'steward_note': entry.get('steward_note')
                     }
                     
                     class_results[cid]['drivers'].append(driver_data)
-                    all_drivers_combined.append(driver_data) # Add to overall list
+                    all_drivers_combined.append(driver_data)
 
-            # Post-Process: Sort and Fix Gaps per Class
+            # Post-Process Race: Sort and Fix Gaps per Class
             sorted_classes = []
             for cid, data in class_results.items():
-                # Sort drivers by position
                 data['drivers'].sort(key=lambda x: x['pos'])
-                
-                # Fix Gaps (Laps down)
                 class_winner_laps = data['drivers'][0]['laps'] if data['drivers'] else 0
                 
                 for d in data['drivers']:
@@ -1063,7 +1024,6 @@ def public_result_detail(filename):
                         diff = class_winner_laps - d['laps']
                         d['gap'] = f"+{diff} Lap{'s' if diff > 1 else ''}"
                     elif d['gap_raw'] > 0:
-                        # Recalc gap string just to be safe
                         seconds = d['gap_raw'] / 10000
                         if seconds > 60:
                              d['gap'] = f"+{int(seconds//60)}:{seconds%60:05.2f}"
@@ -1071,16 +1031,11 @@ def public_result_detail(filename):
                              d['gap'] = f"+{seconds:.3f}s"
                     else:
                         d['gap'] = "-" # Winner
-                
                 sorted_classes.append(data)
             
-            # Sort classes by something (maybe name or ID)
             sorted_classes.sort(key=lambda x: x['name'])
-            
-            # Post-Process Overall List
             all_drivers_combined.sort(key=lambda x: x['overall_pos'])
             
-            # Fix Overall Gaps (Laps down)
             if all_drivers_combined:
                 overall_winner_laps = all_drivers_combined[0]['laps']
                 for d in all_drivers_combined:
@@ -1089,6 +1044,66 @@ def public_result_detail(filename):
                         d['overall_gap'] = f"+{diff} Lap{'s' if diff > 1 else ''}"
                      elif d['overall_pos'] == 1:
                         d['overall_gap'] = "-"
+
+            # --- QUALI RESULTS ---
+            quali_class_results = {}
+            quali_all_drivers = []
+            
+            if quali_session:
+                for entry in quali_session.get('results', []):
+                    cid = entry.get('car_class_id')
+                    cname = entry.get('car_class_short_name') or "Unknown"
+                    
+                    if cid not in quali_class_results:
+                        quali_class_results[cid] = {
+                            'id': cid,
+                            'name': cname,
+                            'full_name': entry.get('car_class_name'),
+                            'drivers': []
+                        }
+                    
+                    best_lap_raw = entry.get('best_lap_time', 0)
+                    best_lap_str = format_time(best_lap_raw)
+                    
+                    driver_data = {
+                        'pos': entry.get('finish_position_in_class', 0) + 1,
+                        'overall_pos': entry.get('finish_position', 0) + 1,
+                        'car_number': entry.get('livery', {}).get('car_number', '#'),
+                        'name': entry.get('display_name'),
+                        'best_lap_raw': best_lap_raw,
+                        'best_lap': best_lap_str,
+                        'gap': '-', # To be calc
+                        'inc': entry.get('incidents', 0),
+                        'car_name': entry.get('car_name'),
+                        'class_name': cname,
+                        'class_id': cid,
+                        'steward_note': entry.get('steward_note')
+                    }
+                    quali_class_results[cid]['drivers'].append(driver_data)
+                    quali_all_drivers.append(driver_data)
+            
+            # Post-Process Quali
+            sorted_quali_classes = []
+            for cid, data in quali_class_results.items():
+                data['drivers'].sort(key=lambda x: x['pos'])
+                
+                # Calc Gap to Pole
+                pole_lap = 0
+                for i, d in enumerate(data['drivers']):
+                    if i == 0:
+                        pole_lap = d['best_lap_raw']
+                        d['gap'] = "-"
+                    elif d['best_lap_raw'] > 0 and pole_lap > 0:
+                        diff = d['best_lap_raw'] - pole_lap
+                        seconds = diff / 10000
+                        d['gap'] = f"+{seconds:.3f}s"
+                    else:
+                        d['gap'] = "-"
+                
+                sorted_quali_classes.append(data)
+            
+            sorted_quali_classes.sort(key=lambda x: x['name'])
+            quali_all_drivers.sort(key=lambda x: x['overall_pos'])
 
             result_info = {
                 'track': file_meta.get('track') or data.get('track', {}).get('track_name'),
@@ -1102,10 +1117,12 @@ def public_result_detail(filename):
             return render_template('boxengasse_result_detail.html', 
                                  info=result_info, 
                                  classes=sorted_classes,
-                                 overall=all_drivers_combined, # New: Pass overall list
+                                 overall=all_drivers_combined,
+                                 quali_classes=sorted_quali_classes, # NEW
+                                 quali_overall=quali_all_drivers,    # NEW
                                  filename=filename,
                                  meta=file_meta,
-                                 public=True) # Flag for template
+                                 public=True)
                                  
     except Exception as e:
         flash(f"Fehler beim Lesen der Datei: {e}", "error")
@@ -2377,12 +2394,16 @@ def admin_results_edit(filename):
     
     # Try to parse JSON for Visual Editor
     race_results = []
+    quali_results = []
     error = None
     try:
         data = json.loads(content)
         # Find Race Session
         sessions = data.get('data', {}).get('session_results', [])
         race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), None)
+        
+        # Find Quali Session (Open Qualify or Lone Qualify)
+        quali_session = next((s for s in sessions if 'Qualify' in s.get('simsession_type_name', '')), None)
         
         if race_session:
             # Sort by position to make editing easier
@@ -2394,12 +2415,17 @@ def admin_results_edit(filename):
         else:
             error = "Keine 'Race' Session in dieser Datei gefunden."
             
+        if quali_session:
+            quali_results = sorted(quali_session.get('results', []), key=lambda x: x.get('finish_position', 999))
+            for r in quali_results:
+                r['_uid'] = str(r.get('cust_id') or r.get('team_id') or r.get('display_name'))
+            
     except json.JSONDecodeError:
         error = "Datei enthält ungültiges JSON."
     except Exception as e:
         error = f"Fehler beim Lesen der Daten: {str(e)}"
 
-    return render_template('admin_result_edit.html', filename=filename, content=content, race_results=race_results, error=error)
+    return render_template('admin_result_edit.html', filename=filename, content=content, race_results=race_results, quali_results=quali_results, error=error)
 
 @app.route('/admin/results/save/<filename>', methods=['POST'])
 @login_required
@@ -2428,7 +2454,9 @@ def admin_results_save(filename):
             
             sessions = data.get('data', {}).get('session_results', [])
             race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), None)
+            quali_session = next((s for s in sessions if 'Qualify' in s.get('simsession_type_name', '')), None)
             
+            # --- SAVE RACE ---
             if race_session:
                 results_list = race_session.get('results', [])
                 
@@ -2448,12 +2476,29 @@ def admin_results_save(filename):
                         r['laps_complete'] = int(request.form.get(f"laps_{cust_id}"))
                     if f"note_{cust_id}" in request.form:
                         r['steward_note'] = request.form.get(f"note_{cust_id}")
+            
+            # --- SAVE QUALI ---
+            if quali_session:
+                quali_results_list = quali_session.get('results', [])
+                for r in quali_results_list:
+                    cust_id = str(r.get('cust_id') or r.get('team_id') or r.get('display_name'))
+                    
+                    # Quali fields (prefixed with q_)
+                    if f"q_pos_{cust_id}" in request.form:
+                        r['finish_position'] = int(request.form.get(f"q_pos_{cust_id}")) - 1
+                    if f"q_class_pos_{cust_id}" in request.form:
+                        r['finish_position_in_class'] = int(request.form.get(f"q_class_pos_{cust_id}")) - 1
+                    if f"q_inc_{cust_id}" in request.form:
+                        r['incidents'] = int(request.form.get(f"q_inc_{cust_id}"))
+                    if f"q_note_{cust_id}" in request.form:
+                        r['steward_note'] = request.form.get(f"q_note_{cust_id}")
+
+            if not race_session and not quali_session:
+                raise Exception("Keine Race oder Quali Session gefunden.")
                         
-                # Write back
-                with open(filepath, 'w') as f:
-                    json.dump(data, f, indent=4)
-            else:
-                raise Exception("Race session not found during save.")
+            # Write back
+            with open(filepath, 'w') as f:
+                json.dump(data, f, indent=4)
 
         flash('Ergebnis erfolgreich aktualisiert!', 'success')
         
