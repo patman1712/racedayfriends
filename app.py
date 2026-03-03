@@ -879,7 +879,8 @@ def public_results():
                 if race_session:
                     # Look for RaceDayFriends result
                     # Also check for "RaceDayFriends" in display_name OR team_name
-                    rdf_result = next((r for r in race_session.get('results', []) if "RaceDayFriends" in r.get('display_name', '') or "RaceDayFriends" in r.get('team_name', '')), None)
+                    # NEW: Normalize strings to lower case for better matching
+                    rdf_result = next((r for r in race_session.get('results', []) if "racedayfriends" in (r.get('display_name') or "").lower() or "racedayfriends" in (r.get('team_name') or "").lower()), None)
                     if rdf_result:
                         res['rdf_note'] = rdf_result.get('steward_note')
         except: pass
