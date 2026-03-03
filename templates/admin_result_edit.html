@@ -50,12 +50,12 @@
                     </thead>
                     <tbody id="sortable-rows">
                         {% for r in race_results %}
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); cursor: grab;" draggable="true" class="draggable-row">
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); cursor: grab;" draggable="true" class="draggable-row" data-class-id="{{ r.car_class_id }}">
                             <td style="padding: 10px;">
                                 <input type="number" name="pos_{{ r.cust_id }}" value="{{ r.finish_position }}" class="pos-input" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
                             </td>
                             <td style="padding: 10px;">
-                                <input type="number" name="class_pos_{{ r.cust_id }}" value="{{ r.finish_position_in_class }}" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
+                                <input type="number" name="class_pos_{{ r.cust_id }}" value="{{ r.finish_position_in_class }}" class="class-pos-input" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
                             </td>
                             <td style="padding: 10px;">
                                 <strong style="color: white; display: block;">{{ r.display_name }}</strong>
@@ -185,13 +185,33 @@
 
     function updatePositions() {
         const rows = document.querySelectorAll('#sortable-rows .draggable-row');
+        
+        // Track positions per class
+        const classCounters = {};
+
         rows.forEach((row, index) => {
+            // Update Overall Position
             const posInput = row.querySelector('.pos-input');
             if (posInput) {
                 posInput.value = index + 1; // 1-based index
-                // Optional: Visual feedback (blink)
+                // Visual feedback
                 posInput.style.borderColor = '#10b981';
                 setTimeout(() => posInput.style.borderColor = 'var(--rdf-border)', 500);
+            }
+
+            // Update Class Position
+            const classId = row.getAttribute('data-class-id');
+            if (classId) {
+                if (!classCounters[classId]) classCounters[classId] = 0;
+                classCounters[classId]++;
+                
+                const classPosInput = row.querySelector('.class-pos-input');
+                if (classPosInput) {
+                    classPosInput.value = classCounters[classId];
+                    // Visual feedback
+                    classPosInput.style.borderColor = '#10b981';
+                    setTimeout(() => classPosInput.style.borderColor = 'var(--rdf-border)', 500);
+                }
             }
         });
     }
