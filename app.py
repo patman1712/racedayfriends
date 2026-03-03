@@ -2353,6 +2353,10 @@ def admin_results_edit(filename):
         if race_session:
             # Sort by position to make editing easier
             race_results = sorted(race_session.get('results', []), key=lambda x: x.get('finish_position', 999))
+            
+            # Ensure every result has a unique ID for the form (fallback logic)
+            for r in race_results:
+                r['_uid'] = str(r.get('cust_id') or r.get('team_id') or r.get('display_name'))
         else:
             error = "Keine 'Race' Session in dieser Datei gefunden."
             
@@ -2396,9 +2400,8 @@ def admin_results_save(filename):
                 
                 # Update loop
                 for r in results_list:
-                    cust_id = str(r.get('cust_id'))
-                    # Check if we have data for this ID in form
-                    # Form data keys: pos_{cust_id}, class_pos_{cust_id}, inc_{cust_id}, laps_{cust_id}
+                    # Robust ID matching (must match edit view logic)
+                    cust_id = str(r.get('cust_id') or r.get('team_id') or r.get('display_name'))
                     
                     if f"pos_{cust_id}" in request.form:
                         r['finish_position'] = int(request.form.get(f"pos_{cust_id}"))
