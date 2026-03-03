@@ -888,7 +888,8 @@ def public_results():
                         if "racedayfriends" in name or "racedayfriends" in team:
                             # IMPORTANT: Check if there is ACTUALLY a note!
                             note = r.get('steward_note')
-                            if note and note.strip() != "":
+                            # Check if note is not None AND not empty string AND not just whitespace
+                            if note and str(note).strip():
                                 res['rdf_note'] = note
                                 break
         except: pass
