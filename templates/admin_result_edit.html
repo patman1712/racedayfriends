@@ -215,5 +215,21 @@
             }
         });
     }
+
+    // --- Form Submission Handler (Prevent Huge Data) ---
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        const mode = document.getElementById('editMode').value;
+        const textarea = document.querySelector('textarea[name="content"]');
+        
+        if (mode === 'visual') {
+            // Disable huge textarea so it's not sent
+            if (textarea) textarea.disabled = true;
+        } else {
+            // Code mode: Disable all visual inputs to keep request small(er)
+            document.querySelectorAll('#view-visual input').forEach(input => {
+                input.disabled = true;
+            });
+        }
+    });
 </script>
 {% endblock %}
