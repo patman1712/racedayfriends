@@ -859,8 +859,31 @@ def public_results():
                             })
                     except: pass
                     
-    # Sort by date descending
-    results.sort(key=lambda x: x['date'], reverse=True)
+    # Sort by date descending (try to parse date)
+    def parse_date(d_str):
+        try:
+            return datetime.strptime(d_str, '%d.%m.%Y %H:%M')
+        except:
+            return datetime.min
+            
+    results.sort(key=lambda x: parse_date(x['date']), reverse=True)
+    
+    # NEW: Check for own team results and add note (RaceDayFriends)
+    for res in results[:10]: # Limit to last 10 for performance
+        try:
+            filepath = os.path.join(app.config['RESULTS_FOLDER'], res['filename'])
+            with open(filepath, 'r') as f:
+                data = json.load(f)
+                sessions = data.get('data', {}).get('session_results', [])
+                race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), None)
+                if race_session:
+                    # Look for RaceDayFriends result
+                    # Also check for "RaceDayFriends" in display_name OR team_name
+                    rdf_result = next((r for r in race_session.get('results', []) if "RaceDayFriends" in r.get('display_name', '') or "RaceDayFriends" in r.get('team_name', '')), None)
+                    if rdf_result:
+                        res['rdf_note'] = rdf_result.get('steward_note')
+        except: pass
+
     return render_template('public_results.html', results=results)
 
 @app.route('/results/view/<filename>')
@@ -1009,7 +1032,8 @@ def public_result_detail(filename):
                         'class_name': cname, # For overall view
                         'class_id': cid, # For filtering
                         'club': entry.get('club_name'), 
-                        'id': entry.get('cust_id')
+                        'id': entry.get('cust_id'),
+                        'steward_note': entry.get('steward_note') # New: Pass Steward Note to template
                     }
                     
                     class_results[cid]['drivers'].append(driver_data)

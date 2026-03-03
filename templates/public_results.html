@@ -19,6 +19,18 @@
                         </div>
                         
                         <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.3rem;">{{ res.title }}</h3>
+                        
+                        {% if res.rdf_note %}
+                        <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 10px; margin-bottom: 10px; border-radius: 0 4px 4px 0;">
+                            <div style="color: #f59e0b; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">
+                                <i class="fas fa-info-circle"></i> RaceDayFriends Info
+                            </div>
+                            <div style="color: #d1d5db; font-size: 0.9rem; font-style: italic;">
+                                "{{ res.rdf_note }}"
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <div style="color: var(--rdf-silver); font-size: 0.9rem; margin-bottom: 5px;">
                             <i class="fas fa-map-marker-alt" style="width: 20px; text-align: center;"></i> {{ res.track }}
                         </div>
