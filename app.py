@@ -2404,9 +2404,10 @@ def admin_results_save(filename):
                     cust_id = str(r.get('cust_id') or r.get('team_id') or r.get('display_name'))
                     
                     if f"pos_{cust_id}" in request.form:
-                        r['finish_position'] = int(request.form.get(f"pos_{cust_id}"))
+                        # Convert 1-based input to 0-based storage
+                        r['finish_position'] = int(request.form.get(f"pos_{cust_id}")) - 1
                     if f"class_pos_{cust_id}" in request.form:
-                        r['finish_position_in_class'] = int(request.form.get(f"class_pos_{cust_id}"))
+                        r['finish_position_in_class'] = int(request.form.get(f"class_pos_{cust_id}")) - 1
                     if f"inc_{cust_id}" in request.form:
                         r['incidents'] = int(request.form.get(f"inc_{cust_id}"))
                     if f"laps_{cust_id}" in request.form:
@@ -2430,13 +2431,6 @@ def admin_results_save(filename):
         flash(f'Speicherfehler: {str(e)}', 'error')
         return redirect(url_for('admin_results_edit', filename=filename))
         
-    return redirect(url_for('admin_results'))
-
-    if os.path.exists(filepath):
-        os.remove(filepath)
-        flash(f'Datei {filename} gelöscht', 'success')
-    else:
-        flash('Datei nicht gefunden', 'error')
     return redirect(url_for('admin_results'))
 
 @app.route('/admin/debug_iracing')
