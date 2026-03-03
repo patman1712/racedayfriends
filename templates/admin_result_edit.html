@@ -44,14 +44,15 @@
                             <th style="padding: 12px; text-align: left; color: var(--rdf-silver);">Fahrer / Team</th>
                             <th style="padding: 12px; text-align: center; color: var(--rdf-silver); width: 80px;">Inc</th>
                             <th style="padding: 12px; text-align: center; color: var(--rdf-silver); width: 80px;">Laps</th>
+                            <th style="padding: 12px; text-align: left; color: var(--rdf-silver); width: 250px;">Info / Strafe</th>
                             <th style="padding: 12px; text-align: right; color: var(--rdf-silver);">Details</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="sortable-rows">
                         {% for r in race_results %}
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); cursor: grab;" draggable="true" class="draggable-row">
                             <td style="padding: 10px;">
-                                <input type="number" name="pos_{{ r.cust_id }}" value="{{ r.finish_position }}" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
+                                <input type="number" name="pos_{{ r.cust_id }}" value="{{ r.finish_position }}" class="pos-input" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
                             </td>
                             <td style="padding: 10px;">
                                 <input type="number" name="class_pos_{{ r.cust_id }}" value="{{ r.finish_position_in_class }}" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
@@ -67,6 +68,9 @@
                             <td style="padding: 10px; text-align: center;">
                                 <input type="number" name="laps_{{ r.cust_id }}" value="{{ r.laps_complete }}" style="width: 60px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
                             </td>
+                            <td style="padding: 10px;">
+                                <input type="text" name="note_{{ r.cust_id }}" value="{{ r.steward_note or '' }}" placeholder="Strafe / Info..." style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: #f59e0b; padding: 5px;">
+                            </td>
                             <td style="padding: 10px; text-align: right; font-family: monospace; color: #6b7280;">
                                 Best: {{ r.best_lap_time }}<br>
                                 Avg: {{ r.average_lap }}
@@ -77,6 +81,7 @@
                 </table>
             </div>
             <p style="margin-top: 15px; color: var(--rdf-silver); font-size: 0.9rem;">
+                <i class="fas fa-arrows-alt-v" style="color: var(--rdf-teal);"></i> <strong>Drag & Drop:</strong> Ziehe die Zeilen, um die Reihenfolge zu ändern. Die Position (Pos) wird automatisch angepasst.<br>
                 <i class="fas fa-info-circle"></i> Änderungen an Positionen wirken sich auf die Sortierung nach dem Speichern aus.
             </p>
             {% else %}
@@ -136,5 +141,59 @@
     {% if not race_results and not error %}
     // switchTab('code'); // Optional, logic handled in template above
     {% endif %}
+
+    // --- Drag & Drop Implementation ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const tbody = document.getElementById('sortable-rows');
+        if (!tbody) return;
+
+        let draggedRow = null;
+
+        tbody.querySelectorAll('.draggable-row').forEach(row => {
+            row.addEventListener('dragstart', function(e) {
+                draggedRow = this;
+                e.dataTransfer.effectAllowed = 'move';
+                this.style.opacity = '0.4';
+            });
+
+            row.addEventListener('dragend', function(e) {
+                this.style.opacity = '1';
+                draggedRow = null;
+                updatePositions(); // Update positions after drop
+            });
+
+            row.addEventListener('dragover', function(e) {
+                e.preventDefault(); // Necessary for drop to work
+                e.dataTransfer.dropEffect = 'move';
+                
+                // Simple reordering logic
+                const targetRow = this;
+                if (draggedRow && draggedRow !== targetRow) {
+                    const rows = Array.from(tbody.children);
+                    const draggedIndex = rows.indexOf(draggedRow);
+                    const targetIndex = rows.indexOf(targetRow);
+
+                    if (draggedIndex < targetIndex) {
+                        tbody.insertBefore(draggedRow, targetRow.nextSibling);
+                    } else {
+                        tbody.insertBefore(draggedRow, targetRow);
+                    }
+                }
+            });
+        });
+    });
+
+    function updatePositions() {
+        const rows = document.querySelectorAll('#sortable-rows .draggable-row');
+        rows.forEach((row, index) => {
+            const posInput = row.querySelector('.pos-input');
+            if (posInput) {
+                posInput.value = index + 1; // 1-based index
+                // Optional: Visual feedback (blink)
+                posInput.style.borderColor = '#10b981';
+                setTimeout(() => posInput.style.borderColor = 'var(--rdf-border)', 500);
+            }
+        });
+    }
 </script>
 {% endblock %}

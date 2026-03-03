@@ -2408,6 +2408,8 @@ def admin_results_save(filename):
                         r['incidents'] = int(request.form.get(f"inc_{cust_id}"))
                     if f"laps_{cust_id}" in request.form:
                         r['laps_complete'] = int(request.form.get(f"laps_{cust_id}"))
+                    if f"note_{cust_id}" in request.form:
+                        r['steward_note'] = request.form.get(f"note_{cust_id}")
                         
                 # Write back
                 with open(filepath, 'w') as f:
