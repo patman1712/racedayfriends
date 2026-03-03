@@ -2,28 +2,139 @@
 
 {% block content %}
 <div class="container" style="padding-top: 120px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1 style="color: white;">Ergebnis bearbeiten: <span style="color: var(--rdf-teal); font-family: monospace; font-size: 0.8em;">{{ filename }}</span></h1>
-        <div>
-            <a href="/admin/results" class="btn-secondary" style="margin-right: 10px;">Abbrechen</a>
-            <button onclick="document.getElementById('editForm').submit()" class="btn-primary"><i class="fas fa-save"></i> Speichern</button>
+    <form id="editForm" action="/admin/results/save/{{ filename }}" method="post">
+        <input type="hidden" name="mode" id="editMode" value="visual">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h1 style="color: white; margin-bottom: 5px;">Ergebnis bearbeiten</h1>
+                <div style="color: var(--rdf-silver); font-family: monospace; font-size: 0.9em;">{{ filename }}</div>
+            </div>
+            <div>
+                <a href="/admin/results" class="btn-secondary" style="margin-right: 10px;">Abbrechen</a>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Speichern</button>
+            </div>
         </div>
-    </div>
 
-    {% if error %}
-    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-        <strong>Fehler beim Speichern:</strong> {{ error }}
-    </div>
-    {% endif %}
+        {% if error %}
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <strong>Fehler:</strong> {{ error }}
+        </div>
+        {% endif %}
 
-    <div style="background: #0B1829; padding: 20px; border-radius: 8px; border: 1px solid var(--rdf-border);">
-        <p style="color: var(--rdf-silver); margin-bottom: 10px; font-size: 0.9rem;">
-            <i class="fas fa-exclamation-triangle" style="color: orange;"></i> <strong>Vorsicht:</strong> Änderungen hier wirken sich sofort auf die Darstellung aus. Ein Backup (.bak) wird beim Speichern automatisch erstellt.<br>
-            Nutze STRG+F (oder CMD+F) um nach Fahrern zu suchen.
-        </p>
-        <form id="editForm" action="/admin/results/save/{{ filename }}" method="post">
-            <textarea name="content" style="width: 100%; height: 600px; background: #15273d; color: #e2e8f0; font-family: monospace; border: 1px solid var(--rdf-border); padding: 15px; border-radius: 4px; line-height: 1.4; tab-size: 2; white-space: pre;" spellcheck="false">{{ content }}</textarea>
-        </form>
-    </div>
+        <!-- Tabs -->
+        <div style="display: flex; border-bottom: 1px solid var(--rdf-border); margin-bottom: 20px;">
+            <div class="tab-btn active" onclick="switchTab('visual')" id="tab-visual">
+                <i class="fas fa-table"></i> Visueller Editor
+            </div>
+            <div class="tab-btn" onclick="switchTab('code')" id="tab-code">
+                <i class="fas fa-code"></i> Code Editor
+            </div>
+        </div>
+
+        <!-- Visual Editor -->
+        <div id="view-visual" style="display: block;">
+            {% if race_results %}
+            <div style="background: #0B1829; border-radius: 8px; border: 1px solid var(--rdf-border); overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                    <thead>
+                        <tr style="background: #15273d; border-bottom: 1px solid var(--rdf-border);">
+                            <th style="padding: 12px; text-align: left; color: var(--rdf-silver); width: 50px;">Pos</th>
+                            <th style="padding: 12px; text-align: left; color: var(--rdf-silver); width: 80px;">Class Pos</th>
+                            <th style="padding: 12px; text-align: left; color: var(--rdf-silver);">Fahrer / Team</th>
+                            <th style="padding: 12px; text-align: center; color: var(--rdf-silver); width: 80px;">Inc</th>
+                            <th style="padding: 12px; text-align: center; color: var(--rdf-silver); width: 80px;">Laps</th>
+                            <th style="padding: 12px; text-align: right; color: var(--rdf-silver);">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in race_results %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 10px;">
+                                <input type="number" name="pos_{{ r.cust_id }}" value="{{ r.finish_position }}" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
+                            </td>
+                            <td style="padding: 10px;">
+                                <input type="number" name="class_pos_{{ r.cust_id }}" value="{{ r.finish_position_in_class }}" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
+                            </td>
+                            <td style="padding: 10px;">
+                                <strong style="color: white; display: block;">{{ r.display_name }}</strong>
+                                <span style="color: var(--rdf-teal); font-size: 0.8rem;">#{{ r.livery.car_number if r.livery else '?' }}</span>
+                                <span style="color: #6b7280; font-size: 0.8rem;">(ID: {{ r.cust_id }})</span>
+                            </td>
+                            <td style="padding: 10px; text-align: center;">
+                                <input type="number" name="inc_{{ r.cust_id }}" value="{{ r.incidents }}" style="width: 60px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: {% if r.incidents > 10 %}#ef4444{% else %}white{% endif %}; padding: 5px; text-align: center;">
+                            </td>
+                            <td style="padding: 10px; text-align: center;">
+                                <input type="number" name="laps_{{ r.cust_id }}" value="{{ r.laps_complete }}" style="width: 60px; background: rgba(0,0,0,0.3); border: 1px solid var(--rdf-border); color: white; padding: 5px; text-align: center;">
+                            </td>
+                            <td style="padding: 10px; text-align: right; font-family: monospace; color: #6b7280;">
+                                Best: {{ r.best_lap_time }}<br>
+                                Avg: {{ r.average_lap }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p style="margin-top: 15px; color: var(--rdf-silver); font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> Änderungen an Positionen wirken sich auf die Sortierung nach dem Speichern aus.
+            </p>
+            {% else %}
+            <div style="padding: 40px; text-align: center; background: #0B1829; border-radius: 8px; border: 1px solid var(--rdf-border);">
+                <i class="fas fa-exclamation-circle" style="font-size: 2rem; color: #f59e0b; margin-bottom: 15px;"></i>
+                <h3 style="color: white;">Keine strukturierten Daten verfügbar</h3>
+                <p style="color: var(--rdf-silver);">Der Visual Editor konnte keine 'Race' Session finden. Bitte nutze den Code Editor.</p>
+                <button type="button" onclick="switchTab('code')" class="btn-secondary" style="margin-top: 10px;">Zum Code Editor</button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Code Editor -->
+        <div id="view-code" style="display: none;">
+            <div style="background: #0B1829; padding: 20px; border-radius: 8px; border: 1px solid var(--rdf-border);">
+                <p style="color: var(--rdf-silver); margin-bottom: 10px; font-size: 0.9rem;">
+                    <i class="fas fa-exclamation-triangle" style="color: orange;"></i> <strong>Raw JSON Mode:</strong> Hier bearbeitest du die Datei direkt. Fehler können die Anzeige zerstören.
+                </p>
+                <textarea name="content" style="width: 100%; height: 600px; background: #15273d; color: #e2e8f0; font-family: monospace; border: 1px solid var(--rdf-border); padding: 15px; border-radius: 4px; line-height: 1.4; tab-size: 2; white-space: pre;" spellcheck="false">{{ content }}</textarea>
+            </div>
+        </div>
+
+    </form>
 </div>
+
+<style>
+    .tab-btn {
+        padding: 10px 20px;
+        color: var(--rdf-silver);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+    }
+    .tab-btn:hover {
+        color: white;
+    }
+    .tab-btn.active {
+        color: var(--rdf-teal);
+        border-bottom-color: var(--rdf-teal);
+    }
+</style>
+
+<script>
+    function switchTab(mode) {
+        // Update input
+        document.getElementById('editMode').value = mode;
+        
+        // Update UI
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + mode).classList.add('active');
+        
+        document.getElementById('view-visual').style.display = mode === 'visual' ? 'block' : 'none';
+        document.getElementById('view-code').style.display = mode === 'code' ? 'block' : 'none';
+    }
+    
+    // Auto-switch to code if visual is empty (error case)
+    {% if not race_results and not error %}
+    // switchTab('code'); // Optional, logic handled in template above
+    {% endif %}
+</script>
 {% endblock %}

@@ -2329,7 +2329,7 @@ def admin_results_upload():
         
     return redirect(url_for('admin_results'))
 
-@app.route('/admin/results/edit/<filename>')
+@app.route('/admin/results/edit/<filename>', methods=['GET', 'POST'])
 @login_required
 def admin_results_edit(filename):
     filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
@@ -2337,34 +2337,93 @@ def admin_results_edit(filename):
         flash('Datei nicht gefunden', 'error')
         return redirect(url_for('admin_results'))
         
+    # Read file content
     with open(filepath, 'r') as f:
         content = f.read()
+    
+    # Try to parse JSON for Visual Editor
+    race_results = []
+    error = None
+    try:
+        data = json.loads(content)
+        # Find Race Session
+        sessions = data.get('data', {}).get('session_results', [])
+        race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), None)
         
-    return render_template('admin_result_edit.html', filename=filename, content=content)
+        if race_session:
+            # Sort by position to make editing easier
+            race_results = sorted(race_session.get('results', []), key=lambda x: x.get('finish_position', 999))
+        else:
+            error = "Keine 'Race' Session in dieser Datei gefunden."
+            
+    except json.JSONDecodeError:
+        error = "Datei enthält ungültiges JSON."
+    except Exception as e:
+        error = f"Fehler beim Lesen der Daten: {str(e)}"
+
+    return render_template('admin_result_edit.html', filename=filename, content=content, race_results=race_results, error=error)
 
 @app.route('/admin/results/save/<filename>', methods=['POST'])
 @login_required
 def admin_results_save(filename):
     filepath = os.path.join(app.config['RESULTS_FOLDER'], secure_filename(filename))
-    content = request.form.get('content')
+    mode = request.form.get('mode', 'visual') # 'visual' or 'code'
     
     try:
-        # Validierung: Ist es valides JSON?
-        json.loads(content)
-        
         # Backup erstellen (Sicherheit)
         if os.path.exists(filepath):
             backup_path = filepath + ".bak"
-            import shutil
             shutil.copy2(filepath, backup_path)
+
+        if mode == 'code':
+            # RAW JSON SAVE
+            content = request.form.get('content')
+            json.loads(content) # Validate
+            with open(filepath, 'w') as f:
+                f.write(content)
+                
+        else:
+            # VISUAL SAVE
+            # We need to read the original file to preserve structure
+            with open(filepath, 'r') as f:
+                data = json.load(f)
             
-        with open(filepath, 'w') as f:
-            f.write(content)
+            sessions = data.get('data', {}).get('session_results', [])
+            race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), None)
             
-        flash('Datei erfolgreich gespeichert (Backup wurde erstellt)', 'success')
+            if race_session:
+                results_list = race_session.get('results', [])
+                
+                # Update loop
+                for r in results_list:
+                    cust_id = str(r.get('cust_id'))
+                    # Check if we have data for this ID in form
+                    # Form data keys: pos_{cust_id}, class_pos_{cust_id}, inc_{cust_id}, laps_{cust_id}
+                    
+                    if f"pos_{cust_id}" in request.form:
+                        r['finish_position'] = int(request.form.get(f"pos_{cust_id}"))
+                    if f"class_pos_{cust_id}" in request.form:
+                        r['finish_position_in_class'] = int(request.form.get(f"class_pos_{cust_id}"))
+                    if f"inc_{cust_id}" in request.form:
+                        r['incidents'] = int(request.form.get(f"inc_{cust_id}"))
+                    if f"laps_{cust_id}" in request.form:
+                        r['laps_complete'] = int(request.form.get(f"laps_{cust_id}"))
+                        
+                # Write back
+                with open(filepath, 'w') as f:
+                    json.dump(data, f, indent=4)
+            else:
+                raise Exception("Race session not found during save.")
+
+        flash('Ergebnis erfolgreich aktualisiert!', 'success')
+        
     except json.JSONDecodeError as e:
         flash(f'Fehler: Ungültiges JSON! ({str(e)})', 'error')
-        return render_template('admin_result_edit.html', filename=filename, content=content, error=str(e))
+        # Redirect back to edit (maybe with content? for now just redirect)
+        return redirect(url_for('admin_results_edit', filename=filename))
+    except Exception as e:
+        flash(f'Speicherfehler: {str(e)}', 'error')
+        return redirect(url_for('admin_results_edit', filename=filename))
         
     return redirect(url_for('admin_results'))
 
