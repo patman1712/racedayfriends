@@ -880,7 +880,16 @@ def public_results():
                     # Look for RaceDayFriends result
                     # Also check for "RaceDayFriends" in display_name OR team_name
                     # NEW: Normalize strings to lower case for better matching
-                    rdf_result = next((r for r in race_session.get('results', []) if "racedayfriends" in (r.get('display_name') or "").lower() or "racedayfriends" in (r.get('team_name') or "").lower()), None)
+                    
+                    # Debug: Print all names to see what we have
+                    # for r in race_session.get('results', []):
+                    #    print(f"Name: {r.get('display_name')}, Team: {r.get('team_name')}")
+
+                    rdf_result = next((r for r in race_session.get('results', []) if 
+                        "racedayfriends" in (r.get('display_name') or "").lower().replace(" ", "") or 
+                        "racedayfriends" in (r.get('team_name') or "").lower().replace(" ", "")
+                    ), None)
+                    
                     if rdf_result:
                         res['rdf_note'] = rdf_result.get('steward_note')
         except: pass
