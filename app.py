@@ -878,20 +878,19 @@ def public_results():
                 race_session = next((s for s in sessions if s.get('simsession_type_name') == 'Race'), None)
                 if race_session:
                     # Look for RaceDayFriends result
-                    # Also check for "RaceDayFriends" in display_name OR team_name
-                    # NEW: Normalize strings to lower case for better matching
-                    
-                    # Debug: Print all names to see what we have
-                    # for r in race_session.get('results', []):
-                    #    print(f"Name: {r.get('display_name')}, Team: {r.get('team_name')}")
-
-                    rdf_result = next((r for r in race_session.get('results', []) if 
-                        "racedayfriends" in (r.get('display_name') or "").lower().replace(" ", "") or 
-                        "racedayfriends" in (r.get('team_name') or "").lower().replace(" ", "")
-                    ), None)
-                    
-                    if rdf_result:
-                        res['rdf_note'] = rdf_result.get('steward_note')
+                    # Try to find RaceDayFriends
+                    rdf_result = None
+                    for r in race_session.get('results', []):
+                        name = (r.get('display_name') or "").lower().replace(" ", "")
+                        team = (r.get('team_name') or "").lower().replace(" ", "")
+                        
+                        # Match "racedayfriends"
+                        if "racedayfriends" in name or "racedayfriends" in team:
+                            # IMPORTANT: Check if there is ACTUALLY a note!
+                            note = r.get('steward_note')
+                            if note and note.strip() != "":
+                                res['rdf_note'] = note
+                                break
         except: pass
 
     return render_template('public_results.html', results=results)
